@@ -1,0 +1,238 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===================================
+   Apple-inspired Design System
+   Ultra clean, minimal, neutral palette
+   =================================== */
+
+@layer base {
+  :root {
+    /* Background & Surfaces - Pure whites */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3%;
+    
+    /* Primary - Apple blue */
+    --primary: 211 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Secondary - Ultra light gray */
+    --secondary: 0 0% 97%;
+    --secondary-foreground: 0 0% 9%;
+    
+    /* Muted - Subtle gray */
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    
+    /* Accent */
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 9%;
+    
+    /* Semantic - Muted versions */
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 145 60% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 35 90% 50%;
+    --warning-foreground: 0 0% 100%;
+    
+    /* Borders - Almost invisible */
+    --border: 0 0% 93%;
+    --input: 0 0% 93%;
+    --ring: 211 100% 50%;
+    
+    /* Radius */
+    --radius: 0.875rem;
+    
+    /* Charts - Muted colors */
+    --chart-1: 211 60% 50%;
+    --chart-2: 145 45% 45%;
+    --chart-3: 0 55% 50%;
+    --chart-4: 35 70% 50%;
+    --chart-5: 260 50% 55%;
+  }
+
+  .dark {
+    /* Dark mode - True black like iOS OLED */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 98%;
+    
+    /* Primary */
+    --primary: 211 100% 55%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Secondary */
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 98%;
+    
+    /* Muted */
+    --muted: 0 0% 14%;
+    --muted-foreground: 0 0% 50%;
+    
+    /* Accent */
+    --accent: 0 0% 14%;
+    --accent-foreground: 0 0% 98%;
+    
+    /* Semantic */
+    --destructive: 0 60% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 145 55% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 35 85% 55%;
+    --warning-foreground: 0 0% 100%;
+    
+    /* Borders */
+    --border: 0 0% 16%;
+    --input: 0 0% 16%;
+    --ring: 211 100% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "cv11", "ss01";
+    font-variation-settings: "opsz" 32;
+  }
+}
+
+/* Custom scrollbar - Minimal */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-foreground/10 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-foreground/20;
+}
+
+/* Money display utilities - Neutral, not saturated */
+.money-positive {
+  @apply text-green-600 dark:text-green-500;
+}
+
+.money-negative {
+  @apply text-foreground;
+}
+
+.money-neutral {
+  @apply text-muted-foreground;
+}
+
+/* iOS-style safe area padding */
+@supports (padding: max(0px)) {
+  .safe-area-inset-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Focus ring style */
+.focus-ring {
+  @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+}
+
+/* Glass effect - Apple style */
+.glass {
+  @apply bg-white/70 dark:bg-black/70 backdrop-blur-2xl saturate-150;
+}
+
+/* Subtle shadow utility - Much softer */
+.shadow-soft {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 
+              0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.shadow-soft-lg {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02), 
+              0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+/* Apple-style card hover */
+.card-hover {
+  @apply transition-transform duration-500;
+}
+
+.card-hover:hover {
+  transform: scale(1.01);
+}
+
+/* Apple spring animation */
+@keyframes spring-in {
+  0% { 
+    opacity: 0; 
+    transform: scale(0.96) translateY(8px); 
+  }
+  50% {
+    transform: scale(1.01) translateY(-2px);
+  }
+  100% { 
+    opacity: 1; 
+    transform: scale(1) translateY(0); 
+  }
+}
+
+/* Animation utilities */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { 
+    opacity: 0; 
+    transform: translateY(8px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+@keyframes scale-in {
+  from { 
+    opacity: 0; 
+    transform: scale(0.95); 
+  }
+  to { 
+    opacity: 1; 
+    transform: scale(1); 
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 200ms ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 300ms ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 200ms ease-out;
+}
