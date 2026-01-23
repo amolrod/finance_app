@@ -1,15 +1,15 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import express, { Request, Response } from 'express';
+import express, { Request, Response, Express } from 'express';
 import helmet from 'helmet';
-import { AppModule } from './src/app.module';
+import { AppModule } from '../src/app.module';
 
 const server = express();
 
-let cachedApp: express.Express | null = null;
+let cachedApp: Express | null = null;
 
-async function bootstrap(): Promise<express.Express> {
+async function bootstrap(): Promise<Express> {
   if (cachedApp) {
     return cachedApp;
   }
