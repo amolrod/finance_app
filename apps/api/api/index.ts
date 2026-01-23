@@ -1,22 +1,21 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { ValidationPipe, VersioningType, INestApplication } from '@nestjs/common';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import express, { Request, Response, Express } from 'express';
+import * as express from 'express';
 import helmet from 'helmet';
 import { AppModule } from '../src/app.module';
 
-const server = express();
+const expressApp = express();
+let app: INestApplication;
 
-let cachedApp: Express | null = null;
-
-async function bootstrap(): Promise<Express> {
-  if (cachedApp) {
-    return cachedApp;
+async function bootstrap(): Promise<void> {
+  if (app) {
+    return;
   }
 
-  const app = await NestFactory.create(
+  app = await NestFactory.create(
     AppModule,
-    new ExpressAdapter(server),
+    new ExpressAdapter(expressApp),
     {
       logger: ['error', 'warn', 'log'],
     },
@@ -24,12 +23,12 @@ async function bootstrap(): Promise<Express> {
 
   // Security middleware
   app.use(helmet({
-    contentSecurityPolicy: false, // Disable for API
+    contentSecurityPolicy: false,
   }));
 
-  // CORS - allow all origins in production (configure as needed)
+  // CORS
   app.enableCors({
-    origin: process.env.CORS_ORIGINS?.split(',') || ['*'],
+    origin: process.env.CORS_ORIGINS?.split(',') || true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -57,12 +56,13 @@ async function bootstrap(): Promise<Express> {
   );
 
   await app.init();
-  cachedApp = server;
-  return cachedApp;
 }
 
-// Export handler for Vercel
-export default async function handler(req: Request, res: Response) {
-  const app = await bootstrap();
-  app(req, res);
+// Vercel serverless handler
+export default async function handler(
+  req: express.Request,
+  res: express.Response,
+): Promise<void> {
+  await bootstrap();
+  expressApp(req, res);
 }
