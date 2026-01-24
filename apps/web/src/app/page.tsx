@@ -398,7 +398,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section id="demo" className="relative py-6">
+        <section id="demo" className="relative z-10 pt-6 pb-24 md:pb-32 lg:pb-40">
           <MacbookScroll
             title="Todo el estado, en un solo recorrido."
           >
