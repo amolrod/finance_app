@@ -63,12 +63,12 @@ async function bootstrap(): Promise<void> {
 
 // Vercel serverless handler
 export default async function handler(
-  req: express.Request,
-  res: express.Response,
+  req: any,
+  res: any,
 ): Promise<void> {
   // Handle CORS preflight
   const allowedOrigins = process.env.CORS_ORIGINS?.split(',') || ['*'];
-  const origin = req.headers.origin || '';
+  const origin = req.headers?.origin || '';
   
   if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin || '*');
