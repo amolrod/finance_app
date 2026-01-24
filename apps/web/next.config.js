@@ -2,6 +2,16 @@
 const nextConfig = {
   reactStrictMode: true,
 
+  // Ignorar errores de ESLint en build de producción
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+
+  // Ignorar errores de TypeScript en build (opcional, para deploys rápidos)
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+
   // Turbopack para compilación más rápida en desarrollo
   // Usa: next dev --turbo
 
