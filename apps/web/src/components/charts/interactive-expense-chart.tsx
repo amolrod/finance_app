@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { PieChartTooltip } from '@/components/charts/chart-tooltip';
 import {
   Dialog,
   DialogContent,
@@ -101,11 +102,17 @@ export function InteractiveExpenseChart({ transactions, isLoading }: Interactive
   const total = data.reduce((acc, item) => acc + item.value, 0);
 
   // Transform data for recharts compatibility - must be before any conditional returns
-  const chartData = useMemo(() => data.map(item => ({
-    name: item.name,
-    value: item.value,
-    color: item.color,
-  })), [data]);
+  const chartData = useMemo(
+    () =>
+      data.map((item) => ({
+        name: item.name,
+        value: item.value,
+        color: item.color,
+        percent: item.percentage / 100,
+        transactionCount: item.transactions.length,
+      })),
+    [data]
+  );
 
   const handlePieClick = useCallback((categoryData: CategoryData) => {
     setSelectedCategory(categoryData);
@@ -178,13 +185,12 @@ export function InteractiveExpenseChart({ transactions, isLoading }: Interactive
                     />
                   ))}
                 </Pie>
-                <Tooltip 
-                  formatter={(value) => [convertAndFormat(Number(value || 0), preferredCurrency), 'Gasto']}
-                  contentStyle={{ 
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                  }}
+                <Tooltip
+                  content={
+                    <PieChartTooltip
+                      formatter={(value) => convertAndFormat(value, preferredCurrency)}
+                    />
+                  }
                 />
               </PieChart>
             </ResponsiveContainer>

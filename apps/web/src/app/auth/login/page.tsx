@@ -160,7 +160,7 @@ export default function LoginPage() {
               {LOGIN_STATS.map((stat) => (
                 <div
                   key={stat.label}
-                  className="rounded-2xl border border-foreground/10 bg-background/70 p-4 shadow-soft"
+                  className="rounded-2xl border border-foreground/10 bg-gradient-to-br from-emerald-500/10 via-background/80 to-sky-500/10 p-4 shadow-soft"
                 >
                   <p className="text-xs text-muted-foreground">{stat.label}</p>
                   <p className="mt-2 text-xl font-semibold text-foreground">{stat.value}</p>
@@ -175,7 +175,7 @@ export default function LoginPage() {
               {HIGHLIGHTS.map(({ icon: Icon, title, description }) => (
                 <div
                   key={title}
-                  className="rounded-2xl border border-foreground/10 bg-background/70 p-4"
+                  className="rounded-2xl border border-foreground/10 bg-gradient-to-br from-background/70 via-background/90 to-emerald-500/10 p-4"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-foreground/5 text-foreground">
                     <Icon className="h-5 w-5" aria-hidden="true" />
@@ -190,7 +190,7 @@ export default function LoginPage() {
               className="relative motion-safe:animate-[rise_700ms_ease-out_both]"
               style={{ animationDelay: '520ms' }}
             >
-              <div className="rounded-3xl border border-foreground/10 bg-background/80 p-6 shadow-soft-lg">
+              <div className="rounded-3xl border border-foreground/10 bg-gradient-to-br from-background/85 via-background/95 to-emerald-500/10 p-6 shadow-soft-lg">
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>Actividad reciente</span>
                   <span className="flex items-center gap-1 text-emerald-600">
@@ -231,8 +231,9 @@ export default function LoginPage() {
             className="relative motion-safe:animate-[rise_700ms_ease-out_both]"
             style={{ animationDelay: '260ms' }}
           >
-            <Card className="relative overflow-hidden rounded-3xl border border-foreground/10 bg-background/90 shadow-[0_40px_120px_-70px_rgba(15,23,42,0.7)]">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,var(--accent-a)_0%,transparent_60%)] opacity-30" />
+            <Card className="relative overflow-hidden rounded-3xl border border-emerald-500/20 bg-background/92 shadow-[0_40px_120px_-70px_rgba(15,23,42,0.7)]">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,var(--accent-a)_0%,transparent_58%)] opacity-35" />
+              <div className="absolute inset-0 bg-[linear-gradient(140deg,rgba(20,184,166,0.12),transparent)]" />
               <form onSubmit={handleSubmit(onSubmit)}>
                 <CardContent className="relative space-y-5 p-8">
                   <div>
@@ -256,7 +257,7 @@ export default function LoginPage() {
                       type="email"
                       placeholder="tu@email.com"
                       autoComplete="email"
-                      className="h-11 rounded-2xl bg-background/80"
+                      className="h-11 rounded-2xl border-foreground/10 bg-background/80 focus-visible:ring-2 focus-visible:ring-emerald-500/20 focus-visible:border-emerald-500/40"
                       {...register('email')}
                       error={errors.email?.message}
                     />
@@ -280,7 +281,7 @@ export default function LoginPage() {
                         type={showPassword ? 'text' : 'password'}
                         placeholder="••••••••"
                         autoComplete="current-password"
-                        className="h-11 rounded-2xl bg-background/80 pr-10"
+                        className="h-11 rounded-2xl border-foreground/10 bg-background/80 pr-10 focus-visible:ring-2 focus-visible:ring-emerald-500/20 focus-visible:border-emerald-500/40"
                         {...register('password')}
                         error={errors.password?.message}
                       />
@@ -303,7 +304,7 @@ export default function LoginPage() {
                   <Button
                     type="submit"
                     size="lg"
-                    className="w-full rounded-full bg-[linear-gradient(135deg,var(--accent-a),var(--accent-b))] text-base font-semibold text-white shadow-[0_18px_40px_-22px_rgba(16,185,129,0.8)]"
+                    className="w-full rounded-full bg-[linear-gradient(135deg,var(--accent-a),var(--accent-b))] text-base font-semibold text-white shadow-[0_20px_40px_-22px_rgba(16,185,129,0.9)]"
                     isLoading={isSubmitting || loginMutation.isPending}
                   >
                     Entrar

@@ -155,7 +155,7 @@ export function PieChartTooltip({
   const items = [
     {
       label: 'Monto',
-      value: `€${formatter(data.value)}`,
+      value: formatter(data.value),
       highlight: true,
     },
     {

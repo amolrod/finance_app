@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { 
   AreaChart, 
   Area, 
+  Line,
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -37,6 +38,7 @@ import { Badge } from '@/components/ui/badge';
 import { useCurrency } from '@/contexts/currency-context';
 import { formatDate, cn } from '@/lib/utils';
 import { TrendingUp, TrendingDown, ExternalLink, BarChart3, LineChart } from 'lucide-react';
+import { CustomChartTooltip } from '@/components/charts/chart-tooltip';
 import type { Transaction } from '@/types/api';
 
 interface InteractiveMonthlyChartProps {
@@ -268,17 +270,14 @@ export function InteractiveMonthlyChart({ transactions, isLoading }: Interactive
                     tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
                     tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
                   />
-                  <Tooltip 
-                    formatter={(value, name) => [
-                      convertAndFormat(Number(value || 0), preferredCurrency),
-                      String(name).charAt(0).toUpperCase() + String(name).slice(1)
-                    ]}
-                    contentStyle={{ 
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
-                    }}
-                    labelFormatter={(label) => `📅 ${label}`}
+                  <ReferenceLine y={0} stroke="hsl(var(--border))" />
+                  <Tooltip
+                    content={
+                      <CustomChartTooltip
+                        formatter={(value) => convertAndFormat(value, preferredCurrency)}
+                        labelFormatter={(label) => `📅 ${label}`}
+                      />
+                    }
                   />
                   <Legend />
                   <Area
@@ -299,6 +298,14 @@ export function InteractiveMonthlyChart({ transactions, isLoading }: Interactive
                     fill="url(#colorGastosInt)"
                     name="Gastos"
                   />
+                  <Line
+                    type="monotone"
+                    dataKey="balance"
+                    stroke="#0ea5e9"
+                    strokeWidth={2}
+                    dot={false}
+                    name="Balance"
+                  />
                 </AreaChart>
               ) : (
                 <BarChart 
@@ -318,22 +325,26 @@ export function InteractiveMonthlyChart({ transactions, isLoading }: Interactive
                     tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
                     tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
                   />
-                  <Tooltip 
-                    formatter={(value, name) => [
-                      convertAndFormat(Number(value || 0), preferredCurrency),
-                      String(name).charAt(0).toUpperCase() + String(name).slice(1)
-                    ]}
-                    contentStyle={{ 
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
-                    }}
-                    labelFormatter={(label) => `📅 ${label}`}
+                  <Tooltip
+                    content={
+                      <CustomChartTooltip
+                        formatter={(value) => convertAndFormat(value, preferredCurrency)}
+                        labelFormatter={(label) => `📅 ${label}`}
+                      />
+                    }
                   />
                   <Legend />
-                  <ReferenceLine y={0} stroke="#666" />
+                  <ReferenceLine y={0} stroke="hsl(var(--border))" />
                   <Bar dataKey="ingresos" fill="#22c55e" name="Ingresos" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="gastos" fill="#ef4444" name="Gastos" radius={[4, 4, 0, 0]} />
+                  <Line
+                    type="monotone"
+                    dataKey="balance"
+                    stroke="#0ea5e9"
+                    strokeWidth={2}
+                    dot={false}
+                    name="Balance"
+                  />
                 </BarChart>
               )}
             </ResponsiveContainer>

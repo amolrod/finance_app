@@ -15,7 +15,7 @@ import { formatCurrency, formatDate, cn } from '@/lib/utils';
 import { Wallet, TrendingUp, TrendingDown, AlertTriangle, ArrowUpRight, ArrowDownRight, Receipt, PiggyBank, ChevronRight } from 'lucide-react';
 import Decimal from 'decimal.js';
 import Link from 'next/link';
-import { ExpenseByCategoryChart, MonthlyTrendChart } from '@/components/charts';
+import { InteractiveExpenseChart, InteractiveMonthlyChart } from '@/components/charts';
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
@@ -109,9 +109,11 @@ export default function DashboardPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05, type: 'spring', stiffness: 300, damping: 30 }}
       >
-        <Card className="border-0 bg-gradient-to-br from-neutral-900 to-neutral-800 text-white">
-          <CardContent className="p-8">
-            <p className="text-[13px] text-white/60 font-medium tracking-wide">Balance Total</p>
+        <Card className="relative overflow-hidden border border-emerald-500/20 bg-[linear-gradient(135deg,#0b1220,#0f172a)] text-white shadow-[0_35px_90px_-60px_rgba(14,165,233,0.65)]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.35)_0%,transparent_55%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,rgba(14,165,233,0.3)_0%,transparent_60%)]" />
+          <CardContent className="relative p-8">
+            <p className="text-[13px] text-white/70 font-medium tracking-wide">Balance Total</p>
             <div className="mt-3 flex items-baseline gap-3">
               <span className="text-5xl font-semibold tracking-tight">
                 {summaryLoading ? '—' : formatCurrency(displayBalance, displayCurrency).replace(displayCurrency, '').trim()}
@@ -138,7 +140,7 @@ export default function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {/* Income */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, type: 'spring', stiffness: 300, damping: 30 }}>
-          <Card className="card-hover">
+          <Card className="card-hover border-foreground/10 bg-background/80 shadow-soft">
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div className="space-y-2">
@@ -165,7 +167,7 @@ export default function DashboardPage() {
 
         {/* Expenses */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, type: 'spring', stiffness: 300, damping: 30 }}>
-          <Card className="card-hover">
+          <Card className="card-hover border-foreground/10 bg-background/80 shadow-soft">
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div className="space-y-2">
@@ -191,7 +193,7 @@ export default function DashboardPage() {
 
         {/* Sparklines */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, type: 'spring', stiffness: 300, damping: 30 }}>
-          <Card className="card-hover">
+          <Card className="card-hover border-foreground/10 bg-background/80 shadow-soft">
             <CardContent className="p-6">
               <p className="text-[13px] text-muted-foreground mb-5">Últimos 14 días</p>
               <div className="flex items-end justify-between gap-6">
@@ -210,7 +212,7 @@ export default function DashboardPage() {
 
         {/* Alerts */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, type: 'spring', stiffness: 300, damping: 30 }}>
-          <Card className="card-hover">
+          <Card className="card-hover border-foreground/10 bg-background/80 shadow-soft">
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div className="space-y-2">
@@ -231,15 +233,15 @@ export default function DashboardPage() {
 
       {/* Charts */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="grid gap-6 lg:grid-cols-2">
-        <MonthlyTrendChart transactions={chartTransactions?.data || []} isLoading={transactionsLoading} />
-        <ExpenseByCategoryChart transactions={chartTransactions?.data || []} isLoading={transactionsLoading} />
+        <InteractiveMonthlyChart transactions={chartTransactions?.data || []} isLoading={transactionsLoading} />
+        <InteractiveExpenseChart transactions={chartTransactions?.data || []} isLoading={transactionsLoading} />
       </motion.div>
 
       {/* Bottom Grid */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Recent Transactions */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, type: 'spring', stiffness: 300, damping: 30 }}>
-          <Card className="h-full">
+          <Card className="h-full border-foreground/10 bg-background/80 shadow-soft">
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base font-medium">Recientes</CardTitle>
@@ -288,7 +290,7 @@ export default function DashboardPage() {
 
         {/* Budgets */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, type: 'spring', stiffness: 300, damping: 30 }}>
-          <Card className="h-full">
+          <Card className="h-full border-foreground/10 bg-background/80 shadow-soft">
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base font-medium">Presupuestos</CardTitle>
@@ -334,7 +336,7 @@ export default function DashboardPage() {
 
       {/* Accounts */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45, type: 'spring', stiffness: 300, damping: 30 }}>
-        <Card>
+        <Card className="border-foreground/10 bg-background/80 shadow-soft">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base font-medium">Cuentas</CardTitle>

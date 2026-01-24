@@ -270,8 +270,10 @@ export default function AccountsPage() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.05 }}
-          className="relative overflow-hidden rounded-xl p-6 bg-neutral-900 dark:bg-neutral-950 text-white"
+          className="relative overflow-hidden rounded-2xl border border-emerald-500/20 bg-[linear-gradient(135deg,#0b1220,#0f172a)] p-6 text-white shadow-[0_35px_90px_-60px_rgba(14,165,233,0.55)]"
         >
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.32)_0%,transparent_55%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,rgba(14,165,233,0.28)_0%,transparent_60%)]" />
           <div className="relative z-10">
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
               <div>

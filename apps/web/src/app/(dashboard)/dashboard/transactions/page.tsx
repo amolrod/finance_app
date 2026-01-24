@@ -36,6 +36,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { TransactionType, TransactionFilters, Transaction } from '@/types/api';
 import { BatchActionsBar, useSelection } from '@/components/ui/batch-actions';
+import { useCurrency } from '@/contexts/currency-context';
 
 const transactionSchema = z.object({
   type: z.enum(['INCOME', 'EXPENSE', 'TRANSFER']),
@@ -71,6 +72,7 @@ export default function TransactionsPage() {
   const [batchCategoryDialogOpen, setBatchCategoryDialogOpen] = useState(false);
   const [batchCategoryId, setBatchCategoryId] = useState<string>('');
   const { toast } = useToast();
+  const { preferredCurrency, convertAmount, formatAmount } = useCurrency();
 
   // Read URL parameters on mount
   useEffect(() => {
@@ -292,6 +294,29 @@ export default function TransactionsPage() {
     ? categories?.find(c => c.id === filters.categoryId)?.name 
     : null;
 
+  const transactionSummary = useMemo(() => {
+    if (!transactions?.data?.length) {
+      return { income: 0, expense: 0, balance: 0, count: 0 };
+    }
+
+    let income = 0;
+    let expense = 0;
+
+    transactions.data.forEach((tx) => {
+      const amount = parseFloat(tx.amount);
+      const converted = convertAmount(amount, tx.currency) ?? amount;
+      if (tx.type === 'INCOME') income += converted;
+      if (tx.type === 'EXPENSE') expense += converted;
+    });
+
+    return {
+      income,
+      expense,
+      balance: income - expense,
+      count: transactions.data.length,
+    };
+  }, [transactions?.data, convertAmount]);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -445,6 +470,61 @@ export default function TransactionsPage() {
           </DialogContent>
         </Dialog>
       </motion.div>
+
+      {!isLoading && transactions?.data?.length ? (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05, type: 'spring', stiffness: 280, damping: 26 }}
+          className="grid gap-3 md:grid-cols-4"
+        >
+          <div className="rounded-2xl border border-foreground/10 bg-background/80 p-4 shadow-soft">
+            <div className="flex items-center justify-between">
+              <p className="text-[12px] text-muted-foreground">Ingresos</p>
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600">
+                <TrendingUp className="h-4 w-4" />
+              </div>
+            </div>
+            <p className="mt-3 text-lg font-semibold text-emerald-600">
+              +{formatAmount(transactionSummary.income, preferredCurrency)}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-foreground/10 bg-background/80 p-4 shadow-soft">
+            <div className="flex items-center justify-between">
+              <p className="text-[12px] text-muted-foreground">Gastos</p>
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-500/15 text-rose-500">
+                <TrendingDown className="h-4 w-4" />
+              </div>
+            </div>
+            <p className="mt-3 text-lg font-semibold text-foreground">
+              -{formatAmount(transactionSummary.expense, preferredCurrency)}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-foreground/10 bg-background/80 p-4 shadow-soft">
+            <div className="flex items-center justify-between">
+              <p className="text-[12px] text-muted-foreground">Balance</p>
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-500/15 text-sky-600">
+                <ArrowUpRight className="h-4 w-4" />
+              </div>
+            </div>
+            <p className="mt-3 text-lg font-semibold text-foreground">
+              {transactionSummary.balance >= 0 ? '+' : ''}
+              {formatAmount(transactionSummary.balance, preferredCurrency)}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-foreground/10 bg-background/80 p-4 shadow-soft">
+            <div className="flex items-center justify-between">
+              <p className="text-[12px] text-muted-foreground">Movimientos</p>
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-foreground/5 text-muted-foreground">
+                <Receipt className="h-4 w-4" />
+              </div>
+            </div>
+            <p className="mt-3 text-lg font-semibold text-foreground">
+              {transactionSummary.count}
+            </p>
+          </div>
+        </motion.div>
+      ) : null}
 
       {/* Active filters from URL */}
       {activeFiltersFromUrl.length > 0 && (

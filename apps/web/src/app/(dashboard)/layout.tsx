@@ -41,6 +41,14 @@ export default function DashboardLayout({
     <KeyboardShortcutsProvider>
       <AlertProvider>
         <div className="min-h-screen bg-background">
+          <div className="fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
+            <div className="absolute -top-32 right-0 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.12)_0%,transparent_68%)] blur-3xl" />
+            <div className="absolute bottom-[-15%] left-[-10%] h-[26rem] w-[26rem] rounded-full bg-[radial-gradient(circle_at_top,rgba(14,165,233,0.12)_0%,transparent_70%)] blur-3xl" />
+            <div
+              className="absolute inset-0 bg-[radial-gradient(circle,rgba(15,23,42,0.05)_1px,transparent_1px)] bg-[size:28px_28px] opacity-35"
+              style={{ maskImage: 'radial-gradient(circle at top, black, transparent 70%)' }}
+            />
+          </div>
           <Sidebar />
           <div className="lg:pl-72">
             <Header />

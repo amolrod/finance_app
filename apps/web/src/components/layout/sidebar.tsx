@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSidebarStore } from '@/stores/sidebar-store';
-import { Badge } from '@/components/ui/badge';
+import { LogoText } from '@/components/logo';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -63,15 +63,12 @@ export function Sidebar() {
         <div className="flex h-full flex-col">
           {/* Logo */}
           <div className="flex h-14 items-center justify-between px-5 border-b border-border/30">
-            <Link href="/dashboard" className="flex items-center gap-3 group">
-              <div className="relative flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/25 transition-transform group-hover:scale-105">
-                <span className="text-white font-bold text-sm">F</span>
-                <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-base font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">Finance</span>
-                <span className="text-[10px] text-muted-foreground font-medium tracking-wide uppercase">Dashboard</span>
-              </div>
+            <Link href="/dashboard" className="group">
+              <LogoText
+                className="gap-2"
+                logoClassName="h-8 w-8"
+                textClassName="text-lg"
+              />
             </Link>
             <Button
               variant="ghost"
@@ -96,10 +93,10 @@ export function Sidebar() {
                     href={item.href}
                     onClick={close}
                     className={cn(
-                      'group flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium',
-                      'transition-colors duration-150',
+                      'group flex items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] font-medium',
+                      'transition-all duration-200',
                       isActive
-                        ? 'bg-foreground/5 text-foreground'
+                        ? 'bg-foreground/5 text-foreground shadow-soft'
                         : 'text-muted-foreground hover:text-foreground hover:bg-foreground/5'
                     )}
                   >
@@ -125,13 +122,13 @@ export function Sidebar() {
                       key={item.name}
                       href={item.href}
                       onClick={close}
-                      className={cn(
-                        'group flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium',
-                        'transition-colors duration-150',
-                        isActive
-                          ? 'bg-foreground/5 text-foreground'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-foreground/5'
-                      )}
+                    className={cn(
+                      'group flex items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] font-medium',
+                      'transition-all duration-200',
+                      isActive
+                        ? 'bg-foreground/5 text-foreground shadow-soft'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-foreground/5'
+                    )}
                     >
                       <item.icon className="h-4 w-4" />
                       <span className="flex-1">{item.name}</span>

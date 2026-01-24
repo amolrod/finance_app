@@ -34,7 +34,7 @@ export function Header() {
   const initials = user?.name ? getInitials(user.name) : null;
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-border/40 bg-background/60 backdrop-blur-xl px-4 md:px-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-border/40 bg-background/70 backdrop-blur-xl px-4 shadow-[0_8px_30px_-22px_rgba(15,23,42,0.25)] md:px-6">
       {/* Mobile menu button */}
       <Button
         variant="ghost"

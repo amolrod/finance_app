@@ -217,7 +217,7 @@ export default function BudgetsPage() {
           transition={{ delay: 0.05 }}
           className="grid grid-cols-2 md:grid-cols-4 gap-3"
         >
-          <div className="flex items-center gap-2.5 rounded-lg bg-secondary border border-border/40 p-3">
+          <div className="flex items-center gap-2.5 rounded-xl bg-background/80 border border-foreground/10 p-3 shadow-soft">
             <div className="flex h-8 w-8 items-center justify-center rounded-md bg-foreground/5">
               <Target className="h-4 w-4 text-muted-foreground" />
             </div>
@@ -226,7 +226,7 @@ export default function BudgetsPage() {
               <p className="text-[11px] text-muted-foreground">Total</p>
             </div>
           </div>
-          <div className="flex items-center gap-2.5 rounded-lg bg-secondary border border-border/40 p-3">
+          <div className="flex items-center gap-2.5 rounded-xl bg-background/80 border border-foreground/10 p-3 shadow-soft">
             <div className="flex h-8 w-8 items-center justify-center rounded-md bg-foreground/5">
               <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
             </div>
@@ -235,7 +235,7 @@ export default function BudgetsPage() {
               <p className="text-[11px] text-muted-foreground">En orden</p>
             </div>
           </div>
-          <div className="flex items-center gap-2.5 rounded-lg bg-secondary border border-border/40 p-3">
+          <div className="flex items-center gap-2.5 rounded-xl bg-background/80 border border-foreground/10 p-3 shadow-soft">
             <div className="flex h-8 w-8 items-center justify-center rounded-md bg-foreground/5">
               <AlertCircle className="h-4 w-4 text-muted-foreground" />
             </div>
@@ -244,7 +244,7 @@ export default function BudgetsPage() {
               <p className="text-[11px] text-muted-foreground">En alerta</p>
             </div>
           </div>
-          <div className="flex items-center gap-2.5 rounded-lg bg-secondary border border-border/40 p-3">
+          <div className="flex items-center gap-2.5 rounded-xl bg-background/80 border border-foreground/10 p-3 shadow-soft">
             <div className="flex h-8 w-8 items-center justify-center rounded-md bg-foreground/5">
               <AlertTriangle className="h-4 w-4 text-muted-foreground" />
             </div>
