@@ -1,14 +1,14 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, VersioningType, INestApplication } from '@nestjs/common';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import * as express from 'express';
+import express from 'express';
 import helmet from 'helmet';
 import { AppModule } from '../src/app.module';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const helmetMiddleware = (helmet as any).default || helmet;
 
-const expressApp = express();
+const expressApp = (express as any)();
 let app: INestApplication;
 
 async function bootstrap(): Promise<void> {

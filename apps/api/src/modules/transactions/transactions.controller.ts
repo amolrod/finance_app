@@ -75,7 +75,7 @@ export class TransactionsController {
   async exportCsv(
     @Request() req: AuthenticatedRequest,
     @Query() query: TransactionQueryDto,
-    @Res() res: Response,
+    @Res() res: any,
   ): Promise<void> {
     const csv = await this.transactionsService.exportCsv(req.user.userId, query);
     
