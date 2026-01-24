@@ -399,11 +399,10 @@ export default function HomePage() {
         </section>
 
         <section id="demo" className="py-6">
-          <div className="w-full overflow-hidden bg-white dark:bg-[#0B0B0F]">
+          <div className="w-full overflow-hidden bg-white pb-[55vh] dark:bg-[#0B0B0F]">
             <MacbookScroll title="Todo el estado, en un solo recorrido." showGradient={false}>
               <HomeMacbookScreen />
             </MacbookScroll>
-            <div className="h-[clamp(200px,36vh,420px)]" aria-hidden="true" />
           </div>
         </section>
 
