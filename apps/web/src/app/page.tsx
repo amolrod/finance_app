@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LogoText } from '@/components/logo';
-import { MacbookScroll } from '@/components/landing/macbook-scroll';
+import { MacbookScroll } from '@/components/ui/macbook-scroll';
 import { InfiniteMovingCards } from '@/components/landing/infinite-moving-cards';
 import {
   ArrowRight,
@@ -398,12 +398,13 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section id="demo" className="relative z-10 pt-6 pb-24 md:pb-32 lg:pb-40">
-          <MacbookScroll
-            title="Todo el estado, en un solo recorrido."
-          >
-            <HomeMacbookScreen />
-          </MacbookScroll>
+        <section id="demo" className="py-6">
+          <div className="w-full overflow-hidden bg-white dark:bg-[#0B0B0F]">
+            <MacbookScroll title="Todo el estado, en un solo recorrido." showGradient={false}>
+              <HomeMacbookScreen />
+            </MacbookScroll>
+            <div className="h-[clamp(200px,36vh,420px)]" aria-hidden="true" />
+          </div>
         </section>
 
         <section id="pricing" className="py-20">
