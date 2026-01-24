@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LogoText } from '@/components/logo';
-import { ArrowLeft, Check, Eye, EyeOff, Shield, Sparkles, Star, Zap } from 'lucide-react';
+import { ArrowLeft, Check, Eye, EyeOff } from 'lucide-react';
 
 const displayFont = Fraunces({
   subsets: ['latin'],
@@ -47,24 +47,6 @@ const REGISTER_STEPS = [
   {
     title: 'Mide y ajusta',
     description: 'Reportes claros para mejores decisiones.'
-  }
-];
-
-const REGISTER_HIGHLIGHTS = [
-  {
-    icon: Shield,
-    title: 'Privacidad primero',
-    description: 'Tu información permanece segura.'
-  },
-  {
-    icon: Zap,
-    title: 'Experiencia veloz',
-    description: 'Interfaz fluida sin esperas.'
-  },
-  {
-    icon: Star,
-    title: 'Gratis siempre',
-    description: 'Sin planes ocultos ni anuncios.'
   }
 ];
 
@@ -177,9 +159,9 @@ export default function RegisterPage() {
         </div>
       </header>
 
-      <main className="container mx-auto flex h-full items-center px-4 pb-12 pt-24">
+      <main className="container mx-auto flex h-full items-center px-4 pb-10 pt-24">
         <div className="grid w-full items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="hidden lg:block space-y-8 xl:space-y-10">
+          <div className="hidden lg:block space-y-6">
             <div
               className="motion-safe:animate-[rise_700ms_ease-out_both]"
               style={{ animationDelay: '120ms' }}
@@ -198,53 +180,27 @@ export default function RegisterPage() {
               <p className="text-xs font-semibold uppercase tracking-[0.35em] text-muted-foreground">
                 Empieza hoy
               </p>
-              <h1 className="text-4xl font-semibold sm:text-5xl font-[var(--font-display)]">
+              <h1 className="text-3xl font-semibold sm:text-4xl font-[var(--font-display)]">
                 Crea tu cuenta en minutos.
               </h1>
-              <p className="max-w-xl text-lg text-muted-foreground">
+              <p className="max-w-xl text-base text-muted-foreground">
                 Un panel elegante, sin anuncios, con todo lo que necesitas para sentir claridad.
               </p>
             </div>
 
             <div
-              className="grid gap-4 sm:grid-cols-3 motion-safe:animate-[rise_700ms_ease-out_both]"
+              className="flex flex-wrap gap-3 motion-safe:animate-[rise_700ms_ease-out_both]"
               style={{ animationDelay: '320ms' }}
             >
-              {REGISTER_HIGHLIGHTS.map(({ icon: Icon, title, description }) => (
+              {REGISTER_STEPS.map((step, index) => (
                 <div
-                  key={title}
-                  className="rounded-2xl border border-foreground/10 bg-gradient-to-br from-emerald-500/10 via-background/90 to-sky-500/10 p-4"
+                  key={step.title}
+                  className="inline-flex items-center gap-2 rounded-full border border-foreground/10 bg-background/80 px-3 py-1.5 text-xs font-semibold text-foreground"
                 >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-foreground/5 text-foreground">
-                    <Icon className="h-5 w-5" aria-hidden="true" />
-                  </div>
-                  <p className="mt-3 text-sm font-semibold text-foreground">{title}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{description}</p>
+                  <span className="text-emerald-600">{index + 1}</span>
+                  {step.title}
                 </div>
               ))}
-            </div>
-
-            <div
-              className="rounded-3xl border border-foreground/10 bg-gradient-to-br from-background/85 via-background/95 to-emerald-500/10 p-6 shadow-soft-lg motion-safe:animate-[rise_700ms_ease-out_both]"
-              style={{ animationDelay: '420ms' }}
-            >
-              <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                <Sparkles className="h-4 w-4 text-emerald-500" aria-hidden="true" />
-                Flujo guiado
-              </div>
-              <div className="mt-4 grid gap-3">
-                {REGISTER_STEPS.map((step, index) => (
-                  <div key={step.title} className="flex items-start gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/15 text-sm font-semibold text-emerald-600">
-                      {index + 1}
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">{step.title}</p>
-                      <p className="text-xs text-muted-foreground">{step.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
 
@@ -256,15 +212,15 @@ export default function RegisterPage() {
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,var(--accent-b)_0%,transparent_58%)] opacity-35" />
               <div className="absolute inset-0 bg-[linear-gradient(140deg,rgba(14,165,233,0.12),transparent)]" />
               <form onSubmit={handleSubmit(onSubmit)}>
-                <CardContent className="relative space-y-5 p-8">
+                <CardContent className="relative space-y-4 p-6">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.35em] text-muted-foreground">
                       Registro
                     </p>
-                    <h2 className="mt-2 text-2xl font-semibold font-[var(--font-display)]">
+                    <h2 className="mt-1 text-xl font-semibold font-[var(--font-display)]">
                       Crea tu cuenta
                     </h2>
-                    <p className="mt-2 text-sm text-muted-foreground">
+                    <p className="mt-1 text-sm text-muted-foreground">
                       Te tomará menos de un minuto.
                     </p>
                   </div>
@@ -278,7 +234,7 @@ export default function RegisterPage() {
                       type="text"
                       placeholder="Tu nombre"
                       autoComplete="given-name"
-                      className="h-11 rounded-2xl border-foreground/10 bg-background/80 focus-visible:ring-2 focus-visible:ring-emerald-500/20 focus-visible:border-emerald-500/40"
+                      className="h-10 rounded-xl border-foreground/10 bg-background/80 focus-visible:ring-2 focus-visible:ring-emerald-500/20 focus-visible:border-emerald-500/40"
                       {...register('firstName')}
                       error={errors.firstName?.message}
                     />
@@ -293,7 +249,7 @@ export default function RegisterPage() {
                       type="email"
                       placeholder="tu@email.com"
                       autoComplete="email"
-                      className="h-11 rounded-2xl border-foreground/10 bg-background/80 focus-visible:ring-2 focus-visible:ring-emerald-500/20 focus-visible:border-emerald-500/40"
+                      className="h-10 rounded-xl border-foreground/10 bg-background/80 focus-visible:ring-2 focus-visible:ring-emerald-500/20 focus-visible:border-emerald-500/40"
                       {...register('email')}
                       error={errors.email?.message}
                     />
@@ -309,7 +265,7 @@ export default function RegisterPage() {
                         type={showPassword ? 'text' : 'password'}
                         placeholder="••••••••"
                         autoComplete="new-password"
-                        className="h-11 rounded-2xl border-foreground/10 bg-background/80 pr-10 focus-visible:ring-2 focus-visible:ring-emerald-500/20 focus-visible:border-emerald-500/40"
+                        className="h-10 rounded-xl border-foreground/10 bg-background/80 pr-10 focus-visible:ring-2 focus-visible:ring-emerald-500/20 focus-visible:border-emerald-500/40"
                         {...register('password')}
                         error={errors.password?.message}
                       />
@@ -323,22 +279,22 @@ export default function RegisterPage() {
                       </button>
                     </div>
 
-                    <div className="mt-3">
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="mt-2">
+                      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
                         <span>Fuerza: {strengthLabel}</span>
                         <span>{passwordScore}/4</span>
                       </div>
-                      <div className="mt-2 h-2 w-full rounded-full bg-foreground/10">
+                      <div className="mt-2 h-1.5 w-full rounded-full bg-foreground/10">
                         <div
-                          className={`h-2 rounded-full transition-all duration-300 ${strengthTone}`}
+                          className={`h-1.5 rounded-full transition-all duration-300 ${strengthTone}`}
                           style={{ width: `${passwordStrength}%` }}
                         />
                       </div>
-                      <div className="mt-3 grid grid-cols-2 gap-2">
+                      <div className="mt-2 grid grid-cols-2 gap-1 text-[11px]">
                         {passwordChecks.map((check) => (
                           <div
                             key={check.label}
-                            className={`flex items-center gap-1.5 text-xs transition-colors ${
+                            className={`flex items-center gap-1.5 transition-colors ${
                               check.valid ? 'text-emerald-600' : 'text-muted-foreground'
                             }`}
                           >
@@ -366,7 +322,7 @@ export default function RegisterPage() {
                         type={showConfirmPassword ? 'text' : 'password'}
                         placeholder="••••••••"
                         autoComplete="new-password"
-                        className="h-11 rounded-2xl border-foreground/10 bg-background/80 pr-10 focus-visible:ring-2 focus-visible:ring-emerald-500/20 focus-visible:border-emerald-500/40"
+                        className="h-10 rounded-xl border-foreground/10 bg-background/80 pr-10 focus-visible:ring-2 focus-visible:ring-emerald-500/20 focus-visible:border-emerald-500/40"
                         {...register('confirmPassword')}
                         error={errors.confirmPassword?.message}
                       />
@@ -386,10 +342,10 @@ export default function RegisterPage() {
                   </div>
                 </CardContent>
 
-                <CardFooter className="relative flex flex-col gap-4 px-8 pb-8">
+                <CardFooter className="relative flex flex-col gap-3 px-6 pb-6">
                   <Button
                     type="submit"
-                    size="lg"
+                    size="default"
                     className="w-full rounded-full bg-[linear-gradient(135deg,var(--accent-a),var(--accent-b))] text-base font-semibold text-white shadow-[0_20px_40px_-22px_rgba(16,185,129,0.9)]"
                     isLoading={isSubmitting || registerMutation.isPending}
                     disabled={!allPasswordChecksValid}

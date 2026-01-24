@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LogoText } from '@/components/logo';
-import { ArrowLeft, Eye, EyeOff, Shield, Sparkles, TrendingUp, Zap } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Shield, Sparkles, Zap } from 'lucide-react';
 
 const displayFont = Fraunces({
   subsets: ['latin'],
@@ -51,12 +51,6 @@ const HIGHLIGHTS = [
     title: 'Sin distracciones',
     description: 'Panel limpio, foco en lo importante.'
   }
-];
-
-const LOGIN_STATS = [
-  { label: 'Alertas activas', value: '3' },
-  { label: 'Presupuesto', value: '72%' },
-  { label: 'Ahorro semanal', value: '+€240' }
 ];
 
 const loginSchema = z.object({
@@ -124,9 +118,9 @@ export default function LoginPage() {
         </div>
       </header>
 
-      <main className="container mx-auto flex h-full items-center px-4 pb-12 pt-24">
+      <main className="container mx-auto flex h-full items-center px-4 pb-10 pt-24">
         <div className="grid w-full items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="hidden lg:block space-y-8 xl:space-y-10">
+          <div className="hidden lg:block space-y-6">
             <div
               className="motion-safe:animate-[rise_700ms_ease-out_both]"
               style={{ animationDelay: '120ms' }}
@@ -145,85 +139,27 @@ export default function LoginPage() {
               <p className="text-xs font-semibold uppercase tracking-[0.35em] text-muted-foreground">
                 Acceso seguro
               </p>
-              <h1 className="text-4xl font-semibold sm:text-5xl font-[var(--font-display)]">
+              <h1 className="text-3xl font-semibold sm:text-4xl font-[var(--font-display)]">
                 Tu panel te esperaba.
               </h1>
-              <p className="max-w-xl text-lg text-muted-foreground">
+              <p className="max-w-xl text-base text-muted-foreground">
                 Retoma el control con un panel rápido, limpio y listo para tus próximas decisiones.
               </p>
             </div>
 
             <div
-              className="grid gap-4 sm:grid-cols-3 motion-safe:animate-[rise_700ms_ease-out_both]"
+              className="flex flex-wrap gap-3 motion-safe:animate-[rise_700ms_ease-out_both]"
               style={{ animationDelay: '320ms' }}
             >
-              {LOGIN_STATS.map((stat) => (
-                <div
-                  key={stat.label}
-                  className="rounded-2xl border border-foreground/10 bg-gradient-to-br from-emerald-500/10 via-background/80 to-sky-500/10 p-4 shadow-soft"
-                >
-                  <p className="text-xs text-muted-foreground">{stat.label}</p>
-                  <p className="mt-2 text-xl font-semibold text-foreground">{stat.value}</p>
-                </div>
-              ))}
-            </div>
-
-            <div
-              className="hidden xl:grid gap-4 sm:grid-cols-3 motion-safe:animate-[rise_700ms_ease-out_both]"
-              style={{ animationDelay: '420ms' }}
-            >
-              {HIGHLIGHTS.map(({ icon: Icon, title, description }) => (
+              {HIGHLIGHTS.slice(0, 2).map(({ icon: Icon, title }) => (
                 <div
                   key={title}
-                  className="rounded-2xl border border-foreground/10 bg-gradient-to-br from-background/70 via-background/90 to-emerald-500/10 p-4"
+                  className="inline-flex items-center gap-2 rounded-full border border-foreground/10 bg-background/80 px-3 py-1.5 text-xs font-semibold text-foreground"
                 >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-foreground/5 text-foreground">
-                    <Icon className="h-5 w-5" aria-hidden="true" />
-                  </div>
-                  <p className="mt-3 text-sm font-semibold text-foreground">{title}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{description}</p>
+                  <Icon className="h-4 w-4 text-emerald-500" aria-hidden="true" />
+                  {title}
                 </div>
               ))}
-            </div>
-
-            <div
-              className="relative hidden xl:block motion-safe:animate-[rise_700ms_ease-out_both]"
-              style={{ animationDelay: '520ms' }}
-            >
-              <div className="rounded-3xl border border-foreground/10 bg-gradient-to-br from-background/85 via-background/95 to-emerald-500/10 p-6 shadow-soft-lg">
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>Actividad reciente</span>
-                  <span className="flex items-center gap-1 text-emerald-600">
-                    <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />
-                    +8.4%
-                  </span>
-                </div>
-                <p className="mt-3 text-3xl font-semibold text-foreground">€12,450.00</p>
-                <svg viewBox="0 0 200 70" className="mt-4 h-20 w-full" aria-hidden="true">
-                  <defs>
-                    <linearGradient id="loginTrend" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#10b981" />
-                      <stop offset="100%" stopColor="#14b8a6" />
-                    </linearGradient>
-                    <linearGradient id="loginFill" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.35" />
-                      <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  <path
-                    d="M0 58 L22 54 L44 44 L66 48 L88 40 L110 28 L132 34 L154 24 L176 28 L200 18"
-                    fill="none"
-                    stroke="url(#loginTrend)"
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M0 58 L22 54 L44 44 L66 48 L88 40 L110 28 L132 34 L154 24 L176 28 L200 18 L200 70 L0 70 Z"
-                    fill="url(#loginFill)"
-                  />
-                </svg>
-              </div>
             </div>
           </div>
 
@@ -235,15 +171,15 @@ export default function LoginPage() {
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,var(--accent-a)_0%,transparent_58%)] opacity-35" />
               <div className="absolute inset-0 bg-[linear-gradient(140deg,rgba(20,184,166,0.12),transparent)]" />
               <form onSubmit={handleSubmit(onSubmit)}>
-                <CardContent className="relative space-y-5 p-8">
+                <CardContent className="relative space-y-4 p-6">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.35em] text-muted-foreground">
                       Inicia sesión
                     </p>
-                    <h2 className="mt-2 text-2xl font-semibold font-[var(--font-display)]">
+                    <h2 className="mt-1 text-xl font-semibold font-[var(--font-display)]">
                       Vuelve a tu cuenta
                     </h2>
-                    <p className="mt-2 text-sm text-muted-foreground">
+                    <p className="mt-1 text-sm text-muted-foreground">
                       Tus finanzas se sienten mejor aquí.
                     </p>
                   </div>
@@ -257,7 +193,7 @@ export default function LoginPage() {
                       type="email"
                       placeholder="tu@email.com"
                       autoComplete="email"
-                      className="h-11 rounded-2xl border-foreground/10 bg-background/80 focus-visible:ring-2 focus-visible:ring-emerald-500/20 focus-visible:border-emerald-500/40"
+                      className="h-10 rounded-xl border-foreground/10 bg-background/80 focus-visible:ring-2 focus-visible:ring-emerald-500/20 focus-visible:border-emerald-500/40"
                       {...register('email')}
                       error={errors.email?.message}
                     />
@@ -281,7 +217,7 @@ export default function LoginPage() {
                         type={showPassword ? 'text' : 'password'}
                         placeholder="••••••••"
                         autoComplete="current-password"
-                        className="h-11 rounded-2xl border-foreground/10 bg-background/80 pr-10 focus-visible:ring-2 focus-visible:ring-emerald-500/20 focus-visible:border-emerald-500/40"
+                        className="h-10 rounded-xl border-foreground/10 bg-background/80 pr-10 focus-visible:ring-2 focus-visible:ring-emerald-500/20 focus-visible:border-emerald-500/40"
                         {...register('password')}
                         error={errors.password?.message}
                       />
@@ -300,10 +236,10 @@ export default function LoginPage() {
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="relative flex flex-col gap-4 px-8 pb-8">
+                <CardFooter className="relative flex flex-col gap-3 px-6 pb-6">
                   <Button
                     type="submit"
-                    size="lg"
+                    size="default"
                     className="w-full rounded-full bg-[linear-gradient(135deg,var(--accent-a),var(--accent-b))] text-base font-semibold text-white shadow-[0_20px_40px_-22px_rgba(16,185,129,0.9)]"
                     isLoading={isSubmitting || loginMutation.isPending}
                   >
