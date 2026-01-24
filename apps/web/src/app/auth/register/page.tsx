@@ -152,7 +152,7 @@ export default function RegisterPage() {
 
   return (
     <div
-      className={`${displayFont.variable} ${textFont.variable} min-h-screen bg-background text-foreground font-[var(--font-text)]`}
+      className={`${displayFont.variable} ${textFont.variable} h-screen overflow-hidden bg-background text-foreground font-[var(--font-text)]`}
       style={PAGE_STYLE}
     >
       <div className="fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
@@ -177,9 +177,9 @@ export default function RegisterPage() {
         </div>
       </header>
 
-      <main className="container mx-auto flex min-h-screen items-center px-4 py-20">
+      <main className="container mx-auto flex h-full items-center px-4 pb-12 pt-24">
         <div className="grid w-full items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="space-y-10">
+          <div className="hidden lg:block space-y-8 xl:space-y-10">
             <div
               className="motion-safe:animate-[rise_700ms_ease-out_both]"
               style={{ animationDelay: '120ms' }}

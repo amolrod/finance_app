@@ -99,7 +99,7 @@ export default function LoginPage() {
 
   return (
     <div
-      className={`${displayFont.variable} ${textFont.variable} min-h-screen bg-background text-foreground font-[var(--font-text)]`}
+      className={`${displayFont.variable} ${textFont.variable} h-screen overflow-hidden bg-background text-foreground font-[var(--font-text)]`}
       style={PAGE_STYLE}
     >
       <div className="fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
@@ -124,9 +124,9 @@ export default function LoginPage() {
         </div>
       </header>
 
-      <main className="container mx-auto flex min-h-screen items-center px-4 py-20">
+      <main className="container mx-auto flex h-full items-center px-4 pb-12 pt-24">
         <div className="grid w-full items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="space-y-10">
+          <div className="hidden lg:block space-y-8 xl:space-y-10">
             <div
               className="motion-safe:animate-[rise_700ms_ease-out_both]"
               style={{ animationDelay: '120ms' }}
@@ -169,7 +169,7 @@ export default function LoginPage() {
             </div>
 
             <div
-              className="grid gap-4 sm:grid-cols-3 motion-safe:animate-[rise_700ms_ease-out_both]"
+              className="hidden xl:grid gap-4 sm:grid-cols-3 motion-safe:animate-[rise_700ms_ease-out_both]"
               style={{ animationDelay: '420ms' }}
             >
               {HIGHLIGHTS.map(({ icon: Icon, title, description }) => (
@@ -187,7 +187,7 @@ export default function LoginPage() {
             </div>
 
             <div
-              className="relative motion-safe:animate-[rise_700ms_ease-out_both]"
+              className="relative hidden xl:block motion-safe:animate-[rise_700ms_ease-out_both]"
               style={{ animationDelay: '520ms' }}
             >
               <div className="rounded-3xl border border-foreground/10 bg-gradient-to-br from-background/85 via-background/95 to-emerald-500/10 p-6 shadow-soft-lg">
