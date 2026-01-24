@@ -41,17 +41,19 @@ export function MacbookScroll({
   const isCompact = density === 'compact';
   const targetScale = isMobile ? 1 : isCompact ? 1.25 : 1.35;
   const travelDistance = isCompact ? 900 : 1200;
+  const textTravel = isCompact ? 90 : 120;
 
   const scaleX = useTransform(scrollYProgress, [0, 0.3], [1.08, targetScale]);
   const scaleY = useTransform(scrollYProgress, [0, 0.3], [0.65, targetScale]);
   const translate = useTransform(scrollYProgress, [0, 1], [0, travelDistance]);
   const rotate = useTransform(scrollYProgress, [0.1, 0.3], [-24, 0]);
-  const textTransform = useTransform(scrollYProgress, [0, 0.3], [0, 120]);
+  const textTransform = useTransform(scrollYProgress, [0, 0.3], [0, textTravel]);
   const textOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
 
   const containerClassName = isCompact
-    ? 'flex min-h-[150vh] shrink-0 scale-[0.4] transform flex-col items-center justify-start py-0 [perspective:900px] sm:scale-50 md:scale-[0.92] md:py-48'
+    ? 'flex min-h-[140vh] shrink-0 scale-[0.4] transform flex-col items-center justify-start py-0 [perspective:900px] sm:scale-50 md:scale-[0.92] md:py-36'
     : 'flex min-h-[200vh] shrink-0 scale-[0.45] transform flex-col items-center justify-start py-0 [perspective:900px] sm:scale-50 md:scale-100 md:py-72';
+  const headingSpacing = isCompact ? 'mb-8 md:mb-10' : 'mb-20';
 
   return (
     <div
@@ -66,7 +68,7 @@ export function MacbookScroll({
           translateY: textTransform,
           opacity: textOpacity,
         }}
-        className="mb-20 max-w-2xl text-center"
+        className={cn('max-w-2xl text-center', headingSpacing)}
       >
         <h2 className="text-3xl font-semibold text-foreground sm:text-4xl lg:text-5xl">
           {title}
@@ -109,10 +111,16 @@ function MacbookLid({ scaleX, scaleY, rotate, translate, children }: MacbookLidP
           transformOrigin: 'bottom',
           transformStyle: 'preserve-3d',
         }}
-        className="relative h-[12rem] w-[32rem] rounded-2xl bg-[#0b0b0d] p-2"
+        className="relative h-[12rem] w-[32rem] rounded-2xl bg-[#0b0b0d] p-2 shadow-[0_22px_60px_rgba(0,0,0,0.45)]"
       >
+        <div className="absolute inset-0 rounded-2xl bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.16),transparent_60%)] opacity-80" />
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/10 via-transparent to-black/50 opacity-80" />
+        <div className="absolute inset-x-6 top-2 h-px bg-white/15" />
+        <div className="absolute inset-x-10 bottom-2 h-px bg-black/60" />
         <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-[#0b0b0d]">
-          <Logo className="h-7 w-7 text-white/70" />
+          <div className="absolute inset-0 rounded-xl border border-white/5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03)]" />
+          <div className="absolute inset-0 rounded-xl bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.14),transparent_65%)] opacity-40" />
+          <Logo className="relative z-10 h-7 w-7 text-white/75" />
         </div>
       </div>
 
@@ -125,16 +133,20 @@ function MacbookLid({ scaleX, scaleY, rotate, translate, children }: MacbookLidP
           transformStyle: 'preserve-3d',
           transformOrigin: 'top',
         }}
-        className="absolute inset-0 h-96 w-[32rem] rounded-2xl bg-[#0b0b0d] p-2"
+        className="absolute inset-0 h-96 w-[32rem] rounded-2xl bg-[#0b0b0d] p-2 shadow-[0_30px_80px_rgba(0,0,0,0.5)]"
       >
         <div className="absolute inset-0 rounded-xl bg-[#141416]" />
+        <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/10 via-transparent to-black/40 opacity-70" />
         <div className="absolute inset-0 rounded-xl border border-white/10 bg-[#0f1115] p-3">
           <div className="relative h-full w-full overflow-hidden rounded-lg border border-white/10 bg-[#10141b]">
             <div className="absolute left-1/2 top-2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-white/20" />
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent opacity-40" />
             {children}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/12 via-transparent to-transparent opacity-40" />
+            <div className="absolute -left-1/3 top-0 h-full w-[60%] rotate-[8deg] bg-gradient-to-r from-white/20 via-white/5 to-transparent opacity-45" />
+            <div className="absolute inset-x-8 bottom-0 h-5 bg-gradient-to-t from-white/15 to-transparent opacity-50" />
           </div>
         </div>
+        <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-black/45 to-transparent" />
       </motion.div>
     </div>
   );
@@ -147,11 +159,20 @@ type MacbookBaseProps = {
 function MacbookBase({ badge }: MacbookBaseProps) {
   return (
     <div className="relative -z-10 h-[22rem] w-[32rem] overflow-hidden rounded-2xl bg-[#d6d3ce]">
-      <div className="relative h-10 w-full">
-        <div className="absolute inset-x-0 mx-auto h-4 w-[80%] rounded-b-xl bg-[#0b0b0d]" />
-        <div className="absolute inset-x-0 top-0 h-px bg-white/30" />
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.65)_0%,rgba(255,255,255,0.25)_35%,rgba(0,0,0,0.18)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.7)_0%,transparent_55%)] opacity-70" />
+        <div className="absolute inset-x-10 top-10 h-28 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.45)_0%,rgba(255,255,255,0.16)_35%,transparent_70%)] opacity-60 mix-blend-screen" />
+        <div className="absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-white/30 to-transparent opacity-60" />
+        <div className="absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white/30 to-transparent opacity-60" />
+        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/25 to-transparent" />
       </div>
-      <div className="relative flex h-[12.5rem]">
+      <div className="relative z-10 h-10 w-full">
+        <div className="absolute inset-x-0 mx-auto h-4 w-[80%] rounded-b-xl bg-[#0b0b0d] shadow-[0_12px_20px_rgba(0,0,0,0.35)]" />
+        <div className="absolute inset-x-0 top-0 h-px bg-white/40" />
+        <div className="absolute inset-x-12 top-[2px] h-px bg-white/30" />
+      </div>
+      <div className="relative z-10 flex h-[12.5rem]">
         <div className="mx-auto h-full w-[10%] overflow-hidden">
           <SpeakerGrid />
         </div>
@@ -162,7 +183,9 @@ function MacbookBase({ badge }: MacbookBaseProps) {
           <SpeakerGrid />
         </div>
       </div>
-      <Trackpad />
+      <div className="relative z-10">
+        <Trackpad />
+      </div>
       <div className="absolute inset-x-0 bottom-0 mx-auto h-2 w-20 rounded-tl-3xl rounded-tr-3xl bg-gradient-to-t from-[#9f9ea2] to-[#2a2a2c]" />
       {badge ? <div className="absolute bottom-4 left-4">{badge}</div> : null}
     </div>
@@ -172,11 +195,14 @@ function MacbookBase({ badge }: MacbookBaseProps) {
 function Trackpad() {
   return (
     <div
-      className="mx-auto my-2 h-24 w-[36%] rounded-xl bg-[#c5c2bd]"
+      className="relative mx-auto my-2 h-24 w-[36%] rounded-xl bg-gradient-to-b from-[#dedad6] to-[#bdb9b4]"
       style={{
         boxShadow: '0px 0px 1px 1px #00000020 inset',
       }}
-    />
+    >
+      <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/50 via-transparent to-black/20" />
+      <div className="absolute inset-x-6 bottom-2 h-px bg-black/25" />
+    </div>
   );
 }
 
@@ -449,7 +475,7 @@ function KBtn({ className, children, childrenClassName, backlit = true }: KBtnPr
     <div
       className={cn(
         '[transform:translateZ(0)] rounded-[4px] p-[0.5px] [will-change:transform]',
-        backlit && 'bg-white/[0.12] shadow-[0_4px_10px_rgba(255,255,255,0.08)]'
+        backlit && 'bg-white/[0.2] shadow-[0_0_18px_rgba(255,255,255,0.22)]'
       )}
     >
       <div
@@ -477,13 +503,16 @@ function KBtn({ className, children, childrenClassName, backlit = true }: KBtnPr
 
 function SpeakerGrid() {
   return (
-    <div
-      className="mt-2 h-40 w-full"
-      style={{
-        backgroundImage: 'radial-gradient(circle, #2d2c30 0.5px, transparent 0.5px)',
-        backgroundSize: '4px 4px',
-      }}
-    />
+    <div className="relative mt-2 h-40 w-full">
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: 'radial-gradient(circle, #2d2c30 0.5px, transparent 0.5px)',
+          backgroundSize: '3px 3px',
+        }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-black/30" />
+    </div>
   );
 }
 

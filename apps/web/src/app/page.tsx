@@ -377,16 +377,11 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section id="demo" className="relative py-8">
+        <section id="demo" className="relative py-6">
           <MacbookScroll
             density="compact"
-            title="El panel se mueve contigo."
-            subtitle="Una vista con profundidad que no rompe el flujo de la pagina."
-            badge={
-              <div className="rounded-full border border-foreground/10 bg-background/80 px-3 py-1 text-xs font-semibold text-muted-foreground">
-                Demo con scroll
-              </div>
-            }
+            title="Todo el estado, en un solo recorrido."
+            subtitle="El panel responde al scroll para mostrar saldos, tendencias y alertas sin perder contexto."
           >
             <HomeMacbookScreen />
           </MacbookScroll>
