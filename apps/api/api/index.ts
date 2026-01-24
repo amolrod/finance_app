@@ -66,13 +66,10 @@ export default async function handler(
   req: any,
   res: any,
 ): Promise<void> {
-  // Handle CORS preflight
-  const allowedOrigins = process.env.CORS_ORIGINS?.split(',') || ['*'];
-  const origin = req.headers?.origin || '';
+  // Handle CORS - reflect origin for credentials support
+  const origin = req.headers?.origin || 'https://finance-app-web-mu.vercel.app';
   
-  if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin || '*');
-  }
+  res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With');
