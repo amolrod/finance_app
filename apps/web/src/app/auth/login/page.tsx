@@ -150,7 +150,7 @@ export default function LoginPage() {
 
             <div className="flex items-center gap-6">
               <div
-                className="w-full max-w-[210px] motion-safe:animate-[float_8s_ease-in-out_infinite]"
+                className="w-full max-w-[210px]"
                 style={{ animationDelay: '260ms' }}
               >
                 <Iphone>
@@ -167,8 +167,8 @@ export default function LoginPage() {
                     </div>
                   </div>
                 ))}
-                <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                  <span className="h-2 w-2 rounded-full bg-foreground/30 motion-safe:animate-[float_6s_ease-in-out_infinite]" />
+                <div className="inline-flex items-center gap-2 rounded-full border border-foreground/10 bg-background/80 px-3 py-1 text-[11px] text-muted-foreground">
+                  <span className="h-1.5 w-1.5 rounded-full bg-foreground/40" />
                   Última sincronización hace 2 min
                 </div>
               </div>

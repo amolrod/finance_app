@@ -257,11 +257,8 @@ export default function ImportPage() {
         animate={{ opacity: 1, y: 0 }}
       >
         <div className="flex items-center gap-3">
-          <div className="relative">
-            <div className="absolute -inset-1 rounded-2xl bg-teal-500/30 blur-md" />
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-teal-500/30 bg-background/80 shadow-soft">
-              <Download className="h-5 w-5 text-teal-600" />
-            </div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-foreground/10 bg-foreground/5">
+            <Download className="h-5 w-5 text-foreground/70" />
           </div>
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Importar Transacciones</h1>
@@ -324,8 +321,8 @@ export default function ImportPage() {
               <Card className="border-foreground/10 bg-background/80 shadow-soft h-full">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-lg">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10">
-                      <Building2 className="h-4 w-4 text-blue-600" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground/5">
+                      <Building2 className="h-4 w-4 text-foreground/60" />
                     </div>
                     Seleccionar Cuenta
                   </CardTitle>
@@ -362,8 +359,8 @@ export default function ImportPage() {
               <Card className="border-foreground/10 bg-background/80 shadow-soft h-full">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-lg">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10">
-                      <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground/5">
+                      <FileSpreadsheet className="h-4 w-4 text-foreground/60" />
                     </div>
                     Subir Archivo
                   </CardTitle>
@@ -376,7 +373,7 @@ export default function ImportPage() {
                     {...getRootProps()}
                     className={cn(
                       'border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-200 bg-foreground/[0.02]',
-                      isDragActive && 'border-primary bg-primary/5',
+                      isDragActive && 'border-foreground/30 bg-foreground/5',
                       !selectedAccountId && 'opacity-50 cursor-not-allowed',
                       previewMutation.isPending && 'opacity-50 cursor-wait'
                     )}
@@ -384,14 +381,14 @@ export default function ImportPage() {
                     <input {...getInputProps()} />
                     {previewMutation.isPending ? (
                       <div className="flex flex-col items-center gap-2">
-                        <Loader2 className="h-10 w-10 text-primary animate-spin" />
+                        <Loader2 className="h-10 w-10 text-foreground/70 animate-spin" />
                         <p className="text-sm text-muted-foreground">Procesando archivo...</p>
                       </div>
                     ) : (
                       <>
                         <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
                         {isDragActive ? (
-                          <p className="text-sm text-primary font-medium">Suelta el archivo aquí...</p>
+                          <p className="text-sm text-foreground font-medium">Suelta el archivo aquí...</p>
                         ) : (
                           <div className="space-y-1">
                             <p className="text-sm text-muted-foreground">
@@ -447,7 +444,7 @@ export default function ImportPage() {
                     className="flex flex-col gap-1 p-3 rounded-xl bg-background/70 border border-foreground/10 shadow-soft"
                   >
                     <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      <CheckCircle2 className="h-4 w-4 text-foreground/60" />
                       <span className="text-sm font-medium">{bank.name}</span>
                     </div>
                     <span className="text-[13px] text-muted-foreground ml-6">{bank.formats}</span>
@@ -531,9 +528,9 @@ export default function ImportPage() {
 
           {/* Info Banner */}
           {preview.duplicatesFound > 0 && (
-            <div className="flex items-center gap-2 p-4 rounded-xl border border-amber-500/20 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent">
-              <AlertTriangle className="h-5 w-5 text-amber-600" />
-              <span className="text-sm text-amber-800 dark:text-amber-200">
+            <div className="flex items-center gap-2 p-4 rounded-xl border border-foreground/10 bg-foreground/5">
+              <AlertTriangle className="h-5 w-5 text-amber-500/80" />
+              <span className="text-sm text-muted-foreground">
                 Se encontraron {preview.duplicatesFound} transacciones que ya existen en el sistema.
                 Están desmarcadas por defecto.
               </span>

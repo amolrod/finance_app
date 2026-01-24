@@ -369,20 +369,15 @@ export default function CategoriesPage() {
                       <div className="flex items-center gap-2.5">
                         <div className="relative">
                           <div
-                            className="absolute -inset-1 rounded-2xl opacity-0 blur-sm transition-opacity duration-300 group-hover:opacity-60"
-                            style={{ backgroundColor: accentColor }}
-                          />
-                          <div
-                            className="relative flex h-10 w-10 items-center justify-center rounded-2xl border bg-background/90"
-                            style={{
-                              borderColor: `${accentColor}40`,
-                              boxShadow: `0 8px 18px -16px ${accentColor}88`,
-                              backgroundImage: `linear-gradient(140deg, ${accentColor}12, rgba(255,255,255,0.85))`,
-                            }}
+                            className="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-foreground/10 bg-foreground/5"
                           >
-                            <span className="text-[11px] font-semibold" style={{ color: accentColor }}>
+                            <span className="text-[11px] font-semibold text-foreground/70">
                               {getCategoryInitials(category.name)}
                             </span>
+                            <span
+                              className="absolute bottom-1 right-1 h-2 w-2 rounded-full"
+                              style={{ backgroundColor: accentColor }}
+                            />
                           </div>
                         </div>
                         <div className="flex-1 min-w-0">

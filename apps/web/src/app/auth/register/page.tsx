@@ -189,7 +189,7 @@ export default function RegisterPage() {
 
             <div className="flex items-center gap-6">
               <div
-                className="w-full max-w-[210px] motion-safe:animate-[float_8s_ease-in-out_infinite]"
+                className="w-full max-w-[210px]"
                 style={{ animationDelay: '260ms' }}
               >
                 <Iphone>
@@ -208,8 +208,8 @@ export default function RegisterPage() {
                     </div>
                   </div>
                 ))}
-                <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                  <span className="h-2 w-2 rounded-full bg-foreground/30 motion-safe:animate-[float_6s_ease-in-out_infinite]" />
+                <div className="inline-flex items-center gap-2 rounded-full border border-foreground/10 bg-background/80 px-3 py-1 text-[11px] text-muted-foreground">
+                  <span className="h-1.5 w-1.5 rounded-full bg-foreground/40" />
                   Listo para importar tus extractos
                 </div>
               </div>
@@ -388,76 +388,79 @@ export default function RegisterPage() {
 }
 
 function RegisterPhoneScreen() {
-  const tasks = [
-    { label: 'Cuenta principal', progress: 68 },
-    { label: 'Categorías', progress: 44 },
-    { label: 'Presupuestos', progress: 22 }
-  ];
-
   return (
     <div className="flex h-full w-full flex-col gap-3 bg-[#0f1115] px-4 py-5 text-white">
       <div className="flex items-center justify-between text-[10px] text-white/60">
-        <span className="text-white/80">FinanceApp / Configuración</span>
+        <span className="text-white/80">FinanceApp / Alta rápida</span>
         <span className="rounded-full border border-white/10 px-2 py-0.5 text-[9px] text-white/70">
           Paso 1/3
         </span>
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-        <p className="text-[10px] text-white/60">Configuración guiada</p>
-        <p className="mt-1 text-sm font-semibold">Tu cuenta está en marcha</p>
-        <div className="mt-2 space-y-2">
-          {tasks.map((task) => (
-            <div key={task.label}>
-              <div className="flex items-center justify-between text-[10px] text-white/70">
-                <span>{task.label}</span>
-                <span>{task.progress}%</span>
-              </div>
-              <div className="mt-1 h-1.5 w-full rounded-full bg-white/10">
-                <div
-                  className="h-1.5 rounded-full bg-emerald-400/70"
-                  style={{ width: `${task.progress}%` }}
-                />
-              </div>
-            </div>
+        <p className="text-[10px] text-white/60">Cuenta inicial</p>
+        <p className="mt-1 text-sm font-semibold">Personal</p>
+        <div className="mt-2 space-y-2 text-[10px] text-white/70">
+          <div className="flex items-center justify-between rounded-lg bg-white/5 px-2 py-1.5">
+            <span>Moneda</span>
+            <span>EUR</span>
+          </div>
+          <div className="flex items-center justify-between rounded-lg bg-white/5 px-2 py-1.5">
+            <span>Saldo inicial</span>
+            <span>€0,00</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+        <div className="flex items-center justify-between text-[10px] text-white/60">
+          <span>Categorías sugeridas</span>
+          <span>3 listas</span>
+        </div>
+        <div className="mt-2 flex flex-wrap gap-1.5 text-[9px] text-white/70">
+          {['Comida', 'Hogar', 'Transporte', 'Ahorro', 'Ocio'].map((item) => (
+            <span
+              key={item}
+              className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5"
+            >
+              {item}
+            </span>
           ))}
         </div>
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
         <div className="flex items-center justify-between text-[10px] text-white/60">
-          <span>Importación segura</span>
-          <span className="text-emerald-300">Activo</span>
+          <span>Presupuesto base</span>
+          <span>Mensual</span>
         </div>
-        <div className="mt-3 flex items-center gap-3">
-          <div
-            className="relative h-12 w-12 rounded-full"
-            style={{
-              background: 'conic-gradient(#34d399 0 240deg, rgba(255,255,255,0.1) 240deg 360deg)'
-            }}
-          >
-            <div className="absolute inset-2 rounded-full bg-[#0f1115]" />
+        <div className="mt-2 space-y-2 text-[10px] text-white/70">
+          <div>
+            <div className="flex items-center justify-between">
+              <span>Necesidades</span>
+              <span>50%</span>
+            </div>
+            <div className="mt-1 h-1.5 w-full rounded-full bg-white/10">
+              <div className="h-1.5 w-1/2 rounded-full bg-emerald-400/60" />
+            </div>
           </div>
-          <div className="text-[10px] text-white/60">
-            <p className="text-base font-semibold text-white">93%</p>
-            <p>extractos procesados</p>
+          <div>
+            <div className="flex items-center justify-between">
+              <span>Deseos</span>
+              <span>30%</span>
+            </div>
+            <div className="mt-1 h-1.5 w-full rounded-full bg-white/10">
+              <div className="h-1.5 w-[30%] rounded-full bg-sky-400/60" />
+            </div>
           </div>
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-        <div className="flex items-center justify-between text-[10px] text-white/60">
-          <span>Vista previa</span>
-          <span>Semana</span>
-        </div>
-        <div className="mt-2 grid grid-cols-2 gap-2 text-[10px]">
-          <div className="rounded-lg border border-white/10 bg-white/5 p-2">
-            <p className="text-white/60">Ingresos</p>
-            <p className="mt-1 text-sm font-semibold text-white">€2,480</p>
-          </div>
-          <div className="rounded-lg border border-white/10 bg-white/5 p-2">
-            <p className="text-white/60">Gastos</p>
-            <p className="mt-1 text-sm font-semibold text-white">€1,220</p>
+          <div>
+            <div className="flex items-center justify-between">
+              <span>Ahorro</span>
+              <span>20%</span>
+            </div>
+            <div className="mt-1 h-1.5 w-full rounded-full bg-white/10">
+              <div className="h-1.5 w-1/5 rounded-full bg-white/30" />
+            </div>
           </div>
         </div>
       </div>

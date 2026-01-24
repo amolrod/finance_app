@@ -530,15 +530,6 @@ export default function HomePage() {
               </p>
             </div>
             <div className="flex items-center gap-6">
-              <Link href="/como-funciona">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="rounded-full border-foreground/15 bg-background/80 text-[12px] font-semibold"
-                >
-                  Cómo funciona
-                </Button>
-              </Link>
               <ThemeToggle />
               <a
                 href="https://github.com/amolrod/finance_app"
@@ -554,7 +545,17 @@ export default function HomePage() {
 
           <div className="mt-8 border-t border-foreground/10 pt-6 text-center text-sm text-muted-foreground">
             <p>© {new Date().getFullYear()} FinanceApp. Todos los derechos reservados.</p>
-            <p className="mt-2">Hecho con foco y diseño, para mejores decisiones.</p>
+            <p className="mt-2">
+              GitHub:{' '}
+              <a
+                href="https://github.com/amolrod"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-foreground/80 hover:text-foreground"
+              >
+                amolrod
+              </a>
+            </p>
           </div>
         </div>
       </footer>
@@ -806,23 +807,6 @@ function HomeMacbookScreen() {
               </div>
               <div className="mt-2 h-1.5 rounded-full bg-white/10">
                 <div className="h-full w-[41%] rounded-full bg-blue-400/50" />
-              </div>
-            </div>
-          </div>
-          <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-            <p className="text-xs text-white/50">Alertas suaves</p>
-            <div className="mt-3 space-y-2 text-[10px] text-white/70">
-              <div className="flex items-center justify-between rounded-lg bg-white/5 px-2 py-1.5">
-                <span>Suscripciones</span>
-                <span>3 activas</span>
-              </div>
-              <div className="flex items-center justify-between rounded-lg bg-white/5 px-2 py-1.5">
-                <span>Meta ahorro</span>
-                <span>89%</span>
-              </div>
-              <div className="flex items-center justify-between rounded-lg bg-white/5 px-2 py-1.5">
-                <span>Inversiones</span>
-                <span>+2.1%</span>
               </div>
             </div>
           </div>

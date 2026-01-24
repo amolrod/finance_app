@@ -265,14 +265,12 @@ export default function AccountsPage() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.05 }}
-          className="relative overflow-hidden rounded-2xl border border-emerald-500/20 bg-[linear-gradient(135deg,#0b1220,#0f172a)] p-6 text-white shadow-[0_35px_90px_-60px_rgba(14,165,233,0.55)]"
+          className="relative overflow-hidden rounded-2xl border border-foreground/10 bg-background/90 p-6 text-foreground shadow-soft"
         >
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.32)_0%,transparent_55%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,rgba(14,165,233,0.28)_0%,transparent_60%)]" />
           <div className="relative z-10">
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
               <div>
-                <p className="text-[12px] font-medium text-neutral-400 mb-1">Balance Total</p>
+                <p className="text-[12px] font-medium text-muted-foreground mb-1">Balance Total</p>
                 <motion.div
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -285,7 +283,7 @@ export default function AccountsPage() {
                       preferredCurrency
                     ).replace(preferredCurrency, '').trim()}
                   </span>
-                  <span className="text-sm font-medium text-neutral-400">{preferredCurrency}</span>
+                  <span className="text-sm font-medium text-muted-foreground">{preferredCurrency}</span>
                 </motion.div>
                 
                 {summary.byCurrency.length > 1 && (
@@ -296,9 +294,9 @@ export default function AccountsPage() {
                     className="flex flex-wrap gap-2 mt-3"
                   >
                     {summary.byCurrency.map((bc) => (
-                      <div key={bc.currency} className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-white/10 text-[12px]">
+                      <div key={bc.currency} className="flex items-center gap-2 px-2.5 py-1 rounded-md border border-foreground/10 bg-foreground/5 text-[12px]">
                         <span className="font-medium">{bc.currency}</span>
-                        <span className="text-neutral-300 tabular-nums">
+                        <span className="text-muted-foreground tabular-nums">
                           {formatAmount(parseFloat(bc.balance), bc.currency)}
                         </span>
                       </div>
@@ -311,14 +309,14 @@ export default function AccountsPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.25 }}
-                className="flex items-center gap-4 text-[12px] text-neutral-400"
+                className="flex items-center gap-4 text-[12px] text-muted-foreground"
               >
                 <div className="flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-white/60" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-foreground/40" />
                   <span>{accounts?.length || 0} cuentas</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-white/40" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-foreground/30" />
                   <span>{summary.byCurrency.length} monedas</span>
                 </div>
               </motion.div>
@@ -384,18 +382,13 @@ export default function AccountsPage() {
                     <div className="flex items-start gap-3">
                       <div className="relative">
                         <div
-                          className="absolute -inset-1 rounded-2xl opacity-0 blur-sm transition-opacity duration-300 group-hover:opacity-60"
-                          style={{ backgroundColor: accentColor }}
-                        />
-                        <div
-                          className="relative flex h-11 w-11 items-center justify-center rounded-2xl border bg-background/90 shadow-sm"
-                          style={{
-                            borderColor: `${accentColor}40`,
-                            boxShadow: `0 8px 18px -16px ${accentColor}88`,
-                            backgroundImage: `linear-gradient(140deg, ${accentColor}12, rgba(255,255,255,0.8))`,
-                          }}
+                          className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-foreground/10 bg-foreground/5"
                         >
-                          <Icon className="h-5 w-5" style={{ color: accentColor }} />
+                          <Icon className="h-5 w-5 text-foreground/70" />
+                          <span
+                            className="absolute bottom-1 right-1 h-2 w-2 rounded-full"
+                            style={{ backgroundColor: accentColor }}
+                          />
                         </div>
                       </div>
                       <div className="flex-1 min-w-0 pt-0.5">
