@@ -9,6 +9,21 @@ import { AppModule } from '../src/app.module';
 const helmetMiddleware = (helmet as any).default || helmet;
 
 const expressApp = (express as any)();
+
+// Add CORS middleware FIRST - before anything else
+expressApp.use((req: any, res: any, next: any) => {
+  const origin = req.headers.origin || 'https://finance-app-web-mu.vercel.app';
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
+
 let app: INestApplication;
 
 async function bootstrap(): Promise<void> {
@@ -31,25 +46,7 @@ async function bootstrap(): Promise<void> {
     crossOriginResourcePolicy: false,
   }));
 
-  // CORS - allow frontend origin
-  const allowedOrigins = [
-    'https://finance-app-web-mu.vercel.app',
-    'http://localhost:3000',
-    ...(process.env.CORS_ORIGINS?.split(',') || []),
-  ];
-  
-  app.enableCors({
-    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(null, true); // Allow all for now
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  });
+  // CORS is handled by middleware above - no need to enableCors here
 
   // API versioning
   app.enableVersioning({
