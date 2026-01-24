@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LogoText } from '@/components/logo';
 import { MacbookScroll } from '@/components/landing/macbook-scroll';
+import { InfiniteMovingCards } from '@/components/landing/infinite-moving-cards';
 import {
   ArrowRight,
   Sparkles,
@@ -52,15 +53,47 @@ const HERO_STATS = [
   { value: '100% abierto', label: 'Código abierto' }
 ];
 
-const MARQUEE_ITEMS = [
-  'Cuentas ilimitadas',
-  'Categorías inteligentes',
-  'Presupuestos vivos',
-  'Inversiones claras',
-  'Alertas suaves',
-  'Importación de extractos',
-  'Multi-divisa',
-  'Precisión de céntimos'
+const INCLUDE_ITEMS = [
+  {
+    quote: 'Todas tus cuentas, tarjetas y efectivo en un solo panel sin limites.',
+    name: 'Cuentas ilimitadas',
+    title: 'Plan personal'
+  },
+  {
+    quote: 'Reglas que aprenden tu estilo y clasifican cada gasto al instante.',
+    name: 'Categorías inteligentes',
+    title: 'Automatización'
+  },
+  {
+    quote: 'Topes por categoria con progreso visible y alertas suaves.',
+    name: 'Presupuestos vivos',
+    title: 'Control diario'
+  },
+  {
+    quote: 'Evolucion de cartera, rentabilidad y balance de activos claros.',
+    name: 'Inversiones claras',
+    title: 'Visión total'
+  },
+  {
+    quote: 'Avisos solo cuando importa para mantenerte enfocado.',
+    name: 'Alertas suaves',
+    title: 'Sin ruido'
+  },
+  {
+    quote: 'Carga extractos en segundos y deja que el sistema los ordene.',
+    name: 'Importación de extractos',
+    title: 'Rápido'
+  },
+  {
+    quote: 'Registra movimientos en varias monedas sin perder contexto.',
+    name: 'Multi-divisa',
+    title: 'Global'
+  },
+  {
+    quote: 'Cálculos exactos para finanzas reales, sin redondeos raros.',
+    name: 'Precisión de céntimos',
+    title: 'Exactitud'
+  }
 ];
 
 const FEATURE_TILES = [
@@ -147,8 +180,6 @@ const PRICING_ITEMS = [
 const DASHBOARD_BARS = [40, 65, 45, 80, 55, 90, 70, 85, 60, 95, 75, 88];
 
 export default function HomePage() {
-  const marqueeItems = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
-
   return (
     <div
       className={`${displayFont.variable} ${textFont.variable} min-h-screen bg-background text-foreground font-[var(--font-text)]`}
@@ -294,21 +325,11 @@ export default function HomePage() {
               <span className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
                 Incluye
               </span>
-              <div className="relative flex-1 overflow-hidden">
-                <p className="sr-only">{MARQUEE_ITEMS.join(', ')}</p>
-                <div
-                  className="flex min-w-[200%] gap-3 motion-safe:animate-[marquee_26s_linear_infinite]"
-                  aria-hidden="true"
-                >
-                  {marqueeItems.map((item, index) => (
-                    <span
-                      key={`${item}-${index}`}
-                      className="inline-flex items-center rounded-full border border-foreground/10 bg-background/70 px-4 py-1 text-sm text-foreground"
-                    >
-                      {item}
-                    </span>
-                  ))}
-                </div>
+              <div className="flex-1">
+                <p className="sr-only">
+                  {INCLUDE_ITEMS.map((item) => item.name).join(', ')}
+                </p>
+                <InfiniteMovingCards items={INCLUDE_ITEMS} className="max-w-full" />
               </div>
             </div>
           </div>
