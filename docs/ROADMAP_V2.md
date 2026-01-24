@@ -1,6 +1,6 @@
 # 🗺️ Roadmap V2 - Finance App
 
-**Fecha**: 17 de enero de 2026  
+**Fecha**: 24 de enero de 2026  
 **Versión actual**: 0.0.1 (Sprints 1-5 completados)  
 **Puntuación actual**: 7/10
 
