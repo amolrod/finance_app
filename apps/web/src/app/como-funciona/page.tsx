@@ -13,29 +13,54 @@ const makeThumb = (title: string, accent: string) => {
   const svg = `
 <svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0f172a" />
-      <stop offset="55%" stop-color="${accent}" stop-opacity="0.7" />
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1120" />
+      <stop offset="45%" stop-color="${accent}" stop-opacity="0.35" />
       <stop offset="100%" stop-color="#020617" />
     </linearGradient>
-    <radialGradient id="glow" cx="0.2" cy="0.2" r="0.8">
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="${accent}" stop-opacity="0.9" />
+      <stop offset="70%" stop-color="#ffffff" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="${accent}" stop-opacity="0.6" />
+    </linearGradient>
+    <radialGradient id="glow" cx="0.2" cy="0.2" r="0.9">
       <stop offset="0%" stop-color="#ffffff" stop-opacity="0.25" />
       <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
     </radialGradient>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M28 0H0V28" fill="none" stroke="#ffffff" stroke-opacity="0.04" stroke-width="1" />
+    </pattern>
   </defs>
-  <rect width="600" height="600" fill="url(#g)" />
-  <rect x="48" y="70" width="504" height="460" rx="32" fill="#0b1120" fill-opacity="0.7" stroke="#ffffff" stroke-opacity="0.15" />
-  <rect x="78" y="110" width="444" height="140" rx="18" fill="#0f172a" fill-opacity="0.9" />
-  <rect x="78" y="280" width="210" height="210" rx="18" fill="#111827" fill-opacity="0.9" />
-  <rect x="312" y="280" width="210" height="210" rx="18" fill="#0b1326" fill-opacity="0.9" />
+  <rect width="600" height="600" fill="url(#bg)" />
+  <rect width="600" height="600" fill="url(#grid)" opacity="0.6" />
+  <rect x="40" y="48" width="520" height="504" rx="36" fill="#0b1120" fill-opacity="0.72" stroke="#ffffff" stroke-opacity="0.12" />
+  <rect x="64" y="78" width="472" height="112" rx="20" fill="#0f172a" fill-opacity="0.95" stroke="#ffffff" stroke-opacity="0.06" />
+  <rect x="64" y="204" width="472" height="14" rx="7" fill="url(#accent)" opacity="0.85" />
+  <circle cx="90" cy="104" r="6" fill="#22c55e" fill-opacity="0.8" />
+  <circle cx="110" cy="104" r="6" fill="#f59e0b" fill-opacity="0.8" />
+  <circle cx="130" cy="104" r="6" fill="#ef4444" fill-opacity="0.8" />
+  <text x="64" y="150" fill="#e2e8f0" font-size="26" font-family="ui-sans-serif, system-ui" font-weight="600">${title}</text>
+  <text x="64" y="178" fill="#94a3b8" font-size="15" font-family="ui-sans-serif, system-ui">FinanceApp overview</text>
+  <rect x="64" y="236" width="230" height="210" rx="20" fill="#0f172a" fill-opacity="0.88" stroke="#ffffff" stroke-opacity="0.06" />
+  <rect x="306" y="236" width="230" height="210" rx="20" fill="#0b1326" fill-opacity="0.9" stroke="#ffffff" stroke-opacity="0.06" />
+  <path d="M84 386 C116 360 144 364 172 340 C200 316 236 322 266 298" fill="none" stroke="${accent}" stroke-width="3" stroke-linecap="round" />
+  <path d="M84 402 C116 392 144 396 172 380 C200 362 236 368 266 350" fill="none" stroke="#38bdf8" stroke-opacity="0.7" stroke-width="2" stroke-linecap="round" />
+  <rect x="330" y="262" width="18" height="140" rx="8" fill="${accent}" fill-opacity="0.7" />
+  <rect x="356" y="292" width="18" height="110" rx="8" fill="#38bdf8" fill-opacity="0.6" />
+  <rect x="382" y="322" width="18" height="80" rx="8" fill="#f59e0b" fill-opacity="0.6" />
+  <rect x="408" y="302" width="18" height="100" rx="8" fill="#a855f7" fill-opacity="0.6" />
+  <rect x="434" y="332" width="18" height="70" rx="8" fill="#22c55e" fill-opacity="0.6" />
+  <rect x="460" y="312" width="18" height="90" rx="8" fill="#06b6d4" fill-opacity="0.6" />
+  <rect x="64" y="460" width="156" height="70" rx="18" fill="#0f172a" fill-opacity="0.9" stroke="#ffffff" stroke-opacity="0.06" />
+  <rect x="232" y="460" width="156" height="70" rx="18" fill="#0f172a" fill-opacity="0.9" stroke="#ffffff" stroke-opacity="0.06" />
+  <rect x="400" y="460" width="136" height="70" rx="18" fill="#0f172a" fill-opacity="0.9" stroke="#ffffff" stroke-opacity="0.06" />
+  <rect x="86" y="486" width="110" height="8" rx="4" fill="#94a3b8" fill-opacity="0.6" />
+  <rect x="250" y="486" width="110" height="8" rx="4" fill="${accent}" fill-opacity="0.65" />
+  <rect x="418" y="486" width="90" height="8" rx="4" fill="#38bdf8" fill-opacity="0.6" />
+  <circle cx="520" cy="124" r="34" fill="${accent}" fill-opacity="0.15" />
+  <circle cx="520" cy="124" r="18" fill="${accent}" fill-opacity="0.45" />
   <rect width="600" height="600" fill="url(#glow)" />
-  <text x="78" y="160" fill="#e2e8f0" font-size="28" font-family="ui-sans-serif, system-ui" font-weight="600">${title}</text>
-  <text x="78" y="200" fill="#94a3b8" font-size="16" font-family="ui-sans-serif, system-ui">FinanceApp</text>
-  <rect x="98" y="320" width="170" height="12" rx="6" fill="#22c55e" fill-opacity="0.7" />
-  <rect x="98" y="348" width="140" height="10" rx="5" fill="#38bdf8" fill-opacity="0.6" />
-  <rect x="330" y="320" width="170" height="12" rx="6" fill="#f59e0b" fill-opacity="0.7" />
-  <rect x="330" y="348" width="150" height="10" rx="5" fill="#a855f7" fill-opacity="0.6" />
-  </svg>`;
+</svg>`;
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 };
 
