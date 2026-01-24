@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { Logo, LogoText } from '@/components/logo';
+import { LogoText } from '@/components/logo';
 import { 
   ArrowRight,
   Sparkles,
@@ -20,19 +20,86 @@ import {
   Github
 } from 'lucide-react';
 
+const TRUST_ITEMS = [
+  { icon: Shield, label: 'Datos seguros' },
+  { icon: Zap, label: 'Ultra rápido' },
+  { icon: Star, label: 'Sin anuncios' }
+];
+
+const FEATURE_ITEMS = [
+  {
+    icon: CreditCard,
+    title: 'Múltiples Cuentas',
+    description: 'Gestiona cuentas bancarias, tarjetas, efectivo y criptomonedas en un solo lugar.'
+  },
+  {
+    icon: PieChart,
+    title: 'Categorías Inteligentes',
+    description: 'Organiza gastos con categorías personalizables, colores e iconos únicos.'
+  },
+  {
+    icon: BarChart3,
+    title: 'Presupuestos',
+    description: 'Establece límites mensuales por categoría y visualiza tu progreso en tiempo real.'
+  },
+  {
+    icon: TrendingUp,
+    title: 'Inversiones',
+    description: 'Rastrea acciones, fondos y criptomonedas con precios actualizados automáticamente.'
+  },
+  {
+    icon: Bell,
+    title: 'Alertas Inteligentes',
+    description: 'Recibe notificaciones cuando te acerques a tus límites de presupuesto.'
+  },
+  {
+    icon: Shield,
+    title: 'Precisión Total',
+    description: 'Cálculos exactos con decimales. Nunca pierdas un céntimo por redondeo.'
+  }
+];
+
+const STAT_ITEMS = [
+  { value: '100%', label: 'Gratis, sin límites ocultos' },
+  { value: '∞', label: 'Transacciones ilimitadas' },
+  { value: '10+', label: 'Divisas soportadas' }
+];
+
+const PRICING_ITEMS = [
+  'Cuentas ilimitadas',
+  'Transacciones ilimitadas',
+  'Categorías personalizadas',
+  'Presupuestos y alertas',
+  'Seguimiento de inversiones',
+  'Importación de extractos',
+  'Multi-divisa',
+  'Sin anuncios'
+];
+
+const DASHBOARD_BARS = [40, 65, 45, 80, 55, 90, 70, 85, 60, 95, 75, 88];
+
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:shadow-lg"
+      >
+        Saltar al contenido
+      </a>
       {/* Animated background gradient */}
-      <div className="fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-emerald-500/20 blur-3xl animate-pulse" />
-        <div className="absolute top-1/2 -left-40 h-80 w-80 rounded-full bg-blue-500/10 blur-3xl animate-pulse delay-1000" />
-        <div className="absolute -bottom-40 right-1/3 h-80 w-80 rounded-full bg-purple-500/10 blur-3xl animate-pulse delay-500" />
+      <div className="fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
+        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-emerald-500/20 blur-3xl motion-safe:animate-pulse" />
+        <div className="absolute top-1/2 -left-40 h-80 w-80 rounded-full bg-blue-500/10 blur-3xl motion-safe:animate-pulse motion-safe:delay-1000" />
+        <div className="absolute -bottom-40 right-1/3 h-80 w-80 rounded-full bg-teal-500/10 blur-3xl motion-safe:animate-pulse motion-safe:delay-500" />
       </div>
 
       {/* Navigation */}
       <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-lg">
-        <nav className="container mx-auto flex h-16 items-center justify-between px-4">
+        <nav
+          className="container mx-auto flex h-16 items-center justify-between px-4"
+          aria-label="Navegación principal"
+        >
           <LogoText />
           
           <div className="flex items-center gap-2 sm:gap-4">
@@ -51,7 +118,7 @@ export default function HomePage() {
         </nav>
       </header>
 
-      <main>
+      <main id="main">
         {/* Hero Section */}
         <section className="container mx-auto px-4 py-20 lg:py-32">
           <div className="mx-auto max-w-4xl text-center">
@@ -92,18 +159,12 @@ export default function HomePage() {
 
             {/* Trust indicators */}
             <div className="mt-12 flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-emerald-500" />
-                <span>Datos seguros</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Zap className="h-5 w-5 text-emerald-500" />
-                <span>Ultra rápido</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Star className="h-5 w-5 text-emerald-500" />
-                <span>Sin anuncios</span>
-              </div>
+              {TRUST_ITEMS.map(({ icon: Icon, label }) => (
+                <div key={label} className="flex items-center gap-2">
+                  <Icon className="h-5 w-5 text-emerald-500" aria-hidden="true" />
+                  <span>{label}</span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -144,10 +205,13 @@ export default function HomePage() {
                 </div>
 
                 {/* Chart placeholder */}
-                <div className="mx-6 mb-6 flex h-32 items-end justify-between gap-2 rounded-lg border bg-muted/30 p-4">
-                  {[40, 65, 45, 80, 55, 90, 70, 85, 60, 95, 75, 88].map((height, i) => (
+                <div
+                  className="mx-6 mb-6 flex h-32 items-end justify-between gap-2 rounded-lg border bg-muted/30 p-4"
+                  aria-hidden="true"
+                >
+                  {DASHBOARD_BARS.map((height, i) => (
                     <div
-                      key={i}
+                      key={`bar-${i}`}
                       className="flex-1 rounded-t bg-gradient-to-t from-emerald-600 to-emerald-400 transition-all hover:opacity-80"
                       style={{ height: `${height}%` }}
                     />
@@ -159,7 +223,7 @@ export default function HomePage() {
         </section>
 
         {/* Features Section */}
-        <section id="features" className="border-t bg-muted/30 py-20">
+        <section id="features" className="scroll-mt-24 border-t bg-muted/30 py-20">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-3xl font-bold sm:text-4xl">
@@ -173,37 +237,14 @@ export default function HomePage() {
             </div>
 
             <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {/* Feature Cards */}
-              <FeatureCard
-                icon={CreditCard}
-                title="Múltiples Cuentas"
-                description="Gestiona cuentas bancarias, tarjetas, efectivo y criptomonedas en un solo lugar."
-              />
-              <FeatureCard
-                icon={PieChart}
-                title="Categorías Inteligentes"
-                description="Organiza gastos con categorías personalizables, colores e iconos únicos."
-              />
-              <FeatureCard
-                icon={BarChart3}
-                title="Presupuestos"
-                description="Establece límites mensuales por categoría y visualiza tu progreso en tiempo real."
-              />
-              <FeatureCard
-                icon={TrendingUp}
-                title="Inversiones"
-                description="Rastrea acciones, fondos y criptomonedas con precios actualizados automáticamente."
-              />
-              <FeatureCard
-                icon={Bell}
-                title="Alertas Inteligentes"
-                description="Recibe notificaciones cuando te acerques a tus límites de presupuesto."
-              />
-              <FeatureCard
-                icon={Shield}
-                title="Precisión Total"
-                description="Cálculos exactos con decimales. Nunca pierdas un céntimo por redondeo."
-              />
+              {FEATURE_ITEMS.map((feature) => (
+                <FeatureCard
+                  key={feature.title}
+                  icon={feature.icon}
+                  title={feature.title}
+                  description={feature.description}
+                />
+              ))}
             </div>
           </div>
         </section>
@@ -212,18 +253,12 @@ export default function HomePage() {
         <section className="border-t py-20">
           <div className="container mx-auto px-4">
             <div className="grid gap-8 text-center sm:grid-cols-3">
-              <div>
-                <p className="text-4xl font-bold text-emerald-600">100%</p>
-                <p className="mt-2 text-muted-foreground">Gratis, sin límites ocultos</p>
-              </div>
-              <div>
-                <p className="text-4xl font-bold text-emerald-600">∞</p>
-                <p className="mt-2 text-muted-foreground">Transacciones ilimitadas</p>
-              </div>
-              <div>
-                <p className="text-4xl font-bold text-emerald-600">10+</p>
-                <p className="mt-2 text-muted-foreground">Divisas soportadas</p>
-              </div>
+              {STAT_ITEMS.map((stat) => (
+                <div key={stat.label}>
+                  <p className="text-4xl font-bold text-emerald-600">{stat.value}</p>
+                  <p className="mt-2 text-muted-foreground">{stat.label}</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -248,14 +283,9 @@ export default function HomePage() {
                   </div>
 
                   <ul className="mb-8 space-y-3 text-left">
-                    <PricingItem>Cuentas ilimitadas</PricingItem>
-                    <PricingItem>Transacciones ilimitadas</PricingItem>
-                    <PricingItem>Categorías personalizadas</PricingItem>
-                    <PricingItem>Presupuestos y alertas</PricingItem>
-                    <PricingItem>Seguimiento de inversiones</PricingItem>
-                    <PricingItem>Importación de extractos</PricingItem>
-                    <PricingItem>Multi-divisa</PricingItem>
-                    <PricingItem>Sin anuncios</PricingItem>
+                    {PRICING_ITEMS.map((item) => (
+                      <PricingItem key={item}>{item}</PricingItem>
+                    ))}
                   </ul>
 
                   <Link href="/auth/register" className="block">
@@ -303,6 +333,7 @@ export default function HomePage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground transition-colors hover:text-foreground"
+                aria-label="GitHub"
               >
                 <Github className="h-5 w-5" />
               </a>
@@ -311,9 +342,6 @@ export default function HomePage() {
           
           <div className="mt-8 border-t pt-8 text-center text-sm text-muted-foreground">
             <p>© {new Date().getFullYear()} FinanceApp. Todos los derechos reservados.</p>
-            <p className="mt-2">
-              Hecho con ❤️ para ayudarte a alcanzar tus metas financieras.
-            </p>
           </div>
         </div>
       </footer>
