@@ -379,9 +379,7 @@ export default function HomePage() {
 
         <section id="demo" className="relative py-6">
           <MacbookScroll
-            density="compact"
             title="Todo el estado, en un solo recorrido."
-            subtitle="El panel responde al scroll para mostrar saldos, tendencias y alertas sin perder contexto."
           >
             <HomeMacbookScreen />
           </MacbookScroll>

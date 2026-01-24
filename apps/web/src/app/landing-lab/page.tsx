@@ -178,7 +178,6 @@ export default function LandingLabPage() {
         <section id="demo" className="relative pb-8 pt-8">
           <MacbookScroll
             title="El tablero se despliega contigo."
-            subtitle="Desliza para ver como FinanceApp revela el contexto correcto en el momento justo."
             badge={
               <div className="rounded-full border border-black/10 bg-white/80 px-3 py-1 text-xs font-semibold text-neutral-600">
                 Demo interactivo
