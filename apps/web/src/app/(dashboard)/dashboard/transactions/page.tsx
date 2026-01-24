@@ -27,9 +27,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { formatCurrency, formatDate, cn } from '@/lib/utils';
+import { formatDate, cn, getInitials } from '@/lib/utils';
 import { ConvertedAmount } from '@/components/converted-amount';
-import { Plus, ArrowUpRight, ArrowDownRight, ArrowLeftRight, Trash2, Search, Filter, X, Tag, FolderOpen, Pencil, Check, XIcon, TrendingUp, TrendingDown, Receipt } from 'lucide-react';
+import { Plus, ArrowUpRight, ArrowDownRight, ArrowLeftRight, Trash2, Search, Filter, X, FolderOpen, Pencil, Check, XIcon, TrendingUp, TrendingDown, Receipt } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -37,6 +37,7 @@ import { z } from 'zod';
 import type { TransactionType, TransactionFilters, Transaction } from '@/types/api';
 import { BatchActionsBar, useSelection } from '@/components/ui/batch-actions';
 import { useCurrency } from '@/contexts/currency-context';
+import { COLOR_PALETTE } from '@/lib/color-palettes';
 
 const transactionSchema = z.object({
   type: z.enum(['INCOME', 'EXPENSE', 'TRANSFER']),
@@ -60,6 +61,14 @@ const typeIcons: Record<TransactionType, typeof ArrowUpRight> = {
   INCOME: ArrowDownRight,
   EXPENSE: ArrowUpRight,
   TRANSFER: ArrowLeftRight,
+};
+
+const getSeedColor = (seed: string) => {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = (hash * 31 + seed.charCodeAt(i)) | 0;
+  }
+  return COLOR_PALETTE[Math.abs(hash) % COLOR_PALETTE.length];
 };
 
 export default function TransactionsPage() {
@@ -290,8 +299,12 @@ export default function TransactionsPage() {
   );
 
   // Find category name from ID for display
-  const activeCategoryName = filters.categoryId 
-    ? categories?.find(c => c.id === filters.categoryId)?.name 
+  const activeCategory = filters.categoryId
+    ? categories?.find(c => c.id === filters.categoryId)
+    : null;
+  const activeCategoryName = activeCategory?.name || null;
+  const activeCategoryColor = activeCategory
+    ? (activeCategory.color || getSeedColor(activeCategory.name))
     : null;
 
   const transactionSummary = useMemo(() => {
@@ -448,11 +461,27 @@ export default function TransactionsPage() {
                         <SelectValue placeholder="Selecciona una categoría" />
                       </SelectTrigger>
                       <SelectContent>
-                        {filteredCategories?.map((category) => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
+                        {filteredCategories?.map((category) => {
+                          const accentColor = category.color || getSeedColor(category.name);
+                          return (
+                            <SelectItem key={category.id} value={category.id}>
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="flex h-6 w-6 items-center justify-center rounded-full border bg-background/80"
+                                  style={{
+                                    borderColor: `${accentColor}55`,
+                                    color: accentColor,
+                                  }}
+                                >
+                                  <span className="text-[9px] font-semibold">
+                                    {getInitials(category.name)}
+                                  </span>
+                                </div>
+                                <span>{category.name}</span>
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                   </div>
@@ -528,14 +557,24 @@ export default function TransactionsPage() {
 
       {/* Active filters from URL */}
       {activeFiltersFromUrl.length > 0 && (
-        <Card className="bg-muted/30 border-border/50">
+        <Card className="bg-background/80 border-foreground/10 shadow-soft">
           <CardContent className="py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[13px] font-medium text-muted-foreground">Filtros activos:</span>
                 {activeCategoryName && (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-background shadow-sm text-sm font-medium">
-                    <FolderOpen className="h-3.5 w-3.5 text-muted-foreground" />
+                    <div
+                      className="flex h-5 w-5 items-center justify-center rounded-full border bg-background/80"
+                      style={{
+                        borderColor: `${activeCategoryColor}55`,
+                        color: activeCategoryColor || 'currentColor',
+                      }}
+                    >
+                      <span className="text-[8px] font-semibold">
+                        {getInitials(activeCategoryName)}
+                      </span>
+                    </div>
                     {activeCategoryName}
                   </span>
                 )}
@@ -565,7 +604,7 @@ export default function TransactionsPage() {
       )}
 
       {/* Filters - Mejorado */}
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden bg-background/80 border-foreground/10 shadow-soft">
         <CardContent className="p-0">
           <div className="flex flex-wrap gap-4 p-4 items-center">
             <div className="flex-1 min-w-[200px]">
@@ -677,12 +716,12 @@ export default function TransactionsPage() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.1 }}
       >
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden bg-background/80 border-foreground/10 shadow-soft">
           <CardHeader className="border-b border-border/40">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-secondary flex items-center justify-center">
-                  <Receipt className="h-4 w-4 text-muted-foreground" />
+                <div className="h-9 w-9 rounded-lg border border-slate-400/30 bg-slate-500/10 flex items-center justify-center">
+                  <Receipt className="h-4 w-4 text-slate-600" />
                 </div>
                 <div>
                   <CardTitle className="text-[14px] font-medium">Historial</CardTitle>
@@ -749,6 +788,8 @@ export default function TransactionsPage() {
                   const isReversed = tx.status === 'REVERSED' || tx.status === 'CANCELLED';
                   const isEditing = editingId === tx.id;
                   const isSelected = selection.selectedIds.has(tx.id);
+                  const typeColor = tx.type === 'INCOME' ? '#10b981' : tx.type === 'EXPENSE' ? '#f43f5e' : '#0ea5e9';
+                  const accentColor = tx.category?.color || (tx.category?.name ? getSeedColor(tx.category.name) : typeColor);
 
                   return (
                     <motion.div
@@ -775,8 +816,22 @@ export default function TransactionsPage() {
                     )}
                     
                     {/* Icon */}
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary shrink-0">
-                      <Icon className="h-4 w-4 text-muted-foreground" />
+                    <div className="relative flex h-9 w-9 items-center justify-center shrink-0">
+                      <div
+                        className="absolute -inset-1 rounded-xl opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100"
+                        style={{ backgroundColor: accentColor }}
+                      />
+                      <div
+                        className="relative flex h-9 w-9 items-center justify-center rounded-xl border bg-background/80"
+                        style={{
+                          borderColor: `${accentColor}55`,
+                          color: accentColor,
+                          backgroundImage: `linear-gradient(140deg, ${accentColor}22, rgba(255,255,255,0.9))`,
+                          boxShadow: `0 10px 24px -16px ${accentColor}cc`,
+                        }}
+                      >
+                        <Icon className="h-4 w-4" />
+                      </div>
                     </div>
                     
                     {/* Content - Normal or Editing mode */}
@@ -798,11 +853,27 @@ export default function TransactionsPage() {
                                 <SelectValue placeholder="Categoría" />
                               </SelectTrigger>
                               <SelectContent>
-                                {categories?.filter(c => c.type === tx.type).map((cat) => (
-                                  <SelectItem key={cat.id} value={cat.id}>
-                                    {cat.name}
-                                  </SelectItem>
-                                ))}
+                                {categories?.filter(c => c.type === tx.type).map((cat) => {
+                                  const accentColor = cat.color || getSeedColor(cat.name);
+                                  return (
+                                    <SelectItem key={cat.id} value={cat.id}>
+                                      <div className="flex items-center gap-2">
+                                        <div
+                                          className="flex h-6 w-6 items-center justify-center rounded-full border bg-background/80"
+                                          style={{
+                                            borderColor: `${accentColor}55`,
+                                            color: accentColor,
+                                          }}
+                                        >
+                                          <span className="text-[9px] font-semibold">
+                                            {getInitials(cat.name)}
+                                          </span>
+                                        </div>
+                                        <span>{cat.name}</span>
+                                      </div>
+                                    </SelectItem>
+                                  );
+                                })}
                               </SelectContent>
                             </Select>
                           )}
@@ -920,11 +991,29 @@ export default function TransactionsPage() {
                 <SelectValue placeholder="Selecciona una categoría" />
               </SelectTrigger>
               <SelectContent>
-                {categories?.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id}>
-                    {cat.name} ({cat.type === 'INCOME' ? 'Ingreso' : 'Gasto'})
-                  </SelectItem>
-                ))}
+                {categories?.map((cat) => {
+                  const accentColor = cat.color || getSeedColor(cat.name);
+                  return (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="flex h-6 w-6 items-center justify-center rounded-full border bg-background/80"
+                          style={{
+                            borderColor: `${accentColor}55`,
+                            color: accentColor,
+                          }}
+                        >
+                          <span className="text-[9px] font-semibold">
+                            {getInitials(cat.name)}
+                          </span>
+                        </div>
+                        <span>
+                          {cat.name} ({cat.type === 'INCOME' ? 'Ingreso' : 'Gasto'})
+                        </span>
+                      </div>
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>

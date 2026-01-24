@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Pause, Play, Trash2, Edit, Calendar, RefreshCw, Repeat, ChevronRight } from 'lucide-react';
+import { Plus, Pause, Play, Trash2, Edit, Calendar, RefreshCw, Repeat } from 'lucide-react';
 import { useRecurringTransactions, useDeleteRecurringTransaction, usePauseRecurringTransaction, useResumeRecurringTransaction } from '@/hooks/use-recurring-transactions';
 import { useAccounts } from '@/hooks/use-accounts';
 import { useCategories } from '@/hooks/use-categories';
@@ -20,9 +20,10 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { RecurringTransactionForm } from './recurring-form';
-import { cn, formatCurrency, formatDate } from '@/lib/utils';
+import { cn, getInitials } from '@/lib/utils';
 import { ConvertedAmount } from '@/components/converted-amount';
 import type { RecurringTransaction, RecurrenceFrequency } from '@/types/api';
+import { COLOR_PALETTE } from '@/lib/color-palettes';
 
 const frequencyLabels: Record<RecurrenceFrequency, string> = {
   DAILY: 'Diario',
@@ -103,8 +104,11 @@ export default function RecurringTransactionsPage() {
         className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between"
       >
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary">
-            <Repeat className="h-5 w-5 text-foreground/70" />
+          <div className="relative">
+            <div className="absolute -inset-1 rounded-2xl bg-indigo-500/30 blur-md" />
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-indigo-500/30 bg-background/80 shadow-soft">
+              <Repeat className="h-5 w-5 text-indigo-600" />
+            </div>
           </div>
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Transacciones Recurrentes</h1>
@@ -116,18 +120,18 @@ export default function RecurringTransactionsPage() {
         
         {/* Stats */}
         <div className="flex gap-2">
-          <div className="flex items-center gap-2.5 rounded-lg bg-secondary border border-border/40 px-3 py-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-foreground/5">
-              <Play className="h-3.5 w-3.5 text-foreground/60 ml-0.5" />
+          <div className="flex items-center gap-2.5 rounded-lg bg-background/80 border border-foreground/10 px-3 py-2 shadow-soft">
+            <div className="flex h-7 w-7 items-center justify-center rounded-md border border-emerald-500/30 bg-emerald-500/10">
+              <Play className="h-3.5 w-3.5 text-emerald-600 ml-0.5" />
             </div>
             <div>
               <p className="text-lg font-semibold tabular-nums">{activeCount}</p>
               <p className="text-[11px] text-muted-foreground">Activas</p>
             </div>
           </div>
-          <div className="flex items-center gap-2.5 rounded-lg bg-secondary border border-border/40 px-3 py-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-foreground/5">
-              <Pause className="h-3.5 w-3.5 text-foreground/60" />
+          <div className="flex items-center gap-2.5 rounded-lg bg-background/80 border border-foreground/10 px-3 py-2 shadow-soft">
+            <div className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-500/30 bg-slate-500/10">
+              <Pause className="h-3.5 w-3.5 text-slate-600" />
             </div>
             <div>
               <p className="text-lg font-semibold tabular-nums">{pausedCount}</p>
@@ -171,11 +175,14 @@ export default function RecurringTransactionsPage() {
           </Card>
         </motion.div>
       ) : (
-        <Card>
+        <Card className="bg-background/80 border-foreground/10 shadow-soft">
           <CardContent className="p-0">
             <div className="divide-y divide-border/50">
               <AnimatePresence mode="popLayout">
-                {recurringList.map((item, index) => (
+                {recurringList.map((item, index) => {
+                  const accentColor = item.category?.color || COLOR_PALETTE[index % COLOR_PALETTE.length];
+                  const initialsSource = item.category?.name || item.description;
+                  return (
                   <motion.div
                     key={item.id}
                     layout
@@ -184,13 +191,28 @@ export default function RecurringTransactionsPage() {
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ delay: index * 0.03 }}
                     className={cn(
-                      'flex items-center justify-between p-4 hover:bg-foreground/[0.02] transition-colors',
+                      'group flex items-center justify-between p-4 hover:bg-foreground/[0.02] transition-colors',
                       !item.isActive && 'opacity-60'
                     )}
                   >
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary shrink-0">
-                        <Repeat className="h-4 w-4 text-foreground/60" />
+                      <div className="relative shrink-0">
+                        <div
+                          className="absolute -inset-1 rounded-2xl opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100"
+                          style={{ backgroundColor: accentColor }}
+                        />
+                        <div
+                          className="relative flex h-9 w-9 items-center justify-center rounded-xl border bg-background/90"
+                          style={{
+                            borderColor: `${accentColor}55`,
+                            boxShadow: `0 10px 24px -16px ${accentColor}cc`,
+                            backgroundImage: `linear-gradient(140deg, ${accentColor}22, rgba(255,255,255,0.9))`,
+                          }}
+                        >
+                          <span className="text-[9px] font-semibold" style={{ color: accentColor }}>
+                            {getInitials(initialsSource)}
+                          </span>
+                        </div>
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
@@ -201,12 +223,15 @@ export default function RecurringTransactionsPage() {
                             </Badge>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
+                        <div className="flex flex-wrap items-center gap-2 text-[12px] text-muted-foreground">
                           <span>{item.account?.name}</span>
                           <span className="text-muted-foreground/40">·</span>
-                          <span>{getFrequencyDescription(item)}</span>
-                          <span className="text-muted-foreground/40">·</span>
-                          <span>Próx: {new Date(item.nextOccurrence).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}</span>
+                          <span className="inline-flex items-center gap-1 rounded-full border border-foreground/10 bg-secondary/60 px-2 py-0.5 text-[11px] text-foreground/70">
+                            {getFrequencyDescription(item)}
+                          </span>
+                          <span className="inline-flex items-center gap-1 rounded-full border border-foreground/10 bg-background/80 px-2 py-0.5 text-[11px] text-foreground/70">
+                            Próx: {new Date(item.nextOccurrence).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -255,8 +280,9 @@ export default function RecurringTransactionsPage() {
                         </Button>
                       </div>
                     </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                );
+              })}
               </AnimatePresence>
             </div>
           </CardContent>

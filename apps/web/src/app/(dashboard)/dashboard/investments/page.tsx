@@ -10,12 +10,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePortfolioSummary, useHoldings, useRefreshPrices, useAutoRefreshPrices } from '@/hooks/use-investments';
 import { useAssets } from '@/hooks/use-assets';
 import { useToast } from '@/hooks/use-toast';
-import { formatCurrency, cn } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { useCurrency } from '@/contexts/currency-context';
 import { OperationForm } from './operation-form';
 import { HoldingsTable } from './holdings-table';
 import { OperationsTable } from './operations-table';
 import { AssetType } from '@/types/api';
+import { COLOR_PALETTE } from '@/lib/color-palettes';
 
 const assetTypeLabels: Record<AssetType, string> = {
   STOCK: 'Acciones',
@@ -24,6 +25,15 @@ const assetTypeLabels: Record<AssetType, string> = {
   BOND: 'Bonos',
   MUTUAL_FUND: 'Fondos',
   OTHER: 'Otros',
+};
+
+const assetTypeColors: Record<AssetType, string> = {
+  STOCK: COLOR_PALETTE[2],
+  ETF: COLOR_PALETTE[0],
+  CRYPTO: COLOR_PALETTE[9],
+  BOND: COLOR_PALETTE[4],
+  MUTUAL_FUND: COLOR_PALETTE[1],
+  OTHER: COLOR_PALETTE[6],
 };
 
 export default function InvestmentsPage() {
@@ -108,8 +118,11 @@ export default function InvestmentsPage() {
         className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between"
       >
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary">
-            <Briefcase className="h-5 w-5 text-foreground/70" />
+          <div className="relative">
+            <div className="absolute -inset-1 rounded-2xl bg-cyan-500/30 blur-md" />
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-cyan-500/30 bg-background/80 shadow-soft">
+              <Briefcase className="h-5 w-5 text-cyan-600" />
+            </div>
           </div>
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Inversiones</h1>
@@ -151,12 +164,13 @@ export default function InvestmentsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.05 }}
         >
-          <Card className="card-hover">
-            <CardContent className="p-4">
+          <Card className="card-hover relative overflow-hidden bg-background/80 border-foreground/10 shadow-soft">
+            <div className="absolute inset-0 opacity-60" style={{ backgroundImage: 'radial-gradient(circle at top right, rgba(16,185,129,0.18), transparent 60%)' }} />
+            <CardContent className="relative p-4">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[13px] text-muted-foreground">Total Invertido</span>
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary">
-                  <DollarSign className="h-4 w-4 text-foreground/60" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10">
+                  <DollarSign className="h-4 w-4 text-emerald-600" />
                 </div>
               </div>
               <p className="text-2xl font-semibold tabular-nums">
@@ -173,12 +187,13 @@ export default function InvestmentsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.1 }}
         >
-          <Card className="card-hover">
-            <CardContent className="p-4">
+          <Card className="card-hover relative overflow-hidden bg-background/80 border-foreground/10 shadow-soft">
+            <div className="absolute inset-0 opacity-60" style={{ backgroundImage: 'radial-gradient(circle at top right, rgba(59,130,246,0.18), transparent 60%)' }} />
+            <CardContent className="relative p-4">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[13px] text-muted-foreground">Valor Actual</span>
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary">
-                  <BarChart3 className="h-4 w-4 text-foreground/60" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-500/30 bg-blue-500/10">
+                  <BarChart3 className="h-4 w-4 text-blue-600" />
                 </div>
               </div>
               <p className="text-2xl font-semibold tabular-nums">
@@ -199,15 +214,16 @@ export default function InvestmentsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.15 }}
         >
-          <Card className="card-hover">
-            <CardContent className="p-4">
+          <Card className="card-hover relative overflow-hidden bg-background/80 border-foreground/10 shadow-soft">
+            <div className="absolute inset-0 opacity-60" style={{ backgroundImage: 'radial-gradient(circle at top right, rgba(14,165,233,0.2), transparent 60%)' }} />
+            <CardContent className="relative p-4">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[13px] text-muted-foreground">P&L No Realizado</span>
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-sky-500/30 bg-sky-500/10">
                   {unrealizedPnL !== null && unrealizedPnL >= 0 ? (
-                    <TrendingUp className="h-4 w-4 text-foreground/60" />
+                    <TrendingUp className="h-4 w-4 text-sky-600" />
                   ) : (
-                    <TrendingDown className="h-4 w-4 text-foreground/60" />
+                    <TrendingDown className="h-4 w-4 text-sky-600" />
                   )}
                 </div>
               </div>
@@ -238,12 +254,13 @@ export default function InvestmentsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.2 }}
         >
-          <Card className="card-hover">
-            <CardContent className="p-4">
+          <Card className="card-hover relative overflow-hidden bg-background/80 border-foreground/10 shadow-soft">
+            <div className="absolute inset-0 opacity-60" style={{ backgroundImage: 'radial-gradient(circle at top right, rgba(99,102,241,0.18), transparent 60%)' }} />
+            <CardContent className="relative p-4">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[13px] text-muted-foreground">P&L Realizado</span>
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary">
-                  <PieChart className="h-4 w-4 text-foreground/60" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-indigo-500/30 bg-indigo-500/10">
+                  <PieChart className="h-4 w-4 text-indigo-600" />
                 </div>
               </div>
               <p className={cn(
@@ -267,7 +284,7 @@ export default function InvestmentsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.25 }}
         >
-          <Card>
+          <Card className="bg-background/80 border-foreground/10 shadow-soft">
             <CardHeader className="pb-3">
               <CardTitle className="text-[15px] font-medium">Distribución por Tipo</CardTitle>
               <CardDescription className="text-[13px]">Desglose del portafolio</CardDescription>
@@ -277,6 +294,7 @@ export default function InvestmentsPage() {
                 {Object.entries(portfolio.byAssetType).map(([type, data]) => {
                   const invested = parseFloat(data.invested);
                   const percentage = totalInvested > 0 ? (invested / totalInvested) * 100 : 0;
+                  const accentColor = assetTypeColors[type as AssetType] || COLOR_PALETTE[3];
                   
                   return (
                     <div 
@@ -284,7 +302,7 @@ export default function InvestmentsPage() {
                       className="flex items-center justify-between px-4 py-3 hover:bg-foreground/[0.02] transition-colors"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="h-2 w-2 rounded-full bg-foreground/20" />
+                        <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: accentColor }} />
                         <span className="text-[14px] font-medium">
                           {assetTypeLabels[type as AssetType] || type}
                         </span>
@@ -293,6 +311,12 @@ export default function InvestmentsPage() {
                         </Badge>
                       </div>
                       <div className="flex items-center gap-4">
+                        <div className="hidden md:flex h-2 w-28 rounded-full bg-foreground/10 overflow-hidden">
+                          <div
+                            className="h-full rounded-full"
+                            style={{ width: `${percentage}%`, backgroundColor: accentColor }}
+                          />
+                        </div>
                         <span className="text-[13px] text-muted-foreground tabular-nums">
                           {convertAndFormat(invested, 'USD')}
                         </span>
@@ -317,7 +341,7 @@ export default function InvestmentsPage() {
         transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.3 }}
       >
         <Tabs defaultValue="holdings" className="space-y-4">
-          <TabsList className="h-9 p-0.5 bg-secondary">
+          <TabsList className="h-9 p-0.5 bg-background/80 border border-foreground/10 shadow-soft">
             <TabsTrigger value="holdings" className="text-[13px] h-8 px-4">Posiciones</TabsTrigger>
             <TabsTrigger value="operations" className="text-[13px] h-8 px-4">Historial</TabsTrigger>
           </TabsList>

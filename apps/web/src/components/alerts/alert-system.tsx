@@ -2,7 +2,7 @@
 
 import { useState, useEffect, createContext, useContext, ReactNode, useCallback } from 'react';
 import { cn } from '@/lib/utils';
-import { X, AlertTriangle, TrendingUp, Wallet, PiggyBank, Bell, CheckCircle, Info } from 'lucide-react';
+import { X, AlertTriangle, TrendingUp, Wallet, PiggyBank, Bell, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 // Alert types
@@ -158,8 +158,16 @@ export function AlertItem({ alert, onDismiss, onClick, compact = false }: AlertI
       )}
       onClick={onClick}
     >
-      <div className={cn('flex-shrink-0', styles.icon)}>
-        <Icon className={compact ? 'h-4 w-4' : 'h-5 w-5'} />
+      <div className="flex-shrink-0">
+        <div
+          className={cn(
+            'flex items-center justify-center rounded-xl border',
+            compact ? 'h-7 w-7' : 'h-8 w-8',
+            styles.bg
+          )}
+        >
+          <Icon className={cn(compact ? 'h-3.5 w-3.5' : 'h-4 w-4', styles.icon)} />
+        </div>
       </div>
       
       <div className="flex-1 min-w-0">

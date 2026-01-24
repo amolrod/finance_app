@@ -69,6 +69,7 @@ export default function SettingsPage() {
     monthlyReport: true,
   });
   const { preferredCurrency, setPreferredCurrency } = useCurrency();
+  const cardClassName = 'bg-background/80 border-foreground/10 shadow-soft';
 
   // Mutations
   const updateProfileMutation = useUpdateProfile();
@@ -227,7 +228,7 @@ export default function SettingsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.08 }}
         >
-          <Card id="profile">
+          <Card id="profile" className={cardClassName}>
             <CardHeader>
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary">
@@ -296,7 +297,7 @@ export default function SettingsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.12 }}
         >
-          <Card id="security">
+          <Card id="security" className={cardClassName}>
             <CardHeader>
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary">
@@ -368,7 +369,7 @@ export default function SettingsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.16 }}
         >
-          <Card id="appearance">
+          <Card id="appearance" className={cardClassName}>
             <CardHeader>
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary">
@@ -420,7 +421,7 @@ export default function SettingsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.2 }}
         >
-          <Card id="regional">
+          <Card id="regional" className={cardClassName}>
             <CardHeader>
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary">
@@ -479,7 +480,7 @@ export default function SettingsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.24 }}
         >
-          <Card id="notifications">
+          <Card id="notifications" className={cardClassName}>
             <CardHeader>
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary">
@@ -538,7 +539,7 @@ export default function SettingsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
         >
-          <Card className="border-red-200 dark:border-red-900/50">
+          <Card className="border-red-200 dark:border-red-900/50 bg-background/80 shadow-soft">
             <CardHeader>
               <CardTitle className="text-red-600 dark:text-red-400 flex items-center gap-2 text-base">
                 Zona de peligro

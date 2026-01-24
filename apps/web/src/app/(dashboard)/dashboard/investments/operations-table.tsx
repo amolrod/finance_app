@@ -24,16 +24,16 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useInvestmentOperations, useDeleteInvestmentOperation } from '@/hooks/use-investments';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
 import { useCurrency } from '@/contexts/currency-context';
 import type { OperationType } from '@/types/api';
 
-const operationTypeLabels: Record<OperationType, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-  BUY: { label: 'Compra', variant: 'default' },
-  SELL: { label: 'Venta', variant: 'secondary' },
-  DIVIDEND: { label: 'Dividendo', variant: 'outline' },
-  FEE: { label: 'Comisión', variant: 'destructive' },
-  SPLIT: { label: 'Split', variant: 'outline' },
+const operationTypeLabels: Record<OperationType, { label: string; className: string; color: string }> = {
+  BUY: { label: 'Compra', className: 'border-rose-500/30 text-rose-500 bg-rose-500/10', color: '#f43f5e' },
+  SELL: { label: 'Venta', className: 'border-emerald-500/30 text-emerald-600 bg-emerald-500/10', color: '#10b981' },
+  DIVIDEND: { label: 'Dividendo', className: 'border-sky-500/30 text-sky-600 bg-sky-500/10', color: '#0ea5e9' },
+  FEE: { label: 'Comisión', className: 'border-amber-500/30 text-amber-600 bg-amber-500/10', color: '#f59e0b' },
+  SPLIT: { label: 'Split', className: 'border-indigo-500/30 text-indigo-600 bg-indigo-500/10', color: '#6366f1' },
 };
 
 interface OperationsTableProps {
@@ -60,7 +60,7 @@ export function OperationsTable({ onEdit }: OperationsTableProps) {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="bg-background/80 border-foreground/10 shadow-soft">
         <CardContent className="flex items-center justify-center h-32">
           <p className="text-muted-foreground">Cargando operaciones...</p>
         </CardContent>
@@ -70,7 +70,7 @@ export function OperationsTable({ onEdit }: OperationsTableProps) {
 
   if (operations.length === 0 && page === 1) {
     return (
-      <Card>
+      <Card className="bg-background/80 border-foreground/10 shadow-soft">
         <CardHeader>
           <CardTitle>Historial de Operaciones</CardTitle>
           <CardDescription>Todas tus compras, ventas y dividendos</CardDescription>
@@ -89,7 +89,7 @@ export function OperationsTable({ onEdit }: OperationsTableProps) {
 
   return (
     <>
-      <Card>
+      <Card className="bg-background/80 border-foreground/10 shadow-soft">
         <CardHeader>
           <CardTitle>Historial de Operaciones</CardTitle>
           <CardDescription>Todas tus compras, ventas y dividendos</CardDescription>
@@ -111,6 +111,7 @@ export function OperationsTable({ onEdit }: OperationsTableProps) {
             <TableBody>
               {operations.map((op) => {
                 const typeInfo = operationTypeLabels[op.type] || operationTypeLabels.BUY;
+                const symbol = (op.asset?.symbol || op.asset?.name || '?').slice(0, 3).toUpperCase();
                 const quantity = parseFloat(op.quantity);
                 const price = parseFloat(op.pricePerUnit);
                 const total = parseFloat(op.totalAmount);
@@ -122,13 +123,27 @@ export function OperationsTable({ onEdit }: OperationsTableProps) {
                       {formatDate(op.occurredAt)}
                     </TableCell>
                     <TableCell>
-                      <div>
-                        <div className="font-medium">{op.asset?.symbol}</div>
-                        <div className="text-sm text-muted-foreground">{op.asset?.name}</div>
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="flex h-8 w-8 items-center justify-center rounded-lg border bg-background/80"
+                          style={{
+                            borderColor: `${typeInfo.color}55`,
+                            color: typeInfo.color,
+                            boxShadow: `0 10px 24px -16px ${typeInfo.color}cc`,
+                          }}
+                        >
+                          <span className="text-[9px] font-semibold">{symbol}</span>
+                        </div>
+                        <div>
+                          <div className="font-medium">{op.asset?.symbol}</div>
+                          <div className="text-sm text-muted-foreground">{op.asset?.name}</div>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={typeInfo.variant}>{typeInfo.label}</Badge>
+                      <Badge variant="outline" className={typeInfo.className}>
+                        {typeInfo.label}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-right font-mono">
                       {quantity.toLocaleString('en-US', { maximumFractionDigits: 4 })}

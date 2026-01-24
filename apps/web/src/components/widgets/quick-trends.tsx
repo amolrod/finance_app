@@ -4,9 +4,10 @@ import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Sparkline } from '@/components/ui/sparkline';
-import { cn } from '@/lib/utils';
-import { TrendingUp, TrendingDown, Minus, DollarSign, ShoppingBag, Utensils, Car, Home, Zap } from 'lucide-react';
+import { cn, getInitials } from '@/lib/utils';
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import Link from 'next/link';
+import { COLOR_PALETTE } from '@/lib/color-palettes';
 
 interface CategoryTrend {
   categoryId: string;
@@ -25,13 +26,12 @@ interface QuickTrendsWidgetProps {
   maxItems?: number;
 }
 
-const categoryIcons: Record<string, typeof DollarSign> = {
-  'Alimentación': Utensils,
-  'Comida': Utensils,
-  'Transporte': Car,
-  'Hogar': Home,
-  'Servicios': Zap,
-  'Compras': ShoppingBag,
+const getSeedColor = (seed: string) => {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = (hash * 31 + seed.charCodeAt(i)) | 0;
+  }
+  return COLOR_PALETTE[Math.abs(hash) % COLOR_PALETTE.length];
 };
 
 export function QuickTrendsWidget({
@@ -54,7 +54,7 @@ export function QuickTrendsWidget({
 
   if (sortedTrends.length === 0) {
     return (
-      <Card className={className}>
+      <Card className={cn('bg-background/80 border-foreground/10 shadow-soft', className)}>
         <CardHeader>
           <CardTitle className="text-base">Tendencias Rápidas</CardTitle>
         </CardHeader>
@@ -68,7 +68,7 @@ export function QuickTrendsWidget({
   }
 
   return (
-    <Card className={className}>
+    <Card className={cn('bg-background/80 border-foreground/10 shadow-soft', className)}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">Tendencias Rápidas</CardTitle>
@@ -82,7 +82,7 @@ export function QuickTrendsWidget({
       </CardHeader>
       <CardContent className="space-y-3">
         {sortedTrends.map((trend) => {
-          const Icon = categoryIcons[trend.categoryName] || DollarSign;
+          const accentColor = trend.categoryColor || getSeedColor(trend.categoryName);
           const isPositive = trend.change <= 0; // For expenses, decrease is good
           const TrendIcon = trend.change > 0 ? TrendingUp : trend.change < 0 ? TrendingDown : Minus;
           
@@ -93,13 +93,17 @@ export function QuickTrendsWidget({
               className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-muted/50 transition-colors"
             >
               <div 
-                className="flex h-8 w-8 items-center justify-center rounded-lg"
-                style={{ backgroundColor: `${trend.categoryColor}20` }}
+                className="flex h-8 w-8 items-center justify-center rounded-xl border bg-background/80"
+                style={{
+                  borderColor: `${accentColor}55`,
+                  color: accentColor,
+                  backgroundImage: `linear-gradient(140deg, ${accentColor}22, rgba(255,255,255,0.9))`,
+                  boxShadow: `0 10px 24px -16px ${accentColor}cc`,
+                }}
               >
-                <Icon 
-                  className="h-4 w-4" 
-                  style={{ color: trend.categoryColor }}
-                />
+                <span className="text-[9px] font-semibold">
+                  {getInitials(trend.categoryName)}
+                </span>
               </div>
               
               <div className="flex-1 min-w-0">
@@ -178,7 +182,7 @@ export function SavingsRateWidget({
     : undefined;
 
   return (
-    <Card className={className}>
+    <Card className={cn('bg-background/80 border-foreground/10 shadow-soft', className)}>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           Tasa de Ahorro
@@ -241,7 +245,7 @@ export function NetWorthProgressWidget({
     : undefined;
 
   return (
-    <Card className={className}>
+    <Card className={cn('bg-background/80 border-foreground/10 shadow-soft', className)}>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           Patrimonio Neto

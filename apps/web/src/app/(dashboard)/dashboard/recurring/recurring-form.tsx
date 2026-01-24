@@ -32,6 +32,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
+import { getInitials } from '@/lib/utils';
+import { COLOR_PALETTE } from '@/lib/color-palettes';
 import {
   useCreateRecurringTransaction,
   useUpdateRecurringTransaction,
@@ -250,11 +252,27 @@ export function RecurringTransactionForm({ open, onClose, editId, accounts, cate
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="">Sin categoría</SelectItem>
-                      {filteredCategories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.icon} {category.name}
-                        </SelectItem>
-                      ))}
+                      {filteredCategories.map((category, index) => {
+                        const accentColor = category.color || COLOR_PALETTE[index % COLOR_PALETTE.length];
+                        return (
+                          <SelectItem key={category.id} value={category.id}>
+                            <div className="flex items-center gap-2">
+                              <div
+                                className="flex h-6 w-6 items-center justify-center rounded-full border bg-background/80"
+                                style={{
+                                  borderColor: `${accentColor}55`,
+                                  color: accentColor,
+                                }}
+                              >
+                                <span className="text-[9px] font-semibold">
+                                  {getInitials(category.name)}
+                                </span>
+                              </div>
+                              <span>{category.name}</span>
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                   <FormMessage />

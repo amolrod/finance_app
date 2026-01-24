@@ -25,7 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { formatCurrency, cn } from '@/lib/utils';
+import { cn, getInitials } from '@/lib/utils';
 import { useCurrency } from '@/contexts/currency-context';
 import { Plus, PiggyBank, Trash2, AlertTriangle, Target, TrendingUp, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -33,6 +33,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Decimal from 'decimal.js';
+import { COLOR_PALETTE } from '@/lib/color-palettes';
 
 const budgetSchema = z.object({
   categoryId: z.string().min(1, 'La categoría es requerida'),
@@ -304,7 +305,9 @@ export default function BudgetsPage() {
               const percentage = budget.percentageUsed;
               const isOverBudget = percentage >= 100;
               const isWarning = percentage >= 80 && percentage < 100;
-
+              const accentColor = budget.categoryColor || COLOR_PALETTE[index % COLOR_PALETTE.length];
+              const statusLabel = isOverBudget ? 'Excedido' : isWarning ? 'Alerta' : 'En orden';
+              
               return (
                 <motion.div
                   key={budget.id}
@@ -313,18 +316,34 @@ export default function BudgetsPage() {
                   exit={{ opacity: 0 }}
                   transition={{ type: 'spring', stiffness: 300, damping: 30, delay: index * 0.02 }}
                 >
-                  <Card className="group relative overflow-hidden card-hover h-full">
-                    {/* Status bar */}
-                    <div className={cn(
-                      'absolute top-0 left-0 w-0.5 h-full',
-                      isOverBudget ? 'bg-foreground' : isWarning ? 'bg-foreground/60' : 'bg-green-500'
-                    )} />
+                  <Card className="group relative overflow-hidden card-hover h-full bg-background/80 border-foreground/10 shadow-soft">
+                    <div
+                      className="absolute inset-x-0 top-0 h-1 opacity-80"
+                      style={{
+                        backgroundImage: `linear-gradient(90deg, ${accentColor}, transparent)`,
+                      }}
+                    />
                     
                     <CardHeader className="pb-2 pt-4 pl-5 relative">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-base">
-                            {budget.categoryIcon || '📊'}
+                          <div className="relative">
+                            <div
+                              className="absolute -inset-1 rounded-2xl opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100"
+                              style={{ backgroundColor: accentColor }}
+                            />
+                            <div
+                              className="relative flex h-10 w-10 items-center justify-center rounded-2xl border bg-background/90"
+                              style={{
+                                borderColor: `${accentColor}55`,
+                                boxShadow: `0 10px 24px -16px ${accentColor}cc`,
+                                backgroundImage: `linear-gradient(140deg, ${accentColor}22, rgba(255,255,255,0.9))`,
+                              }}
+                            >
+                              <span className="text-[10px] font-semibold" style={{ color: accentColor }}>
+                                {getInitials(budget.categoryName)}
+                              </span>
+                            </div>
                           </div>
                           <div>
                             <CardTitle className="text-[14px] font-medium flex items-center gap-2">
@@ -336,11 +355,16 @@ export default function BudgetsPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-1">
-                          {(isWarning || isOverBudget) && (
-                            <div className="p-1 rounded-md bg-secondary">
-                              <AlertTriangle className="h-3.5 w-3.5 text-muted-foreground" />
-                            </div>
-                          )}
+                          <span className={cn(
+                            'text-[10px] font-medium px-2 py-0.5 rounded-full border',
+                            isOverBudget
+                              ? 'border-rose-500/40 text-rose-500 bg-rose-500/10'
+                              : isWarning
+                                ? 'border-amber-500/40 text-amber-500 bg-amber-500/10'
+                                : 'border-emerald-500/40 text-emerald-500 bg-emerald-500/10'
+                          )}>
+                            {statusLabel}
+                          </span>
                           <Button
                             variant="ghost"
                             size="icon"
@@ -367,7 +391,7 @@ export default function BudgetsPage() {
                             value={Math.min(percentage, 100)}
                             indicatorClassName={cn(
                               'transition-all',
-                              isOverBudget ? 'bg-foreground' : isWarning ? 'bg-foreground/60' : 'bg-green-500'
+                              isOverBudget ? 'bg-rose-500' : isWarning ? 'bg-amber-500' : 'bg-emerald-500'
                             )}
                           />
                           <span className="absolute right-0 -top-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded bg-secondary tabular-nums">

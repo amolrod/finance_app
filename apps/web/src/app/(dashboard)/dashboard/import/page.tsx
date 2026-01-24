@@ -41,8 +41,9 @@ import {
   Download,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { formatCurrency, formatDate, cn } from '@/lib/utils';
-import type { ImportPreview, ParsedTransactionWithCategory, ImportTransaction, Account, Category } from '@/types/api';
+import { formatCurrency, formatDate, cn, getInitials } from '@/lib/utils';
+import type { ImportPreview, ImportTransaction } from '@/types/api';
+import { COLOR_PALETTE } from '@/lib/color-palettes';
 
 type ImportStep = 'upload' | 'preview' | 'result';
 
@@ -241,7 +242,12 @@ export default function ImportPage() {
     return 'text-gray-400';
   };
 
-  const selectedAccount = accounts.find((a) => a.id === selectedAccountId);
+  const steps = [
+    { id: 'upload', label: 'Subir archivo', icon: Upload },
+    { id: 'preview', label: 'Revisar datos', icon: FileText },
+    { id: 'result', label: 'Confirmar', icon: CheckCircle2 },
+  ] as const;
+  const activeStepIndex = steps.findIndex((item) => item.id === step);
 
   return (
     <div className="space-y-6">
@@ -251,17 +257,53 @@ export default function ImportPage() {
         animate={{ opacity: 1, y: 0 }}
       >
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-500/10">
-            <Download className="h-5 w-5 text-teal-600" />
+          <div className="relative">
+            <div className="absolute -inset-1 rounded-2xl bg-teal-500/30 blur-md" />
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-teal-500/30 bg-background/80 shadow-soft">
+              <Download className="h-5 w-5 text-teal-600" />
+            </div>
           </div>
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Importar Transacciones</h1>
-            <p className="text-muted-foreground text-[15px]">
+            <p className="text-muted-foreground text-[13px]">
               Importa transacciones desde extractos bancarios en formato CSV
             </p>
           </div>
         </div>
       </motion.div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        {steps.map((item, index) => {
+          const Icon = item.icon;
+          const isActive = item.id === step;
+          const isComplete = index < activeStepIndex;
+          return (
+            <div key={item.id} className="flex items-center gap-3">
+              <div
+                className={cn(
+                  'flex h-8 w-8 items-center justify-center rounded-full border text-[12px] font-medium',
+                  isComplete
+                    ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600'
+                    : isActive
+                      ? 'border-foreground/30 bg-foreground/5 text-foreground'
+                      : 'border-border/60 text-muted-foreground'
+                )}
+              >
+                {isComplete ? <CheckCircle2 className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+              </div>
+              <div className={cn(
+                'text-[12px] font-medium',
+                isActive ? 'text-foreground' : 'text-muted-foreground'
+              )}>
+                {item.label}
+              </div>
+              {index < steps.length - 1 && (
+                <div className="hidden sm:block h-px w-8 bg-border/60" />
+              )}
+            </div>
+          );
+        })}
+      </div>
 
       {/* Step 1: Upload */}
       <AnimatePresence mode="wait">
@@ -279,7 +321,7 @@ export default function ImportPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
             >
-              <Card className="border-border/50 h-full">
+              <Card className="border-foreground/10 bg-background/80 shadow-soft h-full">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10">
@@ -317,7 +359,7 @@ export default function ImportPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <Card className="border-border/50 h-full">
+              <Card className="border-foreground/10 bg-background/80 shadow-soft h-full">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10">
@@ -333,7 +375,7 @@ export default function ImportPage() {
                   <div
                     {...getRootProps()}
                     className={cn(
-                      'border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200',
+                      'border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-200 bg-gradient-to-br from-foreground/[0.03] via-transparent to-transparent',
                       isDragActive && 'border-primary bg-primary/5',
                       !selectedAccountId && 'opacity-50 cursor-not-allowed',
                       previewMutation.isPending && 'opacity-50 cursor-wait'
@@ -374,7 +416,7 @@ export default function ImportPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 }}
             >
-              <Card className="border-border/50">
+              <Card className="border-foreground/10 bg-background/80 shadow-soft">
                 <CardHeader>
                   <CardTitle className="text-lg">Bancos Soportados</CardTitle>
                   <CardDescription className="text-[13px]">
@@ -402,7 +444,7 @@ export default function ImportPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 + index * 0.02 }}
-                    className="flex flex-col gap-1 p-3 rounded-xl bg-muted/30 border border-border/50"
+                    className="flex flex-col gap-1 p-3 rounded-xl bg-background/70 border border-foreground/10 shadow-soft"
                   >
                     <div className="flex items-center gap-2">
                       <CheckCircle2 className="h-4 w-4 text-emerald-600" />
@@ -424,7 +466,7 @@ export default function ImportPage() {
         <div className="space-y-6">
           {/* Summary Cards */}
           <div className="grid gap-4 md:grid-cols-4">
-            <Card className="border-border/50">
+            <Card className="border-foreground/10 bg-background/80 shadow-soft">
               <CardHeader className="pb-2">
                 <CardTitle className="text-[13px] font-medium text-muted-foreground">
                   Formato Detectado
@@ -438,7 +480,7 @@ export default function ImportPage() {
               </CardContent>
             </Card>
 
-            <Card className="border-border/50">
+            <Card className="border-foreground/10 bg-background/80 shadow-soft">
               <CardHeader className="pb-2">
                 <CardTitle className="text-[13px] font-medium text-muted-foreground">
                   Total Transacciones
@@ -452,7 +494,7 @@ export default function ImportPage() {
               </CardContent>
             </Card>
 
-            <Card className="border-border/50">
+            <Card className="border-foreground/10 bg-background/80 shadow-soft">
               <CardHeader className="pb-2">
                 <CardTitle className="text-[13px] font-medium text-muted-foreground">
                   Seleccionados
@@ -464,7 +506,7 @@ export default function ImportPage() {
               </CardContent>
             </Card>
 
-            <Card className="border-border/50">
+            <Card className="border-foreground/10 bg-background/80 shadow-soft">
               <CardHeader className="pb-2">
                 <CardTitle className="text-[13px] font-medium text-muted-foreground">
                   Balance Neto
@@ -489,7 +531,7 @@ export default function ImportPage() {
 
           {/* Info Banner */}
           {preview.duplicatesFound > 0 && (
-            <div className="flex items-center gap-2 p-4 bg-amber-500/10 rounded-xl border border-amber-500/20">
+            <div className="flex items-center gap-2 p-4 rounded-xl border border-amber-500/20 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent">
               <AlertTriangle className="h-5 w-5 text-amber-600" />
               <span className="text-sm text-amber-800 dark:text-amber-200">
                 Se encontraron {preview.duplicatesFound} transacciones que ya existen en el sistema.
@@ -499,7 +541,7 @@ export default function ImportPage() {
           )}
 
           {/* Transaction Table */}
-          <Card className="border-border/50">
+          <Card className="border-foreground/10 bg-background/80 shadow-soft">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -562,14 +604,14 @@ export default function ImportPage() {
                         </TableCell>
                         <TableCell>
                           {tx.type === 'INCOME' ? (
-                            <div className="flex items-center gap-1 text-green-600">
-                              <ArrowDownRight className="h-4 w-4" />
-                              <span className="text-xs">Ingreso</span>
-                            </div>
+                        <div className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium bg-emerald-500/10 text-emerald-600">
+                          <ArrowDownRight className="h-3.5 w-3.5" />
+                          Ingreso
+                        </div>
                           ) : (
-                            <div className="flex items-center gap-1 text-red-600">
-                              <ArrowUpRight className="h-4 w-4" />
-                              <span className="text-xs">Gasto</span>
+                            <div className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium bg-rose-500/10 text-rose-500">
+                              <ArrowUpRight className="h-3.5 w-3.5" />
+                              Gasto
                             </div>
                           )}
                         </TableCell>
@@ -595,14 +637,27 @@ export default function ImportPage() {
                               <SelectItem value="none">Sin categoría</SelectItem>
                               {categories
                                 .filter((c) => c.type === tx.type)
-                                .map((category) => (
-                                  <SelectItem key={category.id} value={category.id}>
-                                    <div className="flex items-center gap-2">
-                                      <span>{category.icon}</span>
-                                      <span>{category.name}</span>
-                                    </div>
-                                  </SelectItem>
-                                ))}
+                                .map((category, catIndex) => {
+                                  const accentColor = category.color || COLOR_PALETTE[catIndex % COLOR_PALETTE.length];
+                                  return (
+                                    <SelectItem key={category.id} value={category.id}>
+                                      <div className="flex items-center gap-2">
+                                        <div
+                                          className="flex h-6 w-6 items-center justify-center rounded-full border bg-background/80"
+                                          style={{
+                                            borderColor: `${accentColor}55`,
+                                            color: accentColor,
+                                          }}
+                                        >
+                                          <span className="text-[9px] font-semibold">
+                                            {getInitials(category.name)}
+                                          </span>
+                                        </div>
+                                        <span>{category.name}</span>
+                                      </div>
+                                    </SelectItem>
+                                  );
+                                })}
                             </SelectContent>
                           </Select>
                           {tx.suggestedCategory && (
@@ -675,7 +730,7 @@ export default function ImportPage() {
 
       {/* Step 3: Result */}
       {step === 'result' && importResult && (
-        <Card className="max-w-lg mx-auto">
+        <Card className="max-w-lg mx-auto bg-background/80 border-foreground/10 shadow-soft">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
               <CheckCircle2 className="h-8 w-8 text-green-600" />

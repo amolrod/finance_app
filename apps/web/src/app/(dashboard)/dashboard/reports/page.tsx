@@ -24,12 +24,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { formatCurrency, formatDate, cn } from '@/lib/utils';
+import { formatDate, cn, getInitials } from '@/lib/utils';
 import { useCurrency } from '@/contexts/currency-context';
 import { Download, FileSpreadsheet, TrendingUp, TrendingDown, Wallet, Calendar, PiggyBank, CreditCard, ArrowRight, BarChart3 } from 'lucide-react';
 import { InteractiveExpenseChart, InteractiveMonthlyChart } from '@/components/charts';
 import type { TransactionFilters, TransactionType } from '@/types/api';
 import Link from 'next/link';
+import { COLOR_PALETTE } from '@/lib/color-palettes';
 
 export default function ReportsPage() {
   const { convertAmount, formatAmount, preferredCurrency } = useCurrency();
@@ -180,11 +181,19 @@ export default function ReportsPage() {
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
       >
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Reportes</h1>
-          <p className="text-muted-foreground text-[15px]">
-            Análisis detallado de tus finanzas
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <div className="absolute -inset-1 rounded-2xl bg-sky-500/30 blur-md" />
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-sky-500/30 bg-background/80 shadow-soft">
+              <BarChart3 className="h-5 w-5 text-sky-600" />
+            </div>
+          </div>
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Reportes</h1>
+            <p className="text-muted-foreground text-[13px]">
+              Análisis detallado de tus finanzas
+            </p>
+          </div>
         </div>
         <Button 
           onClick={exportToCSV} 
@@ -201,10 +210,10 @@ export default function ReportsPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <Card className="overflow-hidden border-border/50">
+        <Card className="overflow-hidden border-foreground/10 bg-background/80 shadow-soft">
           <CardContent className="p-0">
             {/* Quick presets */}
-            <div className="flex flex-wrap gap-2 p-4 bg-muted/30 border-b border-border/50">
+            <div className="flex flex-wrap gap-2 p-4 bg-gradient-to-r from-foreground/[0.02] via-transparent to-transparent border-b border-border/50">
               <span className="flex items-center gap-2 text-[13px] font-medium text-muted-foreground mr-2">
                 <Calendar className="h-4 w-4" />
                 Período:
@@ -279,11 +288,11 @@ export default function ReportsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
         >
-          <Card className="border-border/50">
+          <Card className="border-foreground/10 bg-background/80 shadow-soft">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-[13px] font-medium text-muted-foreground">Total Ingresos</CardTitle>
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary">
-                <TrendingUp className="h-4 w-4 text-foreground/60" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10">
+                <TrendingUp className="h-4 w-4 text-emerald-600" />
               </div>
             </CardHeader>
             <CardContent>
@@ -303,11 +312,11 @@ export default function ReportsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
         >
-          <Card className="border-border/50">
+          <Card className="border-foreground/10 bg-background/80 shadow-soft">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-[13px] font-medium text-muted-foreground">Total Gastos</CardTitle>
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary">
-                <TrendingDown className="h-4 w-4 text-foreground/60" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-rose-500/30 bg-rose-500/10">
+                <TrendingDown className="h-4 w-4 text-rose-500" />
               </div>
             </CardHeader>
             <CardContent>
@@ -327,11 +336,11 @@ export default function ReportsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Card className="border-border/50">
+          <Card className="border-foreground/10 bg-background/80 shadow-soft">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-[13px] font-medium text-muted-foreground">Balance Neto</CardTitle>
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary">
-                <Wallet className="h-4 w-4 text-foreground/60" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-sky-500/30 bg-sky-500/10">
+                <Wallet className="h-4 w-4 text-sky-600" />
               </div>
             </CardHeader>
             <CardContent>
@@ -373,11 +382,11 @@ export default function ReportsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="border-border/50">
+          <Card className="border-foreground/10 bg-background/80 shadow-soft">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-[13px] font-medium text-muted-foreground">Días Analizados</CardTitle>
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10">
-                <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-500/30 bg-blue-500/10">
+                <Calendar className="h-4 w-4 text-blue-600" />
               </div>
             </CardHeader>
             <CardContent>
@@ -401,11 +410,11 @@ export default function ReportsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
         >
-          <Card className="border-border/50">
+          <Card className="border-foreground/10 bg-background/80 shadow-soft">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-[13px] font-medium text-muted-foreground">Tasa de Ahorro</CardTitle>
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary">
-                <PiggyBank className="h-4 w-4 text-foreground/60" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10">
+                <PiggyBank className="h-4 w-4 text-emerald-600" />
               </div>
             </CardHeader>
             <CardContent>
@@ -431,11 +440,11 @@ export default function ReportsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <Card className="border-border/50">
+          <Card className="border-foreground/10 bg-background/80 shadow-soft">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-[13px] font-medium text-muted-foreground">Gasto Diario Promedio</CardTitle>
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary">
-                <CreditCard className="h-4 w-4 text-foreground/60" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10">
+                <CreditCard className="h-4 w-4 text-amber-600" />
               </div>
             </CardHeader>
             <CardContent>
@@ -460,11 +469,11 @@ export default function ReportsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.45 }}
         >
-          <Card className="border-border/50">
+          <Card className="border-foreground/10 bg-background/80 shadow-soft">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-[13px] font-medium text-muted-foreground">Categorías Activas</CardTitle>
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/10">
-                <FileSpreadsheet className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-violet-500/30 bg-violet-500/10">
+                <FileSpreadsheet className="h-4 w-4 text-violet-600" />
               </div>
             </CardHeader>
             <CardContent>
@@ -485,7 +494,7 @@ export default function ReportsPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
       >
-        <Card className="border-border/50">
+        <Card className="border-foreground/10 bg-background/80 shadow-soft">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
@@ -530,6 +539,7 @@ export default function ReportsPage() {
                   const dateParams = filters.startDate && filters.endDate 
                     ? `&startDate=${filters.startDate}&endDate=${filters.endDate}`
                     : '';
+                  const accentColor = category.color || COLOR_PALETTE[index % COLOR_PALETTE.length];
                   
                   return (
                     <motion.tr
@@ -541,12 +551,18 @@ export default function ReportsPage() {
                     >
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
-                          {category.color && (
-                            <div 
-                              className="w-3 h-3 rounded-full shrink-0 ring-2 ring-offset-2 ring-offset-background" 
-                              style={{ backgroundColor: category.color, boxShadow: `0 0 8px ${category.color}40` }}
-                            />
-                          )}
+                          <div
+                            className="flex h-7 w-7 items-center justify-center rounded-full border bg-background/80 shrink-0"
+                            style={{
+                              borderColor: `${accentColor}55`,
+                              color: accentColor,
+                              boxShadow: `0 10px 24px -16px ${accentColor}cc`,
+                            }}
+                          >
+                            <span className="text-[9px] font-semibold">
+                              {getInitials(category.name)}
+                            </span>
+                          </div>
                           {category.name}
                         </div>
                       </TableCell>

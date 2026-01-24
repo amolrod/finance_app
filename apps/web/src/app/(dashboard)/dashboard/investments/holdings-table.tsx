@@ -11,17 +11,16 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatCurrency } from '@/lib/utils';
 import { useCurrency } from '@/contexts/currency-context';
 import type { HoldingSummary, AssetType } from '@/types/api';
 
-const assetTypeBadges: Record<AssetType, { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
-  STOCK: { label: 'Acción', variant: 'default' },
-  ETF: { label: 'ETF', variant: 'secondary' },
-  CRYPTO: { label: 'Cripto', variant: 'outline' },
-  BOND: { label: 'Bono', variant: 'secondary' },
-  MUTUAL_FUND: { label: 'Fondo', variant: 'outline' },
-  OTHER: { label: 'Otro', variant: 'outline' },
+const assetTypeBadges: Record<AssetType, { label: string; className: string; color: string }> = {
+  STOCK: { label: 'Acción', className: 'border-sky-500/30 text-sky-600 bg-sky-500/10', color: '#0ea5e9' },
+  ETF: { label: 'ETF', className: 'border-emerald-500/30 text-emerald-600 bg-emerald-500/10', color: '#10b981' },
+  CRYPTO: { label: 'Cripto', className: 'border-orange-500/30 text-orange-600 bg-orange-500/10', color: '#f97316' },
+  BOND: { label: 'Bono', className: 'border-indigo-500/30 text-indigo-600 bg-indigo-500/10', color: '#6366f1' },
+  MUTUAL_FUND: { label: 'Fondo', className: 'border-teal-500/30 text-teal-600 bg-teal-500/10', color: '#14b8a6' },
+  OTHER: { label: 'Otro', className: 'border-slate-400/40 text-slate-600 bg-slate-500/10', color: '#64748b' },
 };
 
 interface HoldingsTableProps {
@@ -34,7 +33,7 @@ export function HoldingsTable({ holdings, loading }: HoldingsTableProps) {
 
   if (loading) {
     return (
-      <Card>
+      <Card className="bg-background/80 border-foreground/10 shadow-soft">
         <CardContent className="flex items-center justify-center h-32">
           <p className="text-muted-foreground">Cargando posiciones...</p>
         </CardContent>
@@ -44,7 +43,7 @@ export function HoldingsTable({ holdings, loading }: HoldingsTableProps) {
 
   if (holdings.length === 0) {
     return (
-      <Card>
+      <Card className="bg-background/80 border-foreground/10 shadow-soft">
         <CardHeader>
           <CardTitle>Posiciones</CardTitle>
           <CardDescription>Tu cartera de inversiones actual</CardDescription>
@@ -62,7 +61,7 @@ export function HoldingsTable({ holdings, loading }: HoldingsTableProps) {
   }
 
   return (
-    <Card>
+    <Card className="bg-background/80 border-foreground/10 shadow-soft">
       <CardHeader>
         <CardTitle>Posiciones</CardTitle>
         <CardDescription>Tu cartera de inversiones actual</CardDescription>
@@ -90,6 +89,7 @@ export function HoldingsTable({ holdings, loading }: HoldingsTableProps) {
               const pnl = holding.unrealizedPnL ? parseFloat(holding.unrealizedPnL) : null;
               const pnlPercent = holding.unrealizedPnLPercent ? parseFloat(holding.unrealizedPnLPercent) : null;
               const badgeInfo = assetTypeBadges[holding.type as AssetType] || assetTypeBadges.OTHER;
+              const symbol = (holding.symbol || holding.name || '?').slice(0, 3).toUpperCase();
 
               // Skip if no position
               if (quantity <= 0) return null;
@@ -97,12 +97,24 @@ export function HoldingsTable({ holdings, loading }: HoldingsTableProps) {
               return (
                 <TableRow key={holding.assetId}>
                   <TableCell>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="flex h-9 w-9 items-center justify-center rounded-xl border bg-background/80"
+                        style={{
+                          borderColor: `${badgeInfo.color}55`,
+                          color: badgeInfo.color,
+                          boxShadow: `0 10px 24px -16px ${badgeInfo.color}cc`,
+                        }}
+                      >
+                        <span className="text-[10px] font-semibold">{symbol}</span>
+                      </div>
                       <div>
                         <div className="font-medium">{holding.symbol}</div>
                         <div className="text-sm text-muted-foreground">{holding.name}</div>
                       </div>
-                      <Badge variant={badgeInfo.variant}>{badgeInfo.label}</Badge>
+                      <Badge variant="outline" className={badgeInfo.className}>
+                        {badgeInfo.label}
+                      </Badge>
                     </div>
                   </TableCell>
                   <TableCell className="text-right font-mono">
