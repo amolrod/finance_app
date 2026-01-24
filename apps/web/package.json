@@ -43,6 +43,7 @@
     "decimal.js": "^10.4.3",
     "framer-motion": "^12.26.2",
     "lucide-react": "^0.562.0",
+    "motion": "^12.26.2",
     "next": "14.1.0",
     "next-themes": "^0.2.1",
     "react": "^18.2.0",
