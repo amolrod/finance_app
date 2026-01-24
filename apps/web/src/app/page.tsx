@@ -175,19 +175,23 @@ export default function HomePage() {
           className="container mx-auto flex h-16 items-center justify-between px-4"
           aria-label="Navegación principal"
         >
-          <LogoText className="font-[var(--font-display)]" />
+          <LogoText
+            className="gap-2 font-[var(--font-display)]"
+            logoClassName="h-9 w-9 sm:h-10 sm:w-10"
+            textClassName="hidden sm:inline-flex text-lg sm:text-2xl"
+          />
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
             <Link href="/auth/login">
-              <Button variant="ghost" size="sm" className="text-sm font-semibold">
+              <Button variant="ghost" size="sm" className="text-[12px] font-semibold sm:text-sm">
                 Entrar
               </Button>
             </Link>
             <Link href="/auth/register">
               <Button
                 size="sm"
-                className="relative overflow-hidden rounded-full bg-[linear-gradient(135deg,var(--accent-a),var(--accent-b))] px-5 text-sm font-semibold text-white shadow-[0_12px_30px_-18px_rgba(16,185,129,0.85)] transition-transform duration-300 hover:-translate-y-0.5"
+                className="relative overflow-hidden rounded-full bg-[linear-gradient(135deg,var(--accent-a),var(--accent-b))] px-4 text-[12px] font-semibold text-white shadow-[0_12px_30px_-18px_rgba(16,185,129,0.85)] transition-transform duration-300 hover:-translate-y-0.5 sm:px-5 sm:text-sm"
               >
                 <span className="relative z-10">Crear cuenta</span>
               </Button>
@@ -334,31 +338,7 @@ export default function HomePage() {
                   accent={feature.accent}
                   delay={index * 120}
                 >
-                  {feature.highlight ? (
-                    <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                      <div className="rounded-2xl border border-foreground/10 bg-background/70 p-4">
-                        <p className="text-xs text-muted-foreground">Fuga detectada</p>
-                        <p className="mt-2 text-xl font-semibold text-foreground">-€124</p>
-                        <p className="text-xs text-emerald-600">Hoy, 16:30</p>
-                      </div>
-                      <div className="rounded-2xl border border-foreground/10 bg-background/70 p-4">
-                        <p className="text-xs text-muted-foreground">Categoría más alta</p>
-                        <p className="mt-2 text-xl font-semibold text-foreground">Comida</p>
-                        <p className="text-xs text-muted-foreground">26% del mes</p>
-                      </div>
-                      <div className="sm:col-span-2 rounded-2xl border border-foreground/10 bg-background/70 p-4">
-                        <div className="flex h-16 items-end gap-2" aria-hidden="true">
-                          {DASHBOARD_BARS.slice(0, 10).map((height, barIndex) => (
-                            <div
-                              key={`feature-bar-${barIndex}`}
-                              className="flex-1 rounded-full bg-gradient-to-t from-emerald-600/80 to-emerald-400/70"
-                              style={{ height: `${height}%` }}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  ) : null}
+                  {feature.highlight ? <FeaturePreview /> : null}
                 </FeatureTile>
               ))}
             </div>
@@ -505,7 +485,11 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <LogoText className="font-[var(--font-display)]" />
+              <LogoText
+                className="gap-2 font-[var(--font-display)]"
+                logoClassName="h-9 w-9"
+                textClassName="text-xl"
+              />
               <p className="mt-2 text-sm text-muted-foreground">
                 Hecho para que tus finanzas respiren.
               </p>
@@ -513,7 +497,7 @@ export default function HomePage() {
             <div className="flex items-center gap-6">
               <ThemeToggle />
               <a
-                href="https://github.com"
+                href="https://github.com/amolrod/finance_app"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground transition-colors hover:text-foreground"
@@ -531,57 +515,6 @@ export default function HomePage() {
         </div>
       </footer>
 
-      <style jsx global>{`
-        @keyframes drift {
-          0%,
-          100% {
-            transform: translate3d(0, 0, 0);
-          }
-          50% {
-            transform: translate3d(0, 16px, 0);
-          }
-        }
-
-        @keyframes float {
-          0%,
-          100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-12px);
-          }
-        }
-
-        @keyframes float-reverse {
-          0%,
-          100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(10px);
-          }
-        }
-
-        @keyframes rise {
-          0% {
-            opacity: 0;
-            transform: translateY(18px);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes marquee {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-50%);
-          }
-        }
-      `}</style>
     </div>
   );
 }
@@ -687,6 +620,88 @@ function HeroVisual() {
           />
           <circle cx="90" cy="10" r="4" className="fill-emerald-500" />
         </svg>
+      </div>
+    </div>
+  );
+}
+
+function FeaturePreview() {
+  return (
+    <div className="mt-6 grid gap-4 sm:grid-cols-2">
+      <div className="rounded-2xl border border-foreground/10 bg-background/70 p-4">
+        <p className="text-xs text-muted-foreground">Fuga detectada</p>
+        <p className="mt-2 text-xl font-semibold text-foreground">-€124</p>
+        <p className="text-xs text-rose-500">Hoy, 16:30</p>
+      </div>
+      <div className="rounded-2xl border border-foreground/10 bg-background/70 p-4">
+        <p className="text-xs text-muted-foreground">Categoría más alta</p>
+        <p className="mt-2 text-xl font-semibold text-foreground">Comida</p>
+        <p className="text-xs text-muted-foreground">26% del mes</p>
+      </div>
+      <div className="sm:col-span-2 grid gap-4 sm:grid-cols-[1.4fr_0.6fr]">
+        <div className="rounded-2xl border border-foreground/10 bg-background/70 p-4">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>Tendencia mensual</span>
+            <span className="font-medium text-emerald-600">+8.4%</span>
+          </div>
+          <svg
+            viewBox="0 0 200 70"
+            className="mt-4 h-16 w-full"
+            aria-hidden="true"
+          >
+            <defs>
+              <linearGradient id="featureTrendLine" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#10b981" />
+                <stop offset="100%" stopColor="#14b8a6" />
+              </linearGradient>
+              <linearGradient id="featureTrendFill" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#10b981" stopOpacity="0.35" />
+                <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M0 60 L24 54 L48 44 L72 48 L96 38 L120 28 L144 34 L168 22 L200 26"
+              fill="none"
+              stroke="url(#featureTrendLine)"
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M0 60 L24 54 L48 44 L72 48 L96 38 L120 28 L144 34 L168 22 L200 26 L200 70 L0 70 Z"
+              fill="url(#featureTrendFill)"
+            />
+          </svg>
+          <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground">
+            <span>Semana 1</span>
+            <span>Semana 4</span>
+          </div>
+        </div>
+        <div className="rounded-2xl border border-foreground/10 bg-background/70 p-4">
+          <p className="text-xs text-muted-foreground">Gasto por categoría</p>
+          <div className="mt-4 flex items-center gap-3">
+            <div
+              className="relative h-16 w-16 rounded-full bg-[conic-gradient(var(--accent-a)_0deg_140deg,var(--accent-c)_140deg_250deg,var(--accent-e)_250deg_360deg)]"
+              aria-hidden="true"
+            >
+              <div className="absolute inset-2 rounded-full bg-background" />
+            </div>
+            <div className="space-y-1 text-[11px] text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                Comida 32%
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-amber-500" />
+                Hogar 28%
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-sky-500" />
+                Viajes 18%
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

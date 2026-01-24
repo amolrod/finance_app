@@ -1,68 +1,84 @@
-export function Logo({ className = "h-10 w-10" }: { className?: string }) {
+type LogoProps = { className?: string };
+
+type LogoTextProps = {
+  className?: string;
+  logoClassName?: string;
+  textClassName?: string;
+};
+
+export function Logo({ className = 'h-10 w-10' }: LogoProps) {
   return (
     <svg
-      viewBox="0 0 64 64"
+      viewBox="0 0 96 96"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
+      aria-hidden="true"
     >
-      {/* Gradient definitions */}
       <defs>
-        <linearGradient id="logoGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#10B981" />
-          <stop offset="100%" stopColor="#059669" />
+        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#0ea5e9" />
+          <stop offset="45%" stopColor="#14b8a6" />
+          <stop offset="100%" stopColor="#22c55e" />
         </linearGradient>
-        <linearGradient id="logoGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#34D399" />
-          <stop offset="100%" stopColor="#10B981" />
-        </linearGradient>
-        <linearGradient id="logoGradient3" x1="100%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#6EE7B7" />
-          <stop offset="100%" stopColor="#34D399" />
+        <radialGradient
+          id="logoGlow"
+          cx="0%"
+          cy="0%"
+          r="1"
+          gradientTransform="translate(16 12) scale(90)"
+        >
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.55" />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id="logoStroke" x1="24" y1="72" x2="72" y2="24">
+          <stop offset="0%" stopColor="#f8fafc" stopOpacity="0.85" />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity="1" />
         </linearGradient>
       </defs>
-      
-      {/* Main circle background */}
-      <circle cx="32" cy="32" r="30" fill="url(#logoGradient1)" />
-      
-      {/* Inner glow circle */}
-      <circle cx="32" cy="32" r="26" fill="url(#logoGradient2)" opacity="0.3" />
-      
-      {/* Dollar/Euro symbol stylized as chart */}
+
+      <rect x="6" y="6" width="84" height="84" rx="26" fill="url(#logoGradient)" />
+      <rect x="6" y="6" width="84" height="84" rx="26" fill="url(#logoGlow)" />
+
       <path
-        d="M32 14V18M32 46V50M32 18C38 18 42 21 42 26C42 31 38 33 32 33C26 33 22 35 22 40C22 45 26 48 32 48M32 18C26 18 22 21 22 26M32 48C38 48 42 45 42 40"
-        stroke="white"
+        d="M24 34C32 24 48 20 60 26C72 32 76 46 70 58C64 70 50 76 36 72C26 70 20 60 22 48"
+        stroke="#ffffff"
+        strokeOpacity="0.35"
         strokeWidth="3"
         strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      
-      {/* Upward trend arrow overlay */}
-      <path
-        d="M18 42L26 34L32 38L46 24"
-        stroke="white"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        opacity="0.6"
+        fill="none"
       />
       <path
-        d="M40 24H46V30"
-        stroke="white"
-        strokeWidth="2.5"
+        d="M26 60L40 46L52 52L70 34"
+        stroke="url(#logoStroke)"
+        strokeWidth="5"
         strokeLinecap="round"
         strokeLinejoin="round"
-        opacity="0.6"
       />
+      <path
+        d="M66 34H74V42"
+        stroke="url(#logoStroke)"
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="26" cy="60" r="3.5" fill="#ffffff" fillOpacity="0.7" />
+      <circle cx="70" cy="34" r="3.5" fill="#ffffff" />
     </svg>
   );
 }
 
-export function LogoText({ className = "" }: { className?: string }) {
+export function LogoText({
+  className = '',
+  logoClassName = 'h-10 w-10',
+  textClassName = 'text-2xl'
+}: LogoTextProps) {
   return (
     <div className={`flex items-center gap-3 ${className}`}>
-      <Logo className="h-10 w-10" />
-      <span className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-400 bg-clip-text text-transparent">
+      <Logo className={logoClassName} />
+      <span
+        className={`inline-flex items-center font-semibold tracking-tight text-transparent bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 bg-clip-text ${textClassName}`}
+      >
         FinanceApp
       </span>
     </div>

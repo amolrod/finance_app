@@ -2,29 +2,71 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { Fraunces, Sora } from 'next/font/google';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useLogin } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { Logo } from '@/components/logo';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { LogoText } from '@/components/logo';
+import { ArrowLeft, Eye, EyeOff, Shield, Sparkles, TrendingUp, Zap } from 'lucide-react';
+
+const displayFont = Fraunces({
+  subsets: ['latin'],
+  weight: ['400', '600', '700', '800'],
+  variable: '--font-display'
+});
+
+const textFont = Sora({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-text'
+});
+
+const PAGE_STYLE = {
+  '--accent-a': '#10b981',
+  '--accent-b': '#14b8a6',
+  '--accent-c': '#0ea5e9',
+  '--accent-d': '#f59e0b'
+} as React.CSSProperties;
+
+const HIGHLIGHTS = [
+  {
+    icon: Shield,
+    title: 'Seguridad real',
+    description: 'Tus datos cifrados, sin ruido.'
+  },
+  {
+    icon: Zap,
+    title: 'Fluido y veloz',
+    description: 'Carga instantánea en cualquier pantalla.'
+  },
+  {
+    icon: Sparkles,
+    title: 'Sin distracciones',
+    description: 'Panel limpio, foco en lo importante.'
+  }
+];
+
+const LOGIN_STATS = [
+  { label: 'Alertas activas', value: '3' },
+  { label: 'Presupuesto', value: '72%' },
+  { label: 'Ahorro semanal', value: '+€240' }
+];
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
-  password: z.string().min(1, 'La contraseña es requerida'),
+  password: z.string().min(1, 'La contraseña es requerida')
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const router = useRouter();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const loginMutation = useLogin();
@@ -32,9 +74,9 @@ export default function LoginPage() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting }
   } = useForm<LoginForm>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(loginSchema)
   });
 
   const onSubmit = async (data: LoginForm) => {
@@ -42,7 +84,7 @@ export default function LoginPage() {
       await loginMutation.mutateAsync(data);
       toast({
         title: '¡Bienvenido!',
-        description: 'Redirigiendo al dashboard...',
+        description: 'Redirigiendo al dashboard...'
       });
       window.location.href = '/dashboard';
     } catch (error: unknown) {
@@ -50,114 +92,235 @@ export default function LoginPage() {
       toast({
         title: 'Error de autenticación',
         description: err?.response?.data?.message || 'Credenciales inválidas',
-        variant: 'destructive',
+        variant: 'destructive'
       });
     }
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Background decoration */}
-      <div className="fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-emerald-500/10 blur-3xl" />
-        <div className="absolute bottom-0 left-0 h-80 w-80 rounded-full bg-blue-500/5 blur-3xl" />
+    <div
+      className={`${displayFont.variable} ${textFont.variable} min-h-screen bg-background text-foreground font-[var(--font-text)]`}
+      style={PAGE_STYLE}
+    >
+      <div className="fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
+        <div className="absolute -top-20 right-0 h-[26rem] w-[26rem] rounded-full bg-[radial-gradient(circle_at_top,var(--accent-a)_0%,transparent_70%)] opacity-60 blur-3xl motion-safe:animate-[drift_18s_ease-in-out_infinite]" />
+        <div className="absolute bottom-[-10%] left-[-10%] h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle_at_top,var(--accent-c)_0%,transparent_70%)] opacity-45 blur-3xl motion-safe:animate-[drift_22s_ease-in-out_infinite]" />
+        <div
+          className="absolute inset-0 bg-[radial-gradient(circle,rgba(15,23,42,0.08)_1px,transparent_1px)] bg-[size:28px_28px] opacity-40 dark:opacity-30"
+          style={{ maskImage: 'radial-gradient(circle at top, black, transparent 70%)' }}
+        />
       </div>
 
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-4">
-        <Link 
-          href="/" 
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span className="text-sm">Volver</span>
-        </Link>
-        <ThemeToggle />
+      <header className="fixed left-0 right-0 top-0 z-40">
+        <div className="container mx-auto flex items-center justify-between px-4 py-4">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Volver al inicio
+          </Link>
+          <ThemeToggle />
+        </div>
       </header>
 
-      {/* Main content */}
-      <main className="flex min-h-screen items-center justify-center px-4 py-16">
-        <div className="w-full max-w-md space-y-8">
-          {/* Logo and title */}
-          <div className="text-center">
-            <Link href="/" className="inline-block">
-              <Logo className="mx-auto h-16 w-16" />
-            </Link>
-            <h1 className="mt-6 text-2xl font-bold">Bienvenido de nuevo</h1>
-            <p className="mt-2 text-muted-foreground">
-              Inicia sesión para acceder a tu cuenta
-            </p>
+      <main className="container mx-auto flex min-h-screen items-center px-4 py-20">
+        <div className="grid w-full items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="space-y-10">
+            <div
+              className="motion-safe:animate-[rise_700ms_ease-out_both]"
+              style={{ animationDelay: '120ms' }}
+            >
+              <LogoText
+                className="gap-2 font-[var(--font-display)]"
+                logoClassName="h-12 w-12"
+                textClassName="text-2xl sm:text-3xl"
+              />
+            </div>
+
+            <div
+              className="space-y-4 motion-safe:animate-[rise_700ms_ease-out_both]"
+              style={{ animationDelay: '220ms' }}
+            >
+              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-muted-foreground">
+                Acceso seguro
+              </p>
+              <h1 className="text-4xl font-semibold sm:text-5xl font-[var(--font-display)]">
+                Tu panel te esperaba.
+              </h1>
+              <p className="max-w-xl text-lg text-muted-foreground">
+                Retoma el control con un panel rápido, limpio y listo para tus próximas decisiones.
+              </p>
+            </div>
+
+            <div
+              className="grid gap-4 sm:grid-cols-3 motion-safe:animate-[rise_700ms_ease-out_both]"
+              style={{ animationDelay: '320ms' }}
+            >
+              {LOGIN_STATS.map((stat) => (
+                <div
+                  key={stat.label}
+                  className="rounded-2xl border border-foreground/10 bg-background/70 p-4 shadow-soft"
+                >
+                  <p className="text-xs text-muted-foreground">{stat.label}</p>
+                  <p className="mt-2 text-xl font-semibold text-foreground">{stat.value}</p>
+                </div>
+              ))}
+            </div>
+
+            <div
+              className="grid gap-4 sm:grid-cols-3 motion-safe:animate-[rise_700ms_ease-out_both]"
+              style={{ animationDelay: '420ms' }}
+            >
+              {HIGHLIGHTS.map(({ icon: Icon, title, description }) => (
+                <div
+                  key={title}
+                  className="rounded-2xl border border-foreground/10 bg-background/70 p-4"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-foreground/5 text-foreground">
+                    <Icon className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  <p className="mt-3 text-sm font-semibold text-foreground">{title}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{description}</p>
+                </div>
+              ))}
+            </div>
+
+            <div
+              className="relative motion-safe:animate-[rise_700ms_ease-out_both]"
+              style={{ animationDelay: '520ms' }}
+            >
+              <div className="rounded-3xl border border-foreground/10 bg-background/80 p-6 shadow-soft-lg">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Actividad reciente</span>
+                  <span className="flex items-center gap-1 text-emerald-600">
+                    <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />
+                    +8.4%
+                  </span>
+                </div>
+                <p className="mt-3 text-3xl font-semibold text-foreground">€12,450.00</p>
+                <svg viewBox="0 0 200 70" className="mt-4 h-20 w-full" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="loginTrend" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#10b981" />
+                      <stop offset="100%" stopColor="#14b8a6" />
+                    </linearGradient>
+                    <linearGradient id="loginFill" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.35" />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  <path
+                    d="M0 58 L22 54 L44 44 L66 48 L88 40 L110 28 L132 34 L154 24 L176 28 L200 18"
+                    fill="none"
+                    stroke="url(#loginTrend)"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M0 58 L22 54 L44 44 L66 48 L88 40 L110 28 L132 34 L154 24 L176 28 L200 18 L200 70 L0 70 Z"
+                    fill="url(#loginFill)"
+                  />
+                </svg>
+              </div>
+            </div>
           </div>
 
-          {/* Login form */}
-          <Card className="border-0 shadow-lg bg-card/50 backdrop-blur">
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <CardContent className="space-y-4 pt-6">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="tu@email.com"
-                    autoComplete="email"
-                    className="h-11"
-                    {...register('email')}
-                    error={errors.email?.message}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Contraseña</Label>
-                    <Link
-                      href="/auth/forgot-password"
-                      className="text-xs text-emerald-600 hover:text-emerald-500 transition-colors"
-                    >
-                      ¿Olvidaste tu contraseña?
-                    </Link>
+          <div
+            className="relative motion-safe:animate-[rise_700ms_ease-out_both]"
+            style={{ animationDelay: '260ms' }}
+          >
+            <Card className="relative overflow-hidden rounded-3xl border border-foreground/10 bg-background/90 shadow-[0_40px_120px_-70px_rgba(15,23,42,0.7)]">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,var(--accent-a)_0%,transparent_60%)] opacity-30" />
+              <form onSubmit={handleSubmit(onSubmit)}>
+                <CardContent className="relative space-y-5 p-8">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.35em] text-muted-foreground">
+                      Inicia sesión
+                    </p>
+                    <h2 className="mt-2 text-2xl font-semibold font-[var(--font-display)]">
+                      Vuelve a tu cuenta
+                    </h2>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Tus finanzas se sienten mejor aquí.
+                    </p>
                   </div>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="••••••••"
-                      autoComplete="current-password"
-                      className="h-11 pr-10"
-                      {...register('password')}
-                      error={errors.password?.message}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="flex flex-col gap-4 pb-6">
-                <Button
-                  type="submit"
-                  className="w-full h-11 bg-emerald-600 hover:bg-emerald-700"
-                  isLoading={isSubmitting || loginMutation.isPending}
-                >
-                  Iniciar Sesión
-                </Button>
-              </CardFooter>
-            </form>
-          </Card>
 
-          {/* Register link */}
-          <p className="text-center text-sm text-muted-foreground">
-            ¿No tienes cuenta?{' '}
-            <Link href="/auth/register" className="text-emerald-600 hover:text-emerald-500 font-medium transition-colors">
-              Regístrate gratis
-            </Link>
-          </p>
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-sm font-medium">
+                      Email
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="tu@email.com"
+                      autoComplete="email"
+                      className="h-11 rounded-2xl bg-background/80"
+                      {...register('email')}
+                      error={errors.email?.message}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="password" className="text-sm font-medium">
+                        Contraseña
+                      </Label>
+                      <Link
+                        href="/auth/forgot-password"
+                        className="text-xs font-medium text-emerald-600 transition-colors hover:text-emerald-500"
+                      >
+                        ¿Olvidaste tu contraseña?
+                      </Link>
+                    </div>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="••••••••"
+                        autoComplete="current-password"
+                        className="h-11 rounded-2xl bg-background/80 pr-10"
+                        {...register('password')}
+                        error={errors.password?.message}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                        aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter className="relative flex flex-col gap-4 px-8 pb-8">
+                  <Button
+                    type="submit"
+                    size="lg"
+                    className="w-full rounded-full bg-[linear-gradient(135deg,var(--accent-a),var(--accent-b))] text-base font-semibold text-white shadow-[0_18px_40px_-22px_rgba(16,185,129,0.8)]"
+                    isLoading={isSubmitting || loginMutation.isPending}
+                  >
+                    Entrar
+                  </Button>
+                  <p className="text-center text-xs text-muted-foreground">
+                    ¿Nuevo en FinanceApp?{' '}
+                    <Link
+                      href="/auth/register"
+                      className="font-semibold text-emerald-600 transition-colors hover:text-emerald-500"
+                    >
+                      Crea tu cuenta
+                    </Link>
+                  </p>
+                </CardFooter>
+              </form>
+            </Card>
+          </div>
         </div>
       </main>
     </div>
