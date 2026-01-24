@@ -138,10 +138,8 @@ export default function RegisterPage() {
       style={PAGE_STYLE}
     >
       <div className="fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
-        <div className="absolute -top-24 left-0 h-[30rem] w-[30rem] rounded-full bg-[radial-gradient(circle_at_top,var(--accent-b)_0%,transparent_70%)] opacity-55 blur-3xl motion-safe:animate-[drift_20s_ease-in-out_infinite]" />
-        <div className="absolute bottom-[-10%] right-[-5%] h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle_at_top,var(--accent-d)_0%,transparent_70%)] opacity-45 blur-3xl motion-safe:animate-[drift_24s_ease-in-out_infinite]" />
         <div
-          className="absolute inset-0 bg-[radial-gradient(circle,rgba(15,23,42,0.08)_1px,transparent_1px)] bg-[size:28px_28px] opacity-40 dark:opacity-30"
+          className="absolute inset-0 bg-[radial-gradient(circle,rgba(15,23,42,0.08)_1px,transparent_1px)] bg-[size:28px_28px] opacity-25 dark:opacity-25"
           style={{ maskImage: 'radial-gradient(circle at top, black, transparent 70%)' }}
         />
       </div>
@@ -161,7 +159,7 @@ export default function RegisterPage() {
 
       <main className="container mx-auto flex h-full items-center px-4 pb-10 pt-24">
         <div className="grid w-full items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="hidden lg:block space-y-6">
+          <div className="hidden lg:flex flex-col gap-6">
             <div
               className="motion-safe:animate-[rise_700ms_ease-out_both]"
               style={{ animationDelay: '120ms' }}
@@ -177,30 +175,48 @@ export default function RegisterPage() {
               className="space-y-4 motion-safe:animate-[rise_700ms_ease-out_both]"
               style={{ animationDelay: '220ms' }}
             >
-              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-muted-foreground">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-muted-foreground">
                 Empieza hoy
               </p>
               <h1 className="text-3xl font-semibold sm:text-4xl font-[var(--font-display)]">
                 Crea tu cuenta en minutos.
               </h1>
-              <p className="max-w-xl text-base text-muted-foreground">
+              <p className="max-w-xl text-sm text-muted-foreground">
                 Un panel elegante, sin anuncios, con todo lo que necesitas para sentir claridad.
               </p>
             </div>
 
             <div
-              className="flex flex-wrap gap-3 motion-safe:animate-[rise_700ms_ease-out_both]"
-              style={{ animationDelay: '320ms' }}
+              className="rounded-2xl border border-foreground/10 bg-background/85 p-5 shadow-soft motion-safe:animate-[rise_700ms_ease-out_both]"
+              style={{ animationDelay: '260ms' }}
             >
-              {REGISTER_STEPS.map((step, index) => (
-                <div
-                  key={step.title}
-                  className="inline-flex items-center gap-2 rounded-full border border-foreground/10 bg-background/80 px-3 py-1.5 text-xs font-semibold text-foreground"
-                >
-                  <span className="text-emerald-600">{index + 1}</span>
-                  {step.title}
-                </div>
-              ))}
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                <span>Configuración guiada</span>
+                <span className="flex items-center gap-2 text-emerald-600">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-30" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                  </span>
+                  Paso 1/3
+                </span>
+              </div>
+              <div className="mt-4 space-y-3">
+                {REGISTER_STEPS.map((step, index) => (
+                  <div key={step.title} className="flex items-start gap-3 text-sm">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-full border border-foreground/10 text-xs font-semibold text-foreground/70">
+                      {index + 1}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground">{step.title}</p>
+                      <p className="text-xs text-muted-foreground">{step.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 flex items-center gap-2 text-[11px] text-muted-foreground">
+                <span className="h-2 w-2 rounded-full bg-foreground/30 motion-safe:animate-[float_6s_ease-in-out_infinite]" />
+                Listo para importar tus extractos
+              </div>
             </div>
           </div>
 
@@ -208,13 +224,11 @@ export default function RegisterPage() {
             className="relative motion-safe:animate-[rise_700ms_ease-out_both]"
             style={{ animationDelay: '260ms' }}
           >
-            <Card className="relative overflow-hidden rounded-3xl border border-emerald-500/20 bg-background/92 shadow-[0_40px_120px_-70px_rgba(15,23,42,0.7)]">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,var(--accent-b)_0%,transparent_58%)] opacity-35" />
-              <div className="absolute inset-0 bg-[linear-gradient(140deg,rgba(14,165,233,0.12),transparent)]" />
+            <Card className="relative overflow-hidden rounded-3xl border border-foreground/10 bg-background shadow-soft-lg">
               <form onSubmit={handleSubmit(onSubmit)}>
                 <CardContent className="relative space-y-4 p-6">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.35em] text-muted-foreground">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-muted-foreground">
                       Registro
                     </p>
                     <h2 className="mt-1 text-xl font-semibold font-[var(--font-display)]">
@@ -226,7 +240,7 @@ export default function RegisterPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="firstName" className="text-sm font-medium">
+                    <Label htmlFor="firstName" className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                       Nombre
                     </Label>
                     <Input
@@ -234,14 +248,14 @@ export default function RegisterPage() {
                       type="text"
                       placeholder="Tu nombre"
                       autoComplete="given-name"
-                      className="h-10 rounded-xl border-foreground/10 bg-background/80 focus-visible:ring-2 focus-visible:ring-emerald-500/20 focus-visible:border-emerald-500/40"
+                      className="h-10 rounded-xl border-foreground/10 bg-background/90 focus-visible:ring-2 focus-visible:ring-foreground/15"
                       {...register('firstName')}
                       error={errors.firstName?.message}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-medium">
+                    <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                       Email
                     </Label>
                     <Input
@@ -249,14 +263,14 @@ export default function RegisterPage() {
                       type="email"
                       placeholder="tu@email.com"
                       autoComplete="email"
-                      className="h-10 rounded-xl border-foreground/10 bg-background/80 focus-visible:ring-2 focus-visible:ring-emerald-500/20 focus-visible:border-emerald-500/40"
+                      className="h-10 rounded-xl border-foreground/10 bg-background/90 focus-visible:ring-2 focus-visible:ring-foreground/15"
                       {...register('email')}
                       error={errors.email?.message}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-sm font-medium">
+                    <Label htmlFor="password" className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                       Contraseña
                     </Label>
                     <div className="relative">
@@ -265,7 +279,7 @@ export default function RegisterPage() {
                         type={showPassword ? 'text' : 'password'}
                         placeholder="••••••••"
                         autoComplete="new-password"
-                        className="h-10 rounded-xl border-foreground/10 bg-background/80 pr-10 focus-visible:ring-2 focus-visible:ring-emerald-500/20 focus-visible:border-emerald-500/40"
+                        className="h-10 rounded-xl border-foreground/10 bg-background/90 pr-10 focus-visible:ring-2 focus-visible:ring-foreground/15"
                         {...register('password')}
                         error={errors.password?.message}
                       />
@@ -313,7 +327,10 @@ export default function RegisterPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword" className="text-sm font-medium">
+                    <Label
+                      htmlFor="confirmPassword"
+                      className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+                    >
                       Confirmar contraseña
                     </Label>
                     <div className="relative">
@@ -322,7 +339,7 @@ export default function RegisterPage() {
                         type={showConfirmPassword ? 'text' : 'password'}
                         placeholder="••••••••"
                         autoComplete="new-password"
-                        className="h-10 rounded-xl border-foreground/10 bg-background/80 pr-10 focus-visible:ring-2 focus-visible:ring-emerald-500/20 focus-visible:border-emerald-500/40"
+                        className="h-10 rounded-xl border-foreground/10 bg-background/90 pr-10 focus-visible:ring-2 focus-visible:ring-foreground/15"
                         {...register('confirmPassword')}
                         error={errors.confirmPassword?.message}
                       />
@@ -346,7 +363,7 @@ export default function RegisterPage() {
                   <Button
                     type="submit"
                     size="default"
-                    className="w-full rounded-full bg-[linear-gradient(135deg,var(--accent-a),var(--accent-b))] text-base font-semibold text-white shadow-[0_20px_40px_-22px_rgba(16,185,129,0.9)]"
+                    className="w-full rounded-xl text-sm font-semibold"
                     isLoading={isSubmitting || registerMutation.isPending}
                     disabled={!allPasswordChecksValid}
                   >

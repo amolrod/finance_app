@@ -53,6 +53,14 @@ const HIGHLIGHTS = [
   }
 ];
 
+const LOGIN_METRICS = [
+  { label: 'Balance neto', value: '€14,280' },
+  { label: 'Gastos del mes', value: '€1,840' },
+  { label: 'Ahorro', value: '+€640' }
+];
+
+const LOGIN_BARS = [38, 54, 42, 60, 48, 66, 52, 70, 58, 76];
+
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(1, 'La contraseña es requerida')
@@ -97,10 +105,8 @@ export default function LoginPage() {
       style={PAGE_STYLE}
     >
       <div className="fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
-        <div className="absolute -top-20 right-0 h-[26rem] w-[26rem] rounded-full bg-[radial-gradient(circle_at_top,var(--accent-a)_0%,transparent_70%)] opacity-60 blur-3xl motion-safe:animate-[drift_18s_ease-in-out_infinite]" />
-        <div className="absolute bottom-[-10%] left-[-10%] h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle_at_top,var(--accent-c)_0%,transparent_70%)] opacity-45 blur-3xl motion-safe:animate-[drift_22s_ease-in-out_infinite]" />
         <div
-          className="absolute inset-0 bg-[radial-gradient(circle,rgba(15,23,42,0.08)_1px,transparent_1px)] bg-[size:28px_28px] opacity-40 dark:opacity-30"
+          className="absolute inset-0 bg-[radial-gradient(circle,rgba(15,23,42,0.08)_1px,transparent_1px)] bg-[size:28px_28px] opacity-25 dark:opacity-25"
           style={{ maskImage: 'radial-gradient(circle at top, black, transparent 70%)' }}
         />
       </div>
@@ -120,7 +126,7 @@ export default function LoginPage() {
 
       <main className="container mx-auto flex h-full items-center px-4 pb-10 pt-24">
         <div className="grid w-full items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="hidden lg:block space-y-6">
+          <div className="hidden lg:flex flex-col gap-6">
             <div
               className="motion-safe:animate-[rise_700ms_ease-out_both]"
               style={{ animationDelay: '120ms' }}
@@ -136,28 +142,62 @@ export default function LoginPage() {
               className="space-y-4 motion-safe:animate-[rise_700ms_ease-out_both]"
               style={{ animationDelay: '220ms' }}
             >
-              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-muted-foreground">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-muted-foreground">
                 Acceso seguro
               </p>
               <h1 className="text-3xl font-semibold sm:text-4xl font-[var(--font-display)]">
                 Tu panel te esperaba.
               </h1>
-              <p className="max-w-xl text-base text-muted-foreground">
+              <p className="max-w-xl text-sm text-muted-foreground">
                 Retoma el control con un panel rápido, limpio y listo para tus próximas decisiones.
               </p>
             </div>
 
             <div
-              className="flex flex-wrap gap-3 motion-safe:animate-[rise_700ms_ease-out_both]"
-              style={{ animationDelay: '320ms' }}
+              className="rounded-2xl border border-foreground/10 bg-background/85 p-5 shadow-soft motion-safe:animate-[rise_700ms_ease-out_both]"
+              style={{ animationDelay: '260ms' }}
             >
-              {HIGHLIGHTS.slice(0, 2).map(({ icon: Icon, title }) => (
-                <div
-                  key={title}
-                  className="inline-flex items-center gap-2 rounded-full border border-foreground/10 bg-background/80 px-3 py-1.5 text-xs font-semibold text-foreground"
-                >
-                  <Icon className="h-4 w-4 text-emerald-500" aria-hidden="true" />
-                  {title}
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                <span>Resumen en vivo</span>
+                <span className="flex items-center gap-2 text-emerald-600">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-30" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                  </span>
+                  Actualizado
+                </span>
+              </div>
+              <div className="mt-4 grid grid-cols-3 gap-3">
+                {LOGIN_METRICS.map((metric) => (
+                  <div key={metric.label}>
+                    <p className="text-[11px] text-muted-foreground">{metric.label}</p>
+                    <p className="mt-1 text-sm font-semibold text-foreground">{metric.value}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 flex h-14 items-end gap-1">
+                {LOGIN_BARS.map((height, index) => (
+                  <div
+                    key={`login-bar-${index}`}
+                    className="flex-1 rounded-full bg-foreground/15"
+                    style={{ height: `${height}%` }}
+                  />
+                ))}
+              </div>
+              <div className="mt-4 flex items-center gap-2 text-[11px] text-muted-foreground">
+                <span className="h-2 w-2 rounded-full bg-foreground/30 motion-safe:animate-[float_6s_ease-in-out_infinite]" />
+                Últimos movimientos sincronizados hace 2 min
+              </div>
+            </div>
+
+            <div className="space-y-2 text-xs text-muted-foreground">
+              {HIGHLIGHTS.map(({ icon: Icon, title, description }) => (
+                <div key={title} className="flex items-start gap-2">
+                  <Icon className="mt-0.5 h-4 w-4 text-foreground/40" aria-hidden="true" />
+                  <div>
+                    <p className="font-semibold text-foreground/80">{title}</p>
+                    <p>{description}</p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -167,13 +207,11 @@ export default function LoginPage() {
             className="relative motion-safe:animate-[rise_700ms_ease-out_both]"
             style={{ animationDelay: '260ms' }}
           >
-            <Card className="relative overflow-hidden rounded-3xl border border-emerald-500/20 bg-background/92 shadow-[0_40px_120px_-70px_rgba(15,23,42,0.7)]">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,var(--accent-a)_0%,transparent_58%)] opacity-35" />
-              <div className="absolute inset-0 bg-[linear-gradient(140deg,rgba(20,184,166,0.12),transparent)]" />
+            <Card className="relative overflow-hidden rounded-3xl border border-foreground/10 bg-background shadow-soft-lg">
               <form onSubmit={handleSubmit(onSubmit)}>
                 <CardContent className="relative space-y-4 p-6">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.35em] text-muted-foreground">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-muted-foreground">
                       Inicia sesión
                     </p>
                     <h2 className="mt-1 text-xl font-semibold font-[var(--font-display)]">
@@ -185,7 +223,7 @@ export default function LoginPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-medium">
+                    <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                       Email
                     </Label>
                     <Input
@@ -193,7 +231,7 @@ export default function LoginPage() {
                       type="email"
                       placeholder="tu@email.com"
                       autoComplete="email"
-                      className="h-10 rounded-xl border-foreground/10 bg-background/80 focus-visible:ring-2 focus-visible:ring-emerald-500/20 focus-visible:border-emerald-500/40"
+                      className="h-10 rounded-xl border-foreground/10 bg-background/90 focus-visible:ring-2 focus-visible:ring-foreground/15"
                       {...register('email')}
                       error={errors.email?.message}
                     />
@@ -201,12 +239,15 @@ export default function LoginPage() {
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="password" className="text-sm font-medium">
+                      <Label
+                        htmlFor="password"
+                        className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+                      >
                         Contraseña
                       </Label>
                       <Link
                         href="/auth/forgot-password"
-                        className="text-xs font-medium text-emerald-600 transition-colors hover:text-emerald-500"
+                        className="text-xs font-medium text-foreground/70 transition-colors hover:text-foreground"
                       >
                         ¿Olvidaste tu contraseña?
                       </Link>
@@ -217,7 +258,7 @@ export default function LoginPage() {
                         type={showPassword ? 'text' : 'password'}
                         placeholder="••••••••"
                         autoComplete="current-password"
-                        className="h-10 rounded-xl border-foreground/10 bg-background/80 pr-10 focus-visible:ring-2 focus-visible:ring-emerald-500/20 focus-visible:border-emerald-500/40"
+                        className="h-10 rounded-xl border-foreground/10 bg-background/90 pr-10 focus-visible:ring-2 focus-visible:ring-foreground/15"
                         {...register('password')}
                         error={errors.password?.message}
                       />
@@ -240,7 +281,7 @@ export default function LoginPage() {
                   <Button
                     type="submit"
                     size="default"
-                    className="w-full rounded-full bg-[linear-gradient(135deg,var(--accent-a),var(--accent-b))] text-base font-semibold text-white shadow-[0_20px_40px_-22px_rgba(16,185,129,0.9)]"
+                    className="w-full rounded-xl text-sm font-semibold"
                     isLoading={isSubmitting || loginMutation.isPending}
                   >
                     Entrar
