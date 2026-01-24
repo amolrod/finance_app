@@ -2,11 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, VersioningType, INestApplication } from '@nestjs/common';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import express from 'express';
-import helmet from 'helmet';
 import { AppModule } from '../src/app.module';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const helmetMiddleware = (helmet as any).default || helmet;
 
 const expressApp = (express as any)();
 
@@ -39,12 +35,8 @@ async function bootstrap(): Promise<void> {
     },
   );
 
-  // Security middleware - disable crossOrigin headers that interfere with CORS
-  app.use(helmetMiddleware({
-    contentSecurityPolicy: false,
-    crossOriginOpenerPolicy: false,
-    crossOriginResourcePolicy: false,
-  }));
+  // Disable helmet entirely in serverless - it adds headers that break CORS
+  // Security will be handled by Vercel Edge network
 
   // CORS is handled by middleware above - no need to enableCors here
 
