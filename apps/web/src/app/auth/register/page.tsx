@@ -15,6 +15,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LogoText } from '@/components/logo';
 import { ArrowLeft, Check, Eye, EyeOff } from 'lucide-react';
+import { Iphone } from '@/components/ui/iphone';
 
 const displayFont = Fraunces({
   subsets: ['latin'],
@@ -157,8 +158,8 @@ export default function RegisterPage() {
         </div>
       </header>
 
-      <main className="container mx-auto flex h-full items-center px-4 pb-10 pt-24">
-        <div className="grid w-full items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
+      <main className="container mx-auto flex h-full items-center px-4 pb-8 pt-24">
+        <div className="grid w-full items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="hidden lg:flex flex-col gap-6">
             <div
               className="motion-safe:animate-[rise_700ms_ease-out_both]"
@@ -186,36 +187,31 @@ export default function RegisterPage() {
               </p>
             </div>
 
-            <div
-              className="rounded-2xl border border-foreground/10 bg-background/85 p-5 shadow-soft motion-safe:animate-[rise_700ms_ease-out_both]"
-              style={{ animationDelay: '260ms' }}
-            >
-              <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                <span>Configuración guiada</span>
-                <span className="flex items-center gap-2 text-emerald-600">
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-30" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                  </span>
-                  Paso 1/3
-                </span>
+            <div className="flex items-center gap-6">
+              <div
+                className="w-full max-w-[210px] motion-safe:animate-[float_8s_ease-in-out_infinite]"
+                style={{ animationDelay: '260ms' }}
+              >
+                <Iphone>
+                  <RegisterPhoneScreen />
+                </Iphone>
               </div>
-              <div className="mt-4 space-y-3">
+              <div className="space-y-3 text-xs text-muted-foreground">
                 {REGISTER_STEPS.map((step, index) => (
-                  <div key={step.title} className="flex items-start gap-3 text-sm">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full border border-foreground/10 text-xs font-semibold text-foreground/70">
+                  <div key={step.title} className="flex items-start gap-2">
+                    <span className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full border border-foreground/10 text-[10px] font-semibold text-foreground/70">
                       {index + 1}
-                    </div>
+                    </span>
                     <div>
-                      <p className="font-semibold text-foreground">{step.title}</p>
-                      <p className="text-xs text-muted-foreground">{step.description}</p>
+                      <p className="font-semibold text-foreground/85">{step.title}</p>
+                      <p>{step.description}</p>
                     </div>
                   </div>
                 ))}
-              </div>
-              <div className="mt-4 flex items-center gap-2 text-[11px] text-muted-foreground">
-                <span className="h-2 w-2 rounded-full bg-foreground/30 motion-safe:animate-[float_6s_ease-in-out_infinite]" />
-                Listo para importar tus extractos
+                <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <span className="h-2 w-2 rounded-full bg-foreground/30 motion-safe:animate-[float_6s_ease-in-out_infinite]" />
+                  Listo para importar tus extractos
+                </div>
               </div>
             </div>
           </div>
@@ -224,14 +220,14 @@ export default function RegisterPage() {
             className="relative motion-safe:animate-[rise_700ms_ease-out_both]"
             style={{ animationDelay: '260ms' }}
           >
-            <Card className="relative overflow-hidden rounded-3xl border border-foreground/10 bg-background shadow-soft-lg">
+            <Card className="relative overflow-hidden rounded-2xl border border-foreground/10 bg-background shadow-soft-lg">
               <form onSubmit={handleSubmit(onSubmit)}>
-                <CardContent className="relative space-y-4 p-6">
+                <CardContent className="relative space-y-3 p-5">
                   <div>
                     <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-muted-foreground">
                       Registro
                     </p>
-                    <h2 className="mt-1 text-xl font-semibold font-[var(--font-display)]">
+                    <h2 className="mt-1 text-lg font-semibold font-[var(--font-display)]">
                       Crea tu cuenta
                     </h2>
                     <p className="mt-1 text-sm text-muted-foreground">
@@ -248,7 +244,7 @@ export default function RegisterPage() {
                       type="text"
                       placeholder="Tu nombre"
                       autoComplete="given-name"
-                      className="h-10 rounded-xl border-foreground/10 bg-background/90 focus-visible:ring-2 focus-visible:ring-foreground/15"
+                      className="h-9 rounded-lg border-foreground/10 bg-background/90 focus-visible:ring-2 focus-visible:ring-foreground/15"
                       {...register('firstName')}
                       error={errors.firstName?.message}
                     />
@@ -263,7 +259,7 @@ export default function RegisterPage() {
                       type="email"
                       placeholder="tu@email.com"
                       autoComplete="email"
-                      className="h-10 rounded-xl border-foreground/10 bg-background/90 focus-visible:ring-2 focus-visible:ring-foreground/15"
+                      className="h-9 rounded-lg border-foreground/10 bg-background/90 focus-visible:ring-2 focus-visible:ring-foreground/15"
                       {...register('email')}
                       error={errors.email?.message}
                     />
@@ -279,7 +275,7 @@ export default function RegisterPage() {
                         type={showPassword ? 'text' : 'password'}
                         placeholder="••••••••"
                         autoComplete="new-password"
-                        className="h-10 rounded-xl border-foreground/10 bg-background/90 pr-10 focus-visible:ring-2 focus-visible:ring-foreground/15"
+                        className="h-9 rounded-lg border-foreground/10 bg-background/90 pr-10 focus-visible:ring-2 focus-visible:ring-foreground/15"
                         {...register('password')}
                         error={errors.password?.message}
                       />
@@ -294,17 +290,17 @@ export default function RegisterPage() {
                     </div>
 
                     <div className="mt-2">
-                      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                      <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                         <span>Fuerza: {strengthLabel}</span>
                         <span>{passwordScore}/4</span>
                       </div>
-                      <div className="mt-2 h-1.5 w-full rounded-full bg-foreground/10">
+                      <div className="mt-1.5 h-1.5 w-full rounded-full bg-foreground/10">
                         <div
                           className={`h-1.5 rounded-full transition-all duration-300 ${strengthTone}`}
                           style={{ width: `${passwordStrength}%` }}
                         />
                       </div>
-                      <div className="mt-2 grid grid-cols-2 gap-1 text-[11px]">
+                      <div className="mt-1.5 grid grid-cols-2 gap-1 text-[10px]">
                         {passwordChecks.map((check) => (
                           <div
                             key={check.label}
@@ -339,7 +335,7 @@ export default function RegisterPage() {
                         type={showConfirmPassword ? 'text' : 'password'}
                         placeholder="••••••••"
                         autoComplete="new-password"
-                        className="h-10 rounded-xl border-foreground/10 bg-background/90 pr-10 focus-visible:ring-2 focus-visible:ring-foreground/15"
+                        className="h-9 rounded-lg border-foreground/10 bg-background/90 pr-10 focus-visible:ring-2 focus-visible:ring-foreground/15"
                         {...register('confirmPassword')}
                         error={errors.confirmPassword?.message}
                       />
@@ -359,11 +355,11 @@ export default function RegisterPage() {
                   </div>
                 </CardContent>
 
-                <CardFooter className="relative flex flex-col gap-3 px-6 pb-6">
+                <CardFooter className="relative flex flex-col gap-2 px-5 pb-5">
                   <Button
                     type="submit"
                     size="default"
-                    className="w-full rounded-xl text-sm font-semibold"
+                    className="h-10 w-full rounded-lg text-sm font-semibold"
                     isLoading={isSubmitting || registerMutation.isPending}
                     disabled={!allPasswordChecksValid}
                   >
@@ -387,6 +383,84 @@ export default function RegisterPage() {
           </div>
         </div>
       </main>
+    </div>
+  );
+}
+
+function RegisterPhoneScreen() {
+  const tasks = [
+    { label: 'Cuenta principal', progress: 68 },
+    { label: 'Categorías', progress: 44 },
+    { label: 'Presupuestos', progress: 22 }
+  ];
+
+  return (
+    <div className="flex h-full w-full flex-col gap-3 bg-[#0f1115] px-4 py-5 text-white">
+      <div className="flex items-center justify-between text-[10px] text-white/60">
+        <span className="text-white/80">FinanceApp / Configuración</span>
+        <span className="rounded-full border border-white/10 px-2 py-0.5 text-[9px] text-white/70">
+          Paso 1/3
+        </span>
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+        <p className="text-[10px] text-white/60">Configuración guiada</p>
+        <p className="mt-1 text-sm font-semibold">Tu cuenta está en marcha</p>
+        <div className="mt-2 space-y-2">
+          {tasks.map((task) => (
+            <div key={task.label}>
+              <div className="flex items-center justify-between text-[10px] text-white/70">
+                <span>{task.label}</span>
+                <span>{task.progress}%</span>
+              </div>
+              <div className="mt-1 h-1.5 w-full rounded-full bg-white/10">
+                <div
+                  className="h-1.5 rounded-full bg-emerald-400/70"
+                  style={{ width: `${task.progress}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+        <div className="flex items-center justify-between text-[10px] text-white/60">
+          <span>Importación segura</span>
+          <span className="text-emerald-300">Activo</span>
+        </div>
+        <div className="mt-3 flex items-center gap-3">
+          <div
+            className="relative h-12 w-12 rounded-full"
+            style={{
+              background: 'conic-gradient(#34d399 0 240deg, rgba(255,255,255,0.1) 240deg 360deg)'
+            }}
+          >
+            <div className="absolute inset-2 rounded-full bg-[#0f1115]" />
+          </div>
+          <div className="text-[10px] text-white/60">
+            <p className="text-base font-semibold text-white">93%</p>
+            <p>extractos procesados</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+        <div className="flex items-center justify-between text-[10px] text-white/60">
+          <span>Vista previa</span>
+          <span>Semana</span>
+        </div>
+        <div className="mt-2 grid grid-cols-2 gap-2 text-[10px]">
+          <div className="rounded-lg border border-white/10 bg-white/5 p-2">
+            <p className="text-white/60">Ingresos</p>
+            <p className="mt-1 text-sm font-semibold text-white">€2,480</p>
+          </div>
+          <div className="rounded-lg border border-white/10 bg-white/5 p-2">
+            <p className="text-white/60">Gastos</p>
+            <p className="mt-1 text-sm font-semibold text-white">€1,220</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

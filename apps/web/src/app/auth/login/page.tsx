@@ -14,7 +14,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LogoText } from '@/components/logo';
-import { ArrowLeft, Eye, EyeOff, Shield, Sparkles, Zap } from 'lucide-react';
+import { ArrowLeft, BarChart3, Eye, EyeOff, Shield, Zap } from 'lucide-react';
+import { Iphone } from '@/components/ui/iphone';
 
 const displayFont = Fraunces({
   subsets: ['latin'],
@@ -38,25 +39,19 @@ const PAGE_STYLE = {
 const HIGHLIGHTS = [
   {
     icon: Shield,
-    title: 'Seguridad real',
-    description: 'Tus datos cifrados, sin ruido.'
+    title: 'Datos protegidos',
+    description: 'Cifrado y control total.'
   },
   {
     icon: Zap,
-    title: 'Fluido y veloz',
-    description: 'Carga instantánea en cualquier pantalla.'
+    title: 'Sincronización rápida',
+    description: 'Movimientos en segundos.'
   },
   {
-    icon: Sparkles,
-    title: 'Sin distracciones',
-    description: 'Panel limpio, foco en lo importante.'
+    icon: BarChart3,
+    title: 'Panel limpio',
+    description: 'Solo lo esencial y claro.'
   }
-];
-
-const LOGIN_METRICS = [
-  { label: 'Balance neto', value: '€14,280' },
-  { label: 'Gastos del mes', value: '€1,840' },
-  { label: 'Ahorro', value: '+€640' }
 ];
 
 const LOGIN_BARS = [38, 54, 42, 60, 48, 66, 52, 70, 58, 76];
@@ -124,8 +119,8 @@ export default function LoginPage() {
         </div>
       </header>
 
-      <main className="container mx-auto flex h-full items-center px-4 pb-10 pt-24">
-        <div className="grid w-full items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
+      <main className="container mx-auto flex h-full items-center px-4 pb-8 pt-24">
+        <div className="grid w-full items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="hidden lg:flex flex-col gap-6">
             <div
               className="motion-safe:animate-[rise_700ms_ease-out_both]"
@@ -153,53 +148,30 @@ export default function LoginPage() {
               </p>
             </div>
 
-            <div
-              className="rounded-2xl border border-foreground/10 bg-background/85 p-5 shadow-soft motion-safe:animate-[rise_700ms_ease-out_both]"
-              style={{ animationDelay: '260ms' }}
-            >
-              <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                <span>Resumen en vivo</span>
-                <span className="flex items-center gap-2 text-emerald-600">
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-30" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                  </span>
-                  Actualizado
-                </span>
+            <div className="flex items-center gap-6">
+              <div
+                className="w-full max-w-[210px] motion-safe:animate-[float_8s_ease-in-out_infinite]"
+                style={{ animationDelay: '260ms' }}
+              >
+                <Iphone>
+                  <LoginPhoneScreen />
+                </Iphone>
               </div>
-              <div className="mt-4 grid grid-cols-3 gap-3">
-                {LOGIN_METRICS.map((metric) => (
-                  <div key={metric.label}>
-                    <p className="text-[11px] text-muted-foreground">{metric.label}</p>
-                    <p className="mt-1 text-sm font-semibold text-foreground">{metric.value}</p>
+              <div className="space-y-3 text-xs text-muted-foreground">
+                {HIGHLIGHTS.map(({ icon: Icon, title, description }) => (
+                  <div key={title} className="flex items-start gap-2">
+                    <Icon className="mt-0.5 h-4 w-4 text-foreground/40" aria-hidden="true" />
+                    <div>
+                      <p className="font-semibold text-foreground/80">{title}</p>
+                      <p>{description}</p>
+                    </div>
                   </div>
                 ))}
-              </div>
-              <div className="mt-4 flex h-14 items-end gap-1">
-                {LOGIN_BARS.map((height, index) => (
-                  <div
-                    key={`login-bar-${index}`}
-                    className="flex-1 rounded-full bg-foreground/15"
-                    style={{ height: `${height}%` }}
-                  />
-                ))}
-              </div>
-              <div className="mt-4 flex items-center gap-2 text-[11px] text-muted-foreground">
-                <span className="h-2 w-2 rounded-full bg-foreground/30 motion-safe:animate-[float_6s_ease-in-out_infinite]" />
-                Últimos movimientos sincronizados hace 2 min
-              </div>
-            </div>
-
-            <div className="space-y-2 text-xs text-muted-foreground">
-              {HIGHLIGHTS.map(({ icon: Icon, title, description }) => (
-                <div key={title} className="flex items-start gap-2">
-                  <Icon className="mt-0.5 h-4 w-4 text-foreground/40" aria-hidden="true" />
-                  <div>
-                    <p className="font-semibold text-foreground/80">{title}</p>
-                    <p>{description}</p>
-                  </div>
+                <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <span className="h-2 w-2 rounded-full bg-foreground/30 motion-safe:animate-[float_6s_ease-in-out_infinite]" />
+                  Última sincronización hace 2 min
                 </div>
-              ))}
+              </div>
             </div>
           </div>
 
@@ -207,14 +179,14 @@ export default function LoginPage() {
             className="relative motion-safe:animate-[rise_700ms_ease-out_both]"
             style={{ animationDelay: '260ms' }}
           >
-            <Card className="relative overflow-hidden rounded-3xl border border-foreground/10 bg-background shadow-soft-lg">
+            <Card className="relative overflow-hidden rounded-2xl border border-foreground/10 bg-background shadow-soft-lg">
               <form onSubmit={handleSubmit(onSubmit)}>
-                <CardContent className="relative space-y-4 p-6">
+                <CardContent className="relative space-y-3 p-5">
                   <div>
                     <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-muted-foreground">
                       Inicia sesión
                     </p>
-                    <h2 className="mt-1 text-xl font-semibold font-[var(--font-display)]">
+                    <h2 className="mt-1 text-lg font-semibold font-[var(--font-display)]">
                       Vuelve a tu cuenta
                     </h2>
                     <p className="mt-1 text-sm text-muted-foreground">
@@ -223,7 +195,10 @@ export default function LoginPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                    <Label
+                      htmlFor="email"
+                      className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+                    >
                       Email
                     </Label>
                     <Input
@@ -231,7 +206,7 @@ export default function LoginPage() {
                       type="email"
                       placeholder="tu@email.com"
                       autoComplete="email"
-                      className="h-10 rounded-xl border-foreground/10 bg-background/90 focus-visible:ring-2 focus-visible:ring-foreground/15"
+                      className="h-9 rounded-lg border-foreground/10 bg-background/90 focus-visible:ring-2 focus-visible:ring-foreground/15"
                       {...register('email')}
                       error={errors.email?.message}
                     />
@@ -258,7 +233,7 @@ export default function LoginPage() {
                         type={showPassword ? 'text' : 'password'}
                         placeholder="••••••••"
                         autoComplete="current-password"
-                        className="h-10 rounded-xl border-foreground/10 bg-background/90 pr-10 focus-visible:ring-2 focus-visible:ring-foreground/15"
+                        className="h-9 rounded-lg border-foreground/10 bg-background/90 pr-10 focus-visible:ring-2 focus-visible:ring-foreground/15"
                         {...register('password')}
                         error={errors.password?.message}
                       />
@@ -277,11 +252,11 @@ export default function LoginPage() {
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="relative flex flex-col gap-3 px-6 pb-6">
+                <CardFooter className="relative flex flex-col gap-2 px-5 pb-5">
                   <Button
                     type="submit"
                     size="default"
-                    className="w-full rounded-xl text-sm font-semibold"
+                    className="h-10 w-full rounded-lg text-sm font-semibold"
                     isLoading={isSubmitting || loginMutation.isPending}
                   >
                     Entrar
@@ -301,6 +276,85 @@ export default function LoginPage() {
           </div>
         </div>
       </main>
+    </div>
+  );
+}
+
+function LoginPhoneScreen() {
+  return (
+    <div className="flex h-full w-full flex-col gap-3 bg-[#0f1115] px-4 py-5 text-white">
+      <div className="flex items-center justify-between text-[10px] text-white/60">
+        <span className="text-white/80">FinanceApp / Vista general</span>
+        <span className="rounded-full border border-white/10 px-2 py-0.5 text-[9px] text-white/70">
+          Live
+        </span>
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+        <div className="flex items-center justify-between text-[10px] text-white/60">
+          <span>Balance total</span>
+          <span className="text-emerald-300">+4.8%</span>
+        </div>
+        <p className="mt-1 text-[20px] font-semibold tracking-tight">€14,280</p>
+        <div className="mt-3 flex h-16 items-end gap-1">
+          {LOGIN_BARS.map((bar, index) => (
+            <div
+              key={`${bar}-${index}`}
+              className="flex-1 rounded-full bg-gradient-to-t from-emerald-500/70 to-emerald-300/40"
+              style={{ height: `${bar}%` }}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <div className="rounded-xl border border-white/10 bg-white/5 p-2.5 text-[10px]">
+          <p className="text-white/50">Ingresos</p>
+          <p className="mt-1 text-sm font-semibold text-white/90">€3,220</p>
+        </div>
+        <div className="rounded-xl border border-white/10 bg-white/5 p-2.5 text-[10px]">
+          <p className="text-white/50">Gastos</p>
+          <p className="mt-1 text-sm font-semibold text-white/90">€1,840</p>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+        <p className="text-[9px] text-white/50">Presupuesto</p>
+        <div className="mt-2 space-y-2">
+          <div className="rounded-lg bg-white/5 p-2">
+            <div className="flex items-center justify-between text-[10px] text-white/60">
+              <span>Necesidades</span>
+              <span>72%</span>
+            </div>
+            <div className="mt-2 h-1.5 rounded-full bg-white/10">
+              <div className="h-full w-[72%] rounded-full bg-emerald-400/60" />
+            </div>
+          </div>
+          <div className="rounded-lg bg-white/5 p-2">
+            <div className="flex items-center justify-between text-[10px] text-white/60">
+              <span>Deseos</span>
+              <span>41%</span>
+            </div>
+            <div className="mt-2 h-1.5 rounded-full bg-white/10">
+              <div className="h-full w-[41%] rounded-full bg-sky-400/60" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+        <p className="text-[9px] text-white/50">Alertas suaves</p>
+        <div className="mt-2 space-y-1.5 text-[10px] text-white/70">
+          <div className="flex items-center justify-between rounded-lg bg-white/5 px-2 py-1.5">
+            <span>Suscripciones</span>
+            <span>3 activas</span>
+          </div>
+          <div className="flex items-center justify-between rounded-lg bg-white/5 px-2 py-1.5">
+            <span>Meta ahorro</span>
+            <span>89%</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
