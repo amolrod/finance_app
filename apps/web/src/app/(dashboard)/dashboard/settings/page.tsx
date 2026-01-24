@@ -28,6 +28,7 @@ import { useToast } from '@/hooks/use-toast';
 import { User, Palette, Bell, Shield, Globe, Settings, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from 'next-themes';
+import { useCurrency } from '@/contexts/currency-context';
 
 const profileSchema = z.object({
   firstName: z.string().min(1, 'Mínimo 1 caracter'),
@@ -60,7 +61,6 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const router = useRouter();
   const { theme, setTheme: setNextTheme } = useTheme();
-  const [currency, setCurrency] = useState<string>('EUR');
   const [locale, setLocale] = useState<string>('es-ES');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [notifications, setNotifications] = useState({
@@ -68,6 +68,7 @@ export default function SettingsPage() {
     weeklyReport: false,
     monthlyReport: true,
   });
+  const { preferredCurrency, setPreferredCurrency } = useCurrency();
 
   // Mutations
   const updateProfileMutation = useUpdateProfile();
@@ -437,7 +438,7 @@ export default function SettingsPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Moneda principal</Label>
-                <Select value={currency} onValueChange={setCurrency}>
+                <Select value={preferredCurrency} onValueChange={setPreferredCurrency}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

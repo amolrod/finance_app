@@ -17,11 +17,12 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { Plus, Tags, Trash2, Hash } from 'lucide-react';
+import { Plus, Tags, Trash2, Hash, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { COLOR_PALETTE } from '@/lib/color-palettes';
 
 const tagSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
@@ -30,10 +31,15 @@ const tagSchema = z.object({
 
 type TagForm = z.infer<typeof tagSchema>;
 
-const defaultColors = [
-  '#6b7280', '#71717a', '#737373', '#78716c',
-  '#64748b', '#525252', '#57534e', '#404040',
-];
+const defaultColors = COLOR_PALETTE;
+
+const getTagInitials = (name: string) => {
+  const trimmed = name.trim();
+  if (!trimmed) return '#';
+  const parts = trimmed.split(' ');
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase();
+};
 
 export default function TagsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -172,12 +178,16 @@ export default function TagsPage() {
                         key={color}
                         type="button"
                         className={cn(
-                          'h-7 w-7 rounded-full transition-all',
-                          selectedColor === color && 'ring-2 ring-offset-2 ring-foreground/20'
+                          'relative h-8 w-8 rounded-full border border-white/40 shadow-sm transition-all duration-150',
+                          selectedColor === color && 'scale-110 ring-2 ring-foreground/20 ring-offset-2'
                         )}
                         style={{ backgroundColor: color }}
                         onClick={() => setValue('color', color)}
-                      />
+                      >
+                        {selectedColor === color ? (
+                          <Check className="h-4 w-4 text-white drop-shadow" />
+                        ) : null}
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -234,29 +244,44 @@ export default function TagsPage() {
             <CardContent className="p-4">
               <div className="flex flex-wrap gap-2">
                 <AnimatePresence mode="popLayout">
-                  {tags.map((tag, index) => (
-                    <motion.div
-                      key={tag.id}
-                      layout
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ delay: index * 0.02 }}
-                      className="group inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-[13px] font-medium bg-secondary hover:bg-foreground/10 transition-colors cursor-default"
-                    >
-                      <div
-                        className="h-2.5 w-2.5 rounded-full"
-                        style={{ backgroundColor: tag.color || '#6b7280' }}
-                      />
-                      <span>{tag.name}</span>
-                      <button
-                        onClick={() => handleDelete(tag.id, tag.name)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity hover:text-foreground p-0.5 -mr-1"
+                  {tags.map((tag, index) => {
+                    const accentColor = tag.color || defaultColors[index % defaultColors.length];
+
+                    return (
+                      <motion.div
+                        key={tag.id}
+                        layout
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ delay: index * 0.02 }}
+                        className="group inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[13px] font-medium border bg-background/70 shadow-sm backdrop-blur-sm hover:shadow-md transition-all cursor-default"
+                        style={{
+                          borderColor: `${accentColor}55`,
+                          backgroundImage: `linear-gradient(120deg, ${accentColor}1f, transparent 70%)`,
+                        }}
                       >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </motion.div>
-                  ))}
+                        <div
+                          className="flex h-6 w-6 items-center justify-center rounded-full border bg-background/80"
+                          style={{
+                            borderColor: `${accentColor}55`,
+                            color: accentColor,
+                          }}
+                        >
+                          <span className="text-[9px] font-semibold">
+                            {getTagInitials(tag.name)}
+                          </span>
+                        </div>
+                        <span>{tag.name}</span>
+                        <button
+                          onClick={() => handleDelete(tag.id, tag.name)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity hover:text-foreground p-0.5 -mr-1"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </motion.div>
+                    );
+                  })}
                 </AnimatePresence>
               </div>
             </CardContent>

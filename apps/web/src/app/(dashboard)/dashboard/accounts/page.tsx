@@ -23,16 +23,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { formatCurrency, cn } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { ConvertedAmount } from '@/components/converted-amount';
 import { useCurrency } from '@/contexts/currency-context';
-import { Plus, Wallet, CreditCard, Banknote, PiggyBank, TrendingUp, Trash2, Building2, MoreHorizontal, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Plus, Wallet, CreditCard, Banknote, PiggyBank, TrendingUp, Trash2, Building2, MoreHorizontal, ArrowUpRight, ArrowDownRight, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { AccountType } from '@/types/api';
 import Decimal from 'decimal.js';
+import { COLOR_PALETTE } from '@/lib/color-palettes';
 
 const accountSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
@@ -64,17 +65,7 @@ const accountTypeLabels: Record<AccountType, string> = {
   OTHER: 'Otro',
 };
 
-const defaultColors = [
-  '#3b82f6', // blue
-  '#6b7280', // gray
-  '#71717a', // zinc
-  '#737373', // neutral
-  '#78716c', // stone
-  '#64748b', // slate
-  '#525252', // neutral-600
-  '#57534e', // stone-600
-  '#404040', // neutral-700
-];
+const defaultColors = COLOR_PALETTE;
 
 export default function AccountsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -241,12 +232,16 @@ export default function AccountsPage() {
                         key={color}
                         type="button"
                         className={cn(
-                          'h-7 w-7 rounded-full transition-all duration-150',
-                          selectedColor === color && 'ring-2 ring-offset-2 ring-foreground/30 scale-110'
+                          'relative h-8 w-8 rounded-full border border-white/40 shadow-sm transition-all duration-150',
+                          selectedColor === color && 'scale-110 ring-2 ring-foreground/20 ring-offset-2'
                         )}
                         style={{ backgroundColor: color }}
                         onClick={() => setValue('color', color)}
-                      />
+                      >
+                        {selectedColor === color ? (
+                          <Check className="h-4 w-4 text-white drop-shadow" />
+                        ) : null}
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -375,6 +370,7 @@ export default function AccountsPage() {
           {accounts.map((account, index) => {
             const Icon = accountTypeIcons[account.type];
             const balance = new Decimal(account.currentBalance);
+            const accentColor = account.color || defaultColors[index % defaultColors.length];
             
             return (
               <motion.div
@@ -382,23 +378,30 @@ export default function AccountsPage() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.02 + index * 0.02 }}
-              >
-                <Card className="group relative overflow-hidden card-hover h-full">
-                  {/* Color accent */}
-                  <div 
-                    className="absolute top-0 left-0 w-0.5 h-full"
-                    style={{ backgroundColor: account.color || '#3b82f6' }}
-                  />
-                  
+                >
+                  <Card className="group relative overflow-hidden card-hover h-full">
                   <CardHeader className="pb-2 pl-5">
                     <div className="flex items-start gap-3">
-                      <div
-                        className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary"
-                      >
-                        <Icon className="h-5 w-5 text-muted-foreground" />
+                      <div className="relative">
+                        <div
+                          className="absolute -inset-1 rounded-2xl opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100"
+                          style={{ backgroundColor: accentColor }}
+                        />
+                        <div
+                          className="relative flex h-11 w-11 items-center justify-center rounded-2xl border bg-background/90 shadow-sm"
+                          style={{
+                            borderColor: `${accentColor}55`,
+                            boxShadow: `0 10px 24px -16px ${accentColor}cc`,
+                            backgroundImage: `linear-gradient(140deg, ${accentColor}22, rgba(255,255,255,0.85))`,
+                          }}
+                        >
+                          <Icon className="h-5 w-5" style={{ color: accentColor }} />
+                        </div>
                       </div>
                       <div className="flex-1 min-w-0 pt-0.5">
-                        <CardTitle className="text-[14px] font-medium truncate">{account.name}</CardTitle>
+                        <CardTitle className="text-[14px] font-medium truncate">
+                          {account.name}
+                        </CardTitle>
                         <CardDescription className="text-[12px] mt-0.5">
                           {accountTypeLabels[account.type]}
                         </CardDescription>

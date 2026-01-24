@@ -24,12 +24,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { Plus, FolderTree, Trash2, TrendingUp, TrendingDown, Folder } from 'lucide-react';
+import { Plus, FolderTree, Trash2, TrendingUp, TrendingDown, Folder, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { CategoryType } from '@/types/api';
+import { COLOR_PALETTE } from '@/lib/color-palettes';
 
 const categorySchema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
@@ -40,10 +41,15 @@ const categorySchema = z.object({
 
 type CategoryForm = z.infer<typeof categorySchema>;
 
-const defaultColors = [
-  '#6b7280', '#71717a', '#737373', '#78716c',
-  '#64748b', '#525252', '#57534e', '#404040',
-];
+const defaultColors = COLOR_PALETTE;
+
+const getCategoryInitials = (name: string) => {
+  const trimmed = name.trim();
+  if (!trimmed) return '—';
+  const parts = trimmed.split(' ');
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase();
+};
 
 export default function CategoriesPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -251,12 +257,16 @@ export default function CategoriesPage() {
                         key={color}
                         type="button"
                         className={cn(
-                          'h-7 w-7 rounded-full transition-all duration-150',
-                          selectedColor === color && 'ring-2 ring-offset-2 ring-foreground/30 scale-110'
+                          'relative h-8 w-8 rounded-full border border-white/40 shadow-sm transition-all duration-150',
+                          selectedColor === color && 'scale-110 ring-2 ring-foreground/20 ring-offset-2'
                         )}
                         style={{ backgroundColor: color }}
                         onClick={() => setValue('color', color)}
-                      />
+                      >
+                        {selectedColor === color ? (
+                          <Check className="h-4 w-4 text-white drop-shadow" />
+                        ) : null}
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -344,6 +354,7 @@ export default function CategoriesPage() {
           <AnimatePresence mode="popLayout">
             {parentCategories.map((category, index) => {
               const children = filteredCategories.filter((cat) => cat.parentId === category.id);
+              const accentColor = category.color || defaultColors[index % defaultColors.length];
               
               return (
                 <motion.div
@@ -354,17 +365,25 @@ export default function CategoriesPage() {
                   transition={{ type: 'spring', stiffness: 300, damping: 30, delay: index * 0.02 }}
                 >
                   <Card className="group relative overflow-hidden card-hover h-full">
-                    {/* Color side bar */}
-                    <div 
-                      className="absolute top-0 left-0 w-0.5 h-full"
-                      style={{ backgroundColor: category.color || '#6b7280' }}
-                    />
                     <CardHeader className="pb-2 pt-4 pl-5">
                       <div className="flex items-center gap-2.5">
-                        <div
-                          className="h-9 w-9 rounded-lg flex items-center justify-center bg-secondary"
-                        >
-                          <Folder className="h-4 w-4 text-muted-foreground" />
+                        <div className="relative">
+                          <div
+                            className="absolute -inset-1 rounded-2xl opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100"
+                            style={{ backgroundColor: accentColor }}
+                          />
+                          <div
+                            className="relative flex h-10 w-10 items-center justify-center rounded-2xl border bg-background/90"
+                            style={{
+                              borderColor: `${accentColor}55`,
+                              boxShadow: `0 10px 24px -16px ${accentColor}cc`,
+                              backgroundImage: `linear-gradient(140deg, ${accentColor}22, rgba(255,255,255,0.9))`,
+                            }}
+                          >
+                            <span className="text-[11px] font-semibold" style={{ color: accentColor }}>
+                              {getCategoryInitials(category.name)}
+                            </span>
+                          </div>
                         </div>
                         <div className="flex-1 min-w-0">
                           <CardTitle className="text-[14px] font-medium truncate">{category.name}</CardTitle>
@@ -402,9 +421,16 @@ export default function CategoriesPage() {
                               className="flex items-center gap-2 text-[12px] text-muted-foreground py-1.5 px-2.5 rounded-md hover:bg-secondary/50 group/child transition-colors"
                             >
                               <div
-                                className="h-1.5 w-1.5 rounded-full shrink-0"
-                                style={{ backgroundColor: child.color || '#6b7280' }}
-                              />
+                                className="flex h-6 w-6 items-center justify-center rounded-full border bg-background/80"
+                                style={{
+                                  borderColor: `${child.color || accentColor}55`,
+                                  color: child.color || accentColor,
+                                }}
+                              >
+                                <span className="text-[9px] font-semibold">
+                                  {getCategoryInitials(child.name)}
+                                </span>
+                              </div>
                               <span className="flex-1 truncate">{child.name}</span>
                               {!child.isSystem && (
                                 <Button
