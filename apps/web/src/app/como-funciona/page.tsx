@@ -1,187 +1,218 @@
 'use client';
 
-import { useScroll, useTransform, motion } from 'motion/react';
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
+import { motion, useScroll, useTransform, useSpring } from 'motion/react';
 
-type TimelineItem = {
+type Product = {
   title: string;
-  content: React.ReactNode;
+  link: string;
+  thumbnail: string;
 };
 
-const BAR_HEIGHTS = [28, 42, 58, 36, 72, 54, 40, 62];
+const makeThumb = (title: string, accent: string) => {
+  const svg = `
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="55%" stop-color="${accent}" stop-opacity="0.7" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <radialGradient id="glow" cx="0.2" cy="0.2" r="0.8">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect width="600" height="600" fill="url(#g)" />
+  <rect x="48" y="70" width="504" height="460" rx="32" fill="#0b1120" fill-opacity="0.7" stroke="#ffffff" stroke-opacity="0.15" />
+  <rect x="78" y="110" width="444" height="140" rx="18" fill="#0f172a" fill-opacity="0.9" />
+  <rect x="78" y="280" width="210" height="210" rx="18" fill="#111827" fill-opacity="0.9" />
+  <rect x="312" y="280" width="210" height="210" rx="18" fill="#0b1326" fill-opacity="0.9" />
+  <rect width="600" height="600" fill="url(#glow)" />
+  <text x="78" y="160" fill="#e2e8f0" font-size="28" font-family="ui-sans-serif, system-ui" font-weight="600">${title}</text>
+  <text x="78" y="200" fill="#94a3b8" font-size="16" font-family="ui-sans-serif, system-ui">FinanceApp</text>
+  <rect x="98" y="320" width="170" height="12" rx="6" fill="#22c55e" fill-opacity="0.7" />
+  <rect x="98" y="348" width="140" height="10" rx="5" fill="#38bdf8" fill-opacity="0.6" />
+  <rect x="330" y="320" width="170" height="12" rx="6" fill="#f59e0b" fill-opacity="0.7" />
+  <rect x="330" y="348" width="150" height="10" rx="5" fill="#a855f7" fill-opacity="0.6" />
+  </svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+};
 
-const TIMELINE_DATA: TimelineItem[] = [
+const PRODUCTS: Product[] = [
   {
-    title: 'Configura tu base',
-    content: (
-      <div className="rounded-2xl border border-neutral-200/80 bg-white/90 p-6 text-sm text-neutral-600 shadow-sm dark:border-neutral-800 dark:bg-neutral-900/70 dark:text-neutral-200">
-        <p className="text-base font-semibold text-neutral-900 dark:text-white">
-          Define moneda, saldos y objetivos en minutos.
-        </p>
-        <p className="mt-2">
-          Empieza con un panorama limpio: cuentas, metas y preferencias quedan listos para
-          que el tablero tenga sentido desde el primer dia.
-        </p>
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          {['Monedas', 'Saldos', 'Metas'].map((label) => (
-            <div
-              key={label}
-              className="rounded-xl border border-neutral-200/70 bg-white/80 px-3 py-2 text-xs font-semibold text-neutral-600 dark:border-neutral-800 dark:bg-neutral-900/60 dark:text-neutral-200"
-            >
-              {label}
-            </div>
-          ))}
-        </div>
-      </div>
-    ),
+    title: 'Dashboard total',
+    link: '/dashboard',
+    thumbnail: makeThumb('Dashboard total', '#22c55e'),
   },
   {
-    title: 'Clasifica en segundos',
-    content: (
-      <div className="rounded-2xl border border-neutral-200/80 bg-white/90 p-6 text-sm text-neutral-600 shadow-sm dark:border-neutral-800 dark:bg-neutral-900/70 dark:text-neutral-200">
-        <p className="text-base font-semibold text-neutral-900 dark:text-white">
-          Categorias y etiquetas que se entienden a simple vista.
-        </p>
-        <p className="mt-2">
-          Organiza cada movimiento con colores claros, iconos reconocibles y reglas que
-          aprenden tus patrones de gasto.
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {['Comida', 'Transporte', 'Hogar', 'Salud', 'Ahorro'].map((label) => (
-            <span
-              key={label}
-              className="rounded-full border border-neutral-200/70 bg-white/80 px-3 py-1 text-xs font-semibold text-neutral-600 dark:border-neutral-800 dark:bg-neutral-900/60 dark:text-neutral-200"
-            >
-              {label}
-            </span>
-          ))}
-        </div>
-      </div>
-    ),
+    title: 'Cuentas claras',
+    link: '/dashboard/accounts',
+    thumbnail: makeThumb('Cuentas claras', '#16a34a'),
   },
   {
-    title: 'Ve el pulso completo',
-    content: (
-      <div className="rounded-2xl border border-neutral-200/80 bg-white/90 p-6 text-sm text-neutral-600 shadow-sm dark:border-neutral-800 dark:bg-neutral-900/70 dark:text-neutral-200">
-        <p className="text-base font-semibold text-neutral-900 dark:text-white">
-          Un panel con ritmo real, sin ruido extra.
-        </p>
-        <p className="mt-2">
-          Saldos, tendencias y alertas se leen de inmediato. El panel prioriza lo
-          importante para que tomes decisiones con calma.
-        </p>
-        <div className="mt-4">
-          <div className="flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-300">
-            <span>Flujo mensual</span>
-            <span>+6.4%</span>
-          </div>
-          <div className="mt-3 flex h-16 items-end gap-1">
-            {BAR_HEIGHTS.map((height, index) => (
-              <div
-                key={`bar-${index}`}
-                className="flex-1 rounded-full bg-gradient-to-t from-emerald-500/70 to-emerald-300/40"
-                style={{ height: `${height}%` }}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-    ),
+    title: 'Categorias limpias',
+    link: '/dashboard/categories',
+    thumbnail: makeThumb('Categorias limpias', '#0ea5e9'),
   },
   {
-    title: 'Decide con seguridad',
-    content: (
-      <div className="rounded-2xl border border-neutral-200/80 bg-white/90 p-6 text-sm text-neutral-600 shadow-sm dark:border-neutral-800 dark:bg-neutral-900/70 dark:text-neutral-200">
-        <p className="text-base font-semibold text-neutral-900 dark:text-white">
-          Recomendaciones suaves, sin imponer.
-        </p>
-        <p className="mt-2">
-          La app destaca riesgos, oportunidades y metas en progreso. Tu eliges el ritmo y
-          los siguientes pasos.
-        </p>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/80 px-3 py-2 text-xs font-semibold text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-900/30 dark:text-emerald-200">
-            Meta ahorro 78%
-          </div>
-          <div className="rounded-xl border border-blue-200/80 bg-blue-50/80 px-3 py-2 text-xs font-semibold text-blue-700 dark:border-blue-900/60 dark:bg-blue-900/30 dark:text-blue-200">
-            Presupuesto estable
-          </div>
-        </div>
-      </div>
-    ),
+    title: 'Transacciones en foco',
+    link: '/dashboard/transactions',
+    thumbnail: makeThumb('Transacciones en foco', '#2563eb'),
+  },
+  {
+    title: 'Presupuestos vivos',
+    link: '/dashboard/budgets',
+    thumbnail: makeThumb('Presupuestos vivos', '#f97316'),
+  },
+  {
+    title: 'Inversiones en orden',
+    link: '/dashboard/investments',
+    thumbnail: makeThumb('Inversiones en orden', '#a855f7'),
+  },
+  {
+    title: 'Ingresos recurrentes',
+    link: '/dashboard/recurring',
+    thumbnail: makeThumb('Ingresos recurrentes', '#14b8a6'),
+  },
+  {
+    title: 'Reportes claros',
+    link: '/dashboard/reports',
+    thumbnail: makeThumb('Reportes claros', '#06b6d4'),
+  },
+  {
+    title: 'Importacion rapida',
+    link: '/dashboard/import',
+    thumbnail: makeThumb('Importacion rapida', '#f59e0b'),
+  },
+  {
+    title: 'Etiquetas utiles',
+    link: '/dashboard/tags',
+    thumbnail: makeThumb('Etiquetas utiles', '#ef4444'),
+  },
+  {
+    title: 'Ajustes precisos',
+    link: '/dashboard/settings',
+    thumbnail: makeThumb('Ajustes precisos', '#64748b'),
+  },
+  {
+    title: 'Alertas suaves',
+    link: '/dashboard',
+    thumbnail: makeThumb('Alertas suaves', '#0f766e'),
+  },
+  {
+    title: 'Metas visibles',
+    link: '/dashboard',
+    thumbnail: makeThumb('Metas visibles', '#84cc16'),
+  },
+  {
+    title: 'Login seguro',
+    link: '/auth/login',
+    thumbnail: makeThumb('Login seguro', '#334155'),
+  },
+  {
+    title: 'Registro simple',
+    link: '/auth/register',
+    thumbnail: makeThumb('Registro simple', '#1d4ed8'),
   },
 ];
 
 export default function ComoFuncionaPage() {
-  return <Timeline data={TIMELINE_DATA} />;
+  return <HeroParallax products={PRODUCTS} />;
 }
 
-export const Timeline = ({ data }: { data: TimelineItem[] }) => {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [height, setHeight] = useState(0);
-
-  useEffect(() => {
-    if (ref.current) {
-      const rect = ref.current.getBoundingClientRect();
-      setHeight(rect.height);
-    }
-  }, [ref]);
-
+export const HeroParallax = ({ products }: { products: Product[] }) => {
+  const firstRow = products.slice(0, 5);
+  const secondRow = products.slice(5, 10);
+  const thirdRow = products.slice(10, 15);
+  const ref = React.useRef(null);
   const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ['start 10%', 'end 50%'],
+    target: ref,
+    offset: ['start start', 'end start'],
   });
 
-  const heightTransform = useTransform(scrollYProgress, [0, 1], [0, height]);
-  const opacityTransform = useTransform(scrollYProgress, [0, 0.1], [0, 1]);
+  const springConfig = { stiffness: 300, damping: 30, bounce: 100 };
 
+  const translateX = useSpring(useTransform(scrollYProgress, [0, 1], [0, 1000]), springConfig);
+  const translateXReverse = useSpring(useTransform(scrollYProgress, [0, 1], [0, -1000]), springConfig);
+  const rotateX = useSpring(useTransform(scrollYProgress, [0, 0.2], [15, 0]), springConfig);
+  const opacity = useSpring(useTransform(scrollYProgress, [0, 0.2], [0.2, 1]), springConfig);
+  const rotateZ = useSpring(useTransform(scrollYProgress, [0, 0.2], [20, 0]), springConfig);
+  const translateY = useSpring(useTransform(scrollYProgress, [0, 0.2], [-700, 500]), springConfig);
   return (
-    <div className="w-full bg-white dark:bg-neutral-950 font-sans md:px-10" ref={containerRef}>
-      <div className="max-w-7xl mx-auto py-20 px-4 md:px-8 lg:px-10">
-        <h2 className="text-lg md:text-4xl mb-4 text-black dark:text-white max-w-4xl">
-          Como trabaja FinanceApp en tu dia a dia
-        </h2>
-        <p className="text-neutral-700 dark:text-neutral-300 text-sm md:text-base max-w-sm">
-          Un recorrido claro por todo lo que hace la app para ordenar tus finanzas sin
-          friccion.
-        </p>
-      </div>
-      <div ref={ref} className="relative max-w-7xl mx-auto pb-20">
-        {data.map((item, index) => (
-          <div key={index} className="flex justify-start pt-10 md:pt-40 md:gap-10">
-            <div className="sticky flex flex-col md:flex-row z-40 items-center top-40 self-start max-w-xs lg:max-w-sm md:w-full">
-              <div className="h-10 absolute left-3 md:left-3 w-10 rounded-full bg-white dark:bg-black flex items-center justify-center">
-                <div className="h-4 w-4 rounded-full bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 p-2" />
-              </div>
-              <h3 className="hidden md:block text-xl md:pl-20 md:text-5xl font-bold text-neutral-500 dark:text-neutral-500 ">
-                {item.title}
-              </h3>
-            </div>
-
-            <div className="relative pl-20 pr-4 md:pl-4 w-full">
-              <h3 className="md:hidden block text-2xl mb-4 text-left font-bold text-neutral-500 dark:text-neutral-500">
-                {item.title}
-              </h3>
-              {item.content}{' '}
-            </div>
-          </div>
-        ))}
-        <div
-          style={{
-            height: height + 'px',
-          }}
-          className="absolute md:left-8 left-8 top-0 overflow-hidden w-[2px] bg-[linear-gradient(to_bottom,var(--tw-gradient-stops))] from-transparent from-[0%] via-neutral-200 dark:via-neutral-700 to-transparent to-[99%]  [mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)] "
-        >
-          <motion.div
-            style={{
-              height: heightTransform,
-              opacity: opacityTransform,
-            }}
-            className="absolute inset-x-0 top-0  w-[2px] bg-gradient-to-t from-purple-500 via-blue-500 to-transparent from-[0%] via-[10%] rounded-full"
-          />
-        </div>
-      </div>
+    <div
+      ref={ref}
+      className="h-[300vh] py-40 overflow-hidden antialiased relative flex flex-col self-auto [perspective:1000px] [transform-style:preserve-3d]"
+    >
+      <Header />
+      <motion.div
+        style={{
+          rotateX,
+          rotateZ,
+          translateY,
+          opacity,
+        }}
+        className=""
+      >
+        <motion.div className="flex flex-row-reverse space-x-reverse space-x-20 mb-20">
+          {firstRow.map((product) => (
+            <ProductCard product={product} translate={translateX} key={product.title} />
+          ))}
+        </motion.div>
+        <motion.div className="flex flex-row mb-20 space-x-20 ">
+          {secondRow.map((product) => (
+            <ProductCard product={product} translate={translateXReverse} key={product.title} />
+          ))}
+        </motion.div>
+        <motion.div className="flex flex-row-reverse space-x-reverse space-x-20">
+          {thirdRow.map((product) => (
+            <ProductCard product={product} translate={translateX} key={product.title} />
+          ))}
+        </motion.div>
+      </motion.div>
     </div>
+  );
+};
+
+export const Header = () => {
+  return (
+    <div className="max-w-7xl relative mx-auto py-20 md:py-40 px-4 w-full left-0 top-0">
+      <h1 className="text-2xl md:text-7xl font-bold dark:text-white">
+        FinanceApp <br /> ordena todo tu dinero
+      </h1>
+      <p className="max-w-2xl text-base md:text-xl mt-8 dark:text-neutral-200">
+        Un recorrido visual por cuentas, presupuestos, inversiones y alertas. Todo se
+        mueve contigo para que entiendas el estado real de tus finanzas.
+      </p>
+    </div>
+  );
+};
+
+export const ProductCard = ({ product, translate }: { product: Product; translate: any }) => {
+  return (
+    <motion.div
+      style={{
+        x: translate,
+      }}
+      whileHover={{
+        y: -20,
+      }}
+      key={product.title}
+      className="group/product h-96 w-[30rem] relative shrink-0"
+    >
+      <a href={product.link} className="block group-hover/product:shadow-2xl ">
+        <img
+          src={product.thumbnail}
+          height="600"
+          width="600"
+          className="object-cover object-left-top absolute h-full w-full inset-0"
+          alt={product.title}
+        />
+      </a>
+      <div className="absolute inset-0 h-full w-full opacity-0 group-hover/product:opacity-80 bg-black pointer-events-none"></div>
+      <h2 className="absolute bottom-4 left-4 opacity-0 group-hover/product:opacity-100 text-white">
+        {product.title}
+      </h2>
+    </motion.div>
   );
 };
