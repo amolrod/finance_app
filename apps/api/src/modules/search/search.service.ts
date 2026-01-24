@@ -72,22 +72,22 @@ export class SearchService {
         account: { select: { name: true, currency: true } },
         category: { select: { name: true, icon: true } },
       },
-      orderBy: { date: 'desc' },
+      orderBy: { occurredAt: 'desc' },
       take: limit,
     });
 
     return transactions.map((t) => ({
       id: t.id,
       type: 'transaction' as const,
-      title: t.description,
-      subtitle: `${t.type === 'EXPENSE' ? '-' : '+'}${t.amount.toString()} ${t.account.currency} • ${t.account.name}`,
+      title: t.description || 'Transacción',
+      subtitle: `${t.type === 'EXPENSE' ? '-' : '+'}${t.amount.toString()} ${t.currency} • ${t.account.name}`,
       icon: t.category?.icon || (t.type === 'EXPENSE' ? 'minus-circle' : 'plus-circle'),
       url: `/dashboard/transactions?highlight=${t.id}`,
       metadata: {
         type: t.type,
         amount: t.amount.toString(),
-        currency: t.account.currency,
-        date: t.date,
+        currency: t.currency,
+        date: t.occurredAt,
         categoryName: t.category?.name,
       },
     }));
@@ -98,10 +98,7 @@ export class SearchService {
       where: {
         userId,
         deletedAt: null,
-        OR: [
-          { name: { contains: query, mode: 'insensitive' } },
-          { institution: { contains: query, mode: 'insensitive' } },
-        ],
+        name: { contains: query, mode: 'insensitive' },
       },
       orderBy: { name: 'asc' },
       take: limit,
@@ -111,11 +108,11 @@ export class SearchService {
       id: a.id,
       type: 'account' as const,
       title: a.name,
-      subtitle: `${a.type} • ${a.balance.toString()} ${a.currency}`,
+      subtitle: `${a.type} • ${a.currentBalance.toString()} ${a.currency}`,
       icon: a.icon || 'wallet',
       url: `/dashboard/accounts?id=${a.id}`,
       metadata: {
-        balance: a.balance.toString(),
+        balance: a.currentBalance.toString(),
         currency: a.currency,
         accountType: a.type,
       },
@@ -151,31 +148,28 @@ export class SearchService {
     const budgets = await this.prisma.budget.findMany({
       where: {
         userId,
-        deletedAt: null,
         OR: [
-          { name: { contains: query, mode: 'insensitive' } },
           { category: { name: { contains: query, mode: 'insensitive' } } },
         ],
       },
       include: {
         category: { select: { name: true, icon: true } },
       },
-      orderBy: { name: 'asc' },
+      orderBy: { periodMonth: 'desc' },
       take: limit,
     });
 
     return budgets.map((b) => ({
       id: b.id,
       type: 'budget' as const,
-      title: b.name,
-      subtitle: `${b.spent.toString()}/${b.amount.toString()} ${b.currency} • ${b.category?.name || 'Sin categoría'}`,
+      title: b.category?.name || 'Presupuesto',
+      subtitle: `${b.spentAmount.toString()}/${b.limitAmount.toString()} • ${b.periodMonth}`,
       icon: b.category?.icon || 'pie-chart',
       url: `/dashboard/budgets?id=${b.id}`,
       metadata: {
-        amount: b.amount.toString(),
-        spent: b.spent.toString(),
-        currency: b.currency,
-        period: b.period,
+        amount: b.limitAmount.toString(),
+        spent: b.spentAmount.toString(),
+        period: b.periodMonth,
       },
     }));
   }

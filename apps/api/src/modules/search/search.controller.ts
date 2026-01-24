@@ -1,6 +1,6 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, Request } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { GetUser } from '../auth/decorators/get-user.decorator';
+import { AuthenticatedRequest } from '../auth/interfaces/authenticated-request.interface';
 import { SearchService, GlobalSearchResponse } from './search.service';
 
 @Controller('search')
@@ -10,11 +10,11 @@ export class SearchController {
 
   @Get()
   async globalSearch(
-    @GetUser('id') userId: string,
+    @Request() req: AuthenticatedRequest,
     @Query('q') query: string,
     @Query('limit') limit?: string,
   ): Promise<GlobalSearchResponse> {
     const parsedLimit = limit ? Math.min(parseInt(limit, 10), 50) : 10;
-    return this.searchService.globalSearch(userId, query, parsedLimit);
+    return this.searchService.globalSearch(req.user.userId, query, parsedLimit);
   }
 }
