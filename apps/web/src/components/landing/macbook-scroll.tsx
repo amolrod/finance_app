@@ -9,6 +9,7 @@ type MacbookScrollProps = {
   title?: ReactNode;
   subtitle?: ReactNode;
   badge?: ReactNode;
+  density?: 'default' | 'compact';
   children?: ReactNode;
   className?: string;
 };
@@ -17,6 +18,7 @@ export function MacbookScroll({
   title,
   subtitle,
   badge,
+  density = 'default',
   children,
   className,
 }: MacbookScrollProps) {
@@ -36,18 +38,26 @@ export function MacbookScroll({
     return () => window.removeEventListener('resize', update);
   }, []);
 
-  const scaleX = useTransform(scrollYProgress, [0, 0.3], [1.08, isMobile ? 1 : 1.35]);
-  const scaleY = useTransform(scrollYProgress, [0, 0.3], [0.65, isMobile ? 1 : 1.35]);
-  const translate = useTransform(scrollYProgress, [0, 1], [0, 1200]);
+  const isCompact = density === 'compact';
+  const targetScale = isMobile ? 1 : isCompact ? 1.25 : 1.35;
+  const travelDistance = isCompact ? 900 : 1200;
+
+  const scaleX = useTransform(scrollYProgress, [0, 0.3], [1.08, targetScale]);
+  const scaleY = useTransform(scrollYProgress, [0, 0.3], [0.65, targetScale]);
+  const translate = useTransform(scrollYProgress, [0, 1], [0, travelDistance]);
   const rotate = useTransform(scrollYProgress, [0.1, 0.3], [-24, 0]);
   const textTransform = useTransform(scrollYProgress, [0, 0.3], [0, 120]);
   const textOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+
+  const containerClassName = isCompact
+    ? 'flex min-h-[150vh] shrink-0 scale-[0.4] transform flex-col items-center justify-start py-0 [perspective:900px] sm:scale-50 md:scale-[0.92] md:py-48'
+    : 'flex min-h-[200vh] shrink-0 scale-[0.45] transform flex-col items-center justify-start py-0 [perspective:900px] sm:scale-50 md:scale-100 md:py-72';
 
   return (
     <div
       ref={ref}
       className={cn(
-        'flex min-h-[200vh] shrink-0 scale-[0.45] transform flex-col items-center justify-start py-0 [perspective:900px] sm:scale-50 md:scale-100 md:py-72',
+        containerClassName,
         className
       )}
     >
@@ -58,11 +68,11 @@ export function MacbookScroll({
         }}
         className="mb-20 max-w-2xl text-center"
       >
-        <h2 className="text-3xl font-semibold text-neutral-900 sm:text-4xl lg:text-5xl">
+        <h2 className="text-3xl font-semibold text-foreground sm:text-4xl lg:text-5xl">
           {title}
         </h2>
         {subtitle ? (
-          <p className="mt-4 text-base text-neutral-600 sm:text-lg">
+          <p className="mt-4 text-base text-muted-foreground sm:text-lg">
             {subtitle}
           </p>
         ) : null}
@@ -119,7 +129,9 @@ function MacbookLid({ scaleX, scaleY, rotate, translate, children }: MacbookLidP
       >
         <div className="absolute inset-0 rounded-xl bg-[#141416]" />
         <div className="absolute inset-0 rounded-xl border border-white/10 bg-[#0f1115] p-3">
-          <div className="h-full w-full overflow-hidden rounded-lg border border-white/10 bg-[#10141b]">
+          <div className="relative h-full w-full overflow-hidden rounded-lg border border-white/10 bg-[#10141b]">
+            <div className="absolute left-1/2 top-2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-white/20" />
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent opacity-40" />
             {children}
           </div>
         </div>
@@ -136,14 +148,15 @@ function MacbookBase({ badge }: MacbookBaseProps) {
   return (
     <div className="relative -z-10 h-[22rem] w-[32rem] overflow-hidden rounded-2xl bg-[#d6d3ce]">
       <div className="relative h-10 w-full">
-        <div className="absolute inset-x-0 mx-auto h-3.5 w-[82%] rounded-b-xl bg-[#0b0b0d]" />
+        <div className="absolute inset-x-0 mx-auto h-4 w-[80%] rounded-b-xl bg-[#0b0b0d]" />
+        <div className="absolute inset-x-0 top-0 h-px bg-white/30" />
       </div>
       <div className="relative flex h-[12.5rem]">
         <div className="mx-auto h-full w-[10%] overflow-hidden">
           <SpeakerGrid />
         </div>
         <div className="mx-auto h-full w-[80%]">
-          <KeyboardGrid />
+          <Keypad />
         </div>
         <div className="mx-auto h-full w-[10%] overflow-hidden">
           <SpeakerGrid />
@@ -167,20 +180,296 @@ function Trackpad() {
   );
 }
 
-function KeyboardGrid() {
-  const keys = Array.from({ length: 60 });
+function Keypad() {
   return (
-    <div className="mx-2 h-full rounded-md bg-[#0b0b0d] p-2">
-      <div className="grid grid-cols-12 gap-[2px]">
-        {keys.map((_, index) => (
-          <div
-            key={`key-${index}`}
-            className="h-4 rounded-[4px] bg-[#141416]"
-            style={{
-              boxShadow: '0px -0.5px 2px 0 #0d0d0f inset, -0.5px 0px 2px 0 #0d0d0f inset',
-            }}
-          />
+    <div className="mx-1 h-full rounded-md bg-[#050505] p-1">
+      <div className="mb-[2px] flex w-full shrink-0 gap-[2px]">
+        <KBtn className="w-10 items-end justify-start pb-[2px] pl-[4px]" childrenClassName="items-start">
+          esc
+        </KBtn>
+        <KBtn>
+          <MiniSun dim />
+          <span className="mt-1 inline-block">F1</span>
+        </KBtn>
+        <KBtn>
+          <MiniSun />
+          <span className="mt-1 inline-block">F2</span>
+        </KBtn>
+        <KBtn>
+          <MiniGrid />
+          <span className="mt-1 inline-block">F3</span>
+        </KBtn>
+        <KBtn>
+          <MiniSearch />
+          <span className="mt-1 inline-block">F4</span>
+        </KBtn>
+        <KBtn>
+          <MiniMic />
+          <span className="mt-1 inline-block">F5</span>
+        </KBtn>
+        <KBtn>
+          <MiniMoon />
+          <span className="mt-1 inline-block">F6</span>
+        </KBtn>
+        <KBtn>
+          <MiniPrev />
+          <span className="mt-1 inline-block">F7</span>
+        </KBtn>
+        <KBtn>
+          <MiniPlay />
+          <span className="mt-1 inline-block">F8</span>
+        </KBtn>
+        <KBtn>
+          <MiniNext />
+          <span className="mt-1 inline-block">F9</span>
+        </KBtn>
+        <KBtn>
+          <MiniVolume level={1} />
+          <span className="mt-1 inline-block">F10</span>
+        </KBtn>
+        <KBtn>
+          <MiniVolume level={2} />
+          <span className="mt-1 inline-block">F11</span>
+        </KBtn>
+        <KBtn>
+          <MiniVolume level={3} />
+          <span className="mt-1 inline-block">F12</span>
+        </KBtn>
+        <KBtn backlit={false}>
+          <div className="h-4 w-4 rounded-full bg-gradient-to-b from-neutral-900 via-black to-neutral-900 p-px">
+            <div className="h-full w-full rounded-full bg-black" />
+          </div>
+        </KBtn>
+      </div>
+      <div className="mb-[2px] flex w-full shrink-0 gap-[2px]">
+        <KBtn>
+          <span className="block">~</span>
+          <span className="mt-1 block">`</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">!</span>
+          <span className="block">1</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">@</span>
+          <span className="block">2</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">#</span>
+          <span className="block">3</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">$</span>
+          <span className="block">4</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">%</span>
+          <span className="block">5</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">^</span>
+          <span className="block">6</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">&amp;</span>
+          <span className="block">7</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">*</span>
+          <span className="block">8</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">(</span>
+          <span className="block">9</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">)</span>
+          <span className="block">0</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">-</span>
+          <span className="block">_</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">+</span>
+          <span className="block">=</span>
+        </KBtn>
+        <KBtn className="w-10 items-end justify-end pr-[4px] pb-[2px]" childrenClassName="items-end">
+          delete
+        </KBtn>
+      </div>
+      <div className="mb-[2px] flex w-full shrink-0 gap-[2px]">
+        <KBtn className="w-10 items-end justify-start pb-[2px] pl-[4px]" childrenClassName="items-start">
+          tab
+        </KBtn>
+        {['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'].map((key) => (
+          <KBtn key={`key-${key}`}>
+            <span className="block">{key}</span>
+          </KBtn>
         ))}
+        <KBtn>
+          <span className="block">{'{'}</span>
+          <span className="block">{'['}</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">{'}'}</span>
+          <span className="block">{']'}</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">|</span>
+          <span className="block">\\</span>
+        </KBtn>
+      </div>
+      <div className="mb-[2px] flex w-full shrink-0 gap-[2px]">
+        <KBtn className="w-[2.8rem] items-end justify-start pb-[2px] pl-[4px]" childrenClassName="items-start">
+          caps lock
+        </KBtn>
+        {['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'].map((key) => (
+          <KBtn key={`key-${key}`}>
+            <span className="block">{key}</span>
+          </KBtn>
+        ))}
+        <KBtn>
+          <span className="block">:</span>
+          <span className="block">;</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">{'"'}</span>
+          <span className="block">{'\''}</span>
+        </KBtn>
+        <KBtn className="w-[2.85rem] items-end justify-end pr-[4px] pb-[2px]" childrenClassName="items-end">
+          return
+        </KBtn>
+      </div>
+      <div className="mb-[2px] flex w-full shrink-0 gap-[2px]">
+        <KBtn className="w-[3.65rem] items-end justify-start pb-[2px] pl-[4px]" childrenClassName="items-start">
+          shift
+        </KBtn>
+        {['Z', 'X', 'C', 'V', 'B', 'N', 'M'].map((key) => (
+          <KBtn key={`key-${key}`}>
+            <span className="block">{key}</span>
+          </KBtn>
+        ))}
+        <KBtn>
+          <span className="block">{'<'}</span>
+          <span className="block">,</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">{'>'}</span>
+          <span className="block">.</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">?</span>
+          <span className="block">/</span>
+        </KBtn>
+        <KBtn className="w-[3.65rem] items-end justify-end pr-[4px] pb-[2px]" childrenClassName="items-end">
+          shift
+        </KBtn>
+      </div>
+      <div className="mb-[2px] flex w-full shrink-0 gap-[2px]">
+        <KBtn childrenClassName="h-full justify-between py-[4px]">
+          <div className="flex w-full justify-end pr-1">
+            <span className="block">fn</span>
+          </div>
+          <div className="flex w-full justify-start pl-1">
+            <MiniGlobe />
+          </div>
+        </KBtn>
+        <KBtn childrenClassName="h-full justify-between py-[4px]">
+          <div className="flex w-full justify-end pr-1">
+            <MiniChevron direction="up" />
+          </div>
+          <div className="flex w-full justify-start pl-1">
+            <span className="block">control</span>
+          </div>
+        </KBtn>
+        <KBtn childrenClassName="h-full justify-between py-[4px]">
+          <div className="flex w-full justify-end pr-1">
+            <OptionKey className="h-[6px] w-[6px]" />
+          </div>
+          <div className="flex w-full justify-start pl-1">
+            <span className="block">option</span>
+          </div>
+        </KBtn>
+        <KBtn className="w-8" childrenClassName="h-full justify-between py-[4px]">
+          <div className="flex w-full justify-end pr-1">
+            <span className="block">cmd</span>
+          </div>
+          <div className="flex w-full justify-start pl-1">
+            <span className="block">command</span>
+          </div>
+        </KBtn>
+        <KBtn className="w-[8.2rem]" />
+        <KBtn className="w-8" childrenClassName="h-full justify-between py-[4px]">
+          <div className="flex w-full justify-start pl-1">
+            <span className="block">cmd</span>
+          </div>
+          <div className="flex w-full justify-start pl-1">
+            <span className="block">command</span>
+          </div>
+        </KBtn>
+        <KBtn childrenClassName="h-full justify-between py-[4px]">
+          <div className="flex w-full justify-start pl-1">
+            <OptionKey className="h-[6px] w-[6px]" />
+          </div>
+          <div className="flex w-full justify-start pl-1">
+            <span className="block">option</span>
+          </div>
+        </KBtn>
+        <div className="mt-[2px] flex h-6 w-[4.9rem] flex-col items-center justify-end rounded-[4px] p-[0.5px]">
+          <KBtn className="h-3 w-6">
+            <MiniCaret direction="up" />
+          </KBtn>
+          <div className="flex">
+            <KBtn className="h-3 w-6">
+              <MiniCaret direction="left" />
+            </KBtn>
+            <KBtn className="h-3 w-6">
+              <MiniCaret direction="down" />
+            </KBtn>
+            <KBtn className="h-3 w-6">
+              <MiniCaret direction="right" />
+            </KBtn>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type KBtnProps = {
+  className?: string;
+  children?: ReactNode;
+  childrenClassName?: string;
+  backlit?: boolean;
+};
+
+function KBtn({ className, children, childrenClassName, backlit = true }: KBtnProps) {
+  return (
+    <div
+      className={cn(
+        '[transform:translateZ(0)] rounded-[4px] p-[0.5px] [will-change:transform]',
+        backlit && 'bg-white/[0.12] shadow-[0_4px_10px_rgba(255,255,255,0.08)]'
+      )}
+    >
+      <div
+        className={cn(
+          'flex h-6 w-6 items-center justify-center rounded-[3.5px] bg-[#0f1115]',
+          className
+        )}
+        style={{
+          boxShadow: '0px -0.5px 2px 0 #0d0d0f inset, -0.5px 0px 2px 0 #0d0d0f inset',
+        }}
+      >
+        <div
+          className={cn(
+            'flex w-full flex-col items-center justify-center text-[5px] text-neutral-200',
+            childrenClassName,
+            backlit && 'text-white'
+          )}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );
@@ -195,5 +484,149 @@ function SpeakerGrid() {
         backgroundSize: '4px 4px',
       }}
     />
+  );
+}
+
+function MiniSun({ dim = false }: { dim?: boolean }) {
+  return (
+    <svg viewBox="0 0 12 12" className="h-[6px] w-[6px]" fill="none" stroke="currentColor">
+      <circle cx="6" cy="6" r={dim ? 2 : 2.5} strokeWidth="1" />
+      <line x1="6" y1="0.5" x2="6" y2="2" strokeWidth="1" />
+      <line x1="6" y1="10" x2="6" y2="11.5" strokeWidth="1" />
+      <line x1="0.5" y1="6" x2="2" y2="6" strokeWidth="1" />
+      <line x1="10" y1="6" x2="11.5" y2="6" strokeWidth="1" />
+    </svg>
+  );
+}
+
+function MiniGrid() {
+  return (
+    <svg viewBox="0 0 12 12" className="h-[6px] w-[6px]" fill="none" stroke="currentColor">
+      <rect x="1" y="1" width="3" height="3" strokeWidth="1" />
+      <rect x="8" y="1" width="3" height="3" strokeWidth="1" />
+      <rect x="1" y="8" width="3" height="3" strokeWidth="1" />
+      <rect x="8" y="8" width="3" height="3" strokeWidth="1" />
+    </svg>
+  );
+}
+
+function MiniSearch() {
+  return (
+    <svg viewBox="0 0 12 12" className="h-[6px] w-[6px]" fill="none" stroke="currentColor">
+      <circle cx="5" cy="5" r="3" strokeWidth="1" />
+      <line x1="7.5" y1="7.5" x2="11" y2="11" strokeWidth="1" />
+    </svg>
+  );
+}
+
+function MiniMic() {
+  return (
+    <svg viewBox="0 0 12 12" className="h-[6px] w-[6px]" fill="none" stroke="currentColor">
+      <rect x="4" y="2" width="4" height="5" rx="2" strokeWidth="1" />
+      <line x1="6" y1="7" x2="6" y2="9.5" strokeWidth="1" />
+      <line x1="4" y1="9.5" x2="8" y2="9.5" strokeWidth="1" />
+    </svg>
+  );
+}
+
+function MiniMoon() {
+  return (
+    <svg viewBox="0 0 12 12" className="h-[6px] w-[6px]" fill="none" stroke="currentColor">
+      <path d="M8.5 2.5A4 4 0 1 0 8.5 9.5A3 3 0 1 1 8.5 2.5Z" strokeWidth="1" />
+    </svg>
+  );
+}
+
+function MiniPrev() {
+  return (
+    <svg viewBox="0 0 12 12" className="h-[6px] w-[6px]" fill="none" stroke="currentColor">
+      <polygon points="7,2 3,6 7,10" fill="currentColor" />
+      <line x1="9" y1="2" x2="9" y2="10" strokeWidth="1" />
+    </svg>
+  );
+}
+
+function MiniPlay() {
+  return (
+    <svg viewBox="0 0 12 12" className="h-[6px] w-[6px]" fill="currentColor">
+      <polygon points="3,2 9,6 3,10" />
+    </svg>
+  );
+}
+
+function MiniNext() {
+  return (
+    <svg viewBox="0 0 12 12" className="h-[6px] w-[6px]" fill="none" stroke="currentColor">
+      <polygon points="5,2 9,6 5,10" fill="currentColor" />
+      <line x1="3" y1="2" x2="3" y2="10" strokeWidth="1" />
+    </svg>
+  );
+}
+
+function MiniVolume({ level }: { level: 1 | 2 | 3 }) {
+  return (
+    <svg viewBox="0 0 12 12" className="h-[6px] w-[6px]" fill="none" stroke="currentColor">
+      <polygon points="1,4 4,4 6,2 6,10 4,8 1,8" strokeWidth="1" />
+      {level >= 1 && <path d="M7 5 C8 5.5 8 6.5 7 7" strokeWidth="1" />}
+      {level >= 2 && <path d="M8.5 4 C10 5 10 7 8.5 8" strokeWidth="1" />}
+      {level >= 3 && <path d="M9.8 3 C11.5 4.5 11.5 7.5 9.8 9" strokeWidth="1" />}
+    </svg>
+  );
+}
+
+function MiniGlobe() {
+  return (
+    <svg viewBox="0 0 12 12" className="h-[6px] w-[6px]" fill="none" stroke="currentColor">
+      <circle cx="6" cy="6" r="4" strokeWidth="1" />
+      <line x1="2" y1="6" x2="10" y2="6" strokeWidth="1" />
+      <line x1="6" y1="2" x2="6" y2="10" strokeWidth="1" />
+    </svg>
+  );
+}
+
+function MiniChevron({ direction }: { direction: 'up' | 'down' | 'left' | 'right' }) {
+  const paths = {
+    up: 'M3 7 L6 4 L9 7',
+    down: 'M3 5 L6 8 L9 5',
+    left: 'M7 3 L4 6 L7 9',
+    right: 'M5 3 L8 6 L5 9',
+  };
+  return (
+    <svg viewBox="0 0 12 12" className="h-[6px] w-[6px]" fill="none" stroke="currentColor">
+      <path d={paths[direction]} strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function MiniCaret({ direction }: { direction: 'up' | 'down' | 'left' | 'right' }) {
+  const points = {
+    up: '6,3 10,9 2,9',
+    down: '2,3 10,3 6,9',
+    left: '3,6 9,2 9,10',
+    right: '3,2 9,6 3,10',
+  };
+  return (
+    <svg viewBox="0 0 12 12" className="h-[6px] w-[6px]" fill="currentColor">
+      <polygon points={points[direction]} />
+    </svg>
+  );
+}
+
+function OptionKey({ className }: { className?: string }) {
+  return (
+    <svg
+      fill="none"
+      version="1.1"
+      viewBox="0 0 32 32"
+      className={className}
+    >
+      <rect stroke="currentColor" strokeWidth="2" x="18" y="5" width="10" height="2" />
+      <polygon
+        stroke="currentColor"
+        strokeWidth="2"
+        points="10.6,5 4,5 4,7 9.4,7 18.4,27 28,27 28,25 19.6,25 "
+      />
+      <rect width="32" height="32" stroke="none" />
+    </svg>
   );
 }

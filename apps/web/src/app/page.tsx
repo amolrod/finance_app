@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LogoText } from '@/components/logo';
+import { MacbookScroll } from '@/components/landing/macbook-scroll';
 import {
   ArrowRight,
   Sparkles,
@@ -376,6 +377,21 @@ export default function HomePage() {
           </div>
         </section>
 
+        <section id="demo" className="relative py-8">
+          <MacbookScroll
+            density="compact"
+            title="El panel se mueve contigo."
+            subtitle="Una vista con profundidad que no rompe el flujo de la pagina."
+            badge={
+              <div className="rounded-full border border-foreground/10 bg-background/80 px-3 py-1 text-xs font-semibold text-muted-foreground">
+                Demo con scroll
+              </div>
+            }
+          >
+            <HomeMacbookScreen />
+          </MacbookScroll>
+        </section>
+
         <section id="pricing" className="py-20">
           <div className="container mx-auto px-4">
             <div className="grid items-center gap-12 lg:grid-cols-[0.95fr_1.05fr]">
@@ -707,6 +723,87 @@ function FeaturePreview() {
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-sky-500" />
                 Viajes 18%
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HomeMacbookScreen() {
+  return (
+    <div className="flex h-full w-full flex-col bg-[#0f1115] text-white">
+      <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 text-[10px] text-white/60">
+        <span className="text-white/80">FinanceApp / Vista general</span>
+        <span className="rounded-full border border-white/10 px-2 py-0.5">Live</span>
+      </div>
+      <div className="flex flex-1 gap-3 p-4">
+        <div className="flex-1 space-y-3">
+          <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+            <p className="text-xs text-white/50">Balance total</p>
+            <div className="mt-2 flex items-end gap-2">
+              <span className="text-2xl font-semibold">€14,280</span>
+              <span className="text-xs text-emerald-300/80">+4.8%</span>
+            </div>
+            <div className="mt-4 flex h-20 items-end gap-1">
+              {DASHBOARD_BARS.slice(0, 10).map((height, index) => (
+                <div
+                  key={`screen-bar-${index}`}
+                  className="flex-1 rounded-full bg-gradient-to-t from-emerald-500/70 to-emerald-300/40"
+                  style={{ height: `${height}%` }}
+                />
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-[11px]">
+              <p className="text-white/50">Ingresos</p>
+              <p className="mt-2 text-lg font-semibold text-white/90">€3,220</p>
+            </div>
+            <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-[11px]">
+              <p className="text-white/50">Gastos</p>
+              <p className="mt-2 text-lg font-semibold text-white/90">€1,840</p>
+            </div>
+          </div>
+        </div>
+        <div className="w-[38%] space-y-3">
+          <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+            <p className="text-xs text-white/50">Presupuesto</p>
+            <div className="mt-3 rounded-lg bg-white/5 p-3">
+              <div className="flex items-center justify-between text-[10px] text-white/60">
+                <span>Necesidades</span>
+                <span>72%</span>
+              </div>
+              <div className="mt-2 h-1.5 rounded-full bg-white/10">
+                <div className="h-full w-[72%] rounded-full bg-emerald-400/60" />
+              </div>
+            </div>
+            <div className="mt-3 rounded-lg bg-white/5 p-3">
+              <div className="flex items-center justify-between text-[10px] text-white/60">
+                <span>Deseos</span>
+                <span>41%</span>
+              </div>
+              <div className="mt-2 h-1.5 rounded-full bg-white/10">
+                <div className="h-full w-[41%] rounded-full bg-blue-400/50" />
+              </div>
+            </div>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+            <p className="text-xs text-white/50">Alertas suaves</p>
+            <div className="mt-3 space-y-2 text-[10px] text-white/70">
+              <div className="flex items-center justify-between rounded-lg bg-white/5 px-2 py-1.5">
+                <span>Suscripciones</span>
+                <span>3 activas</span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg bg-white/5 px-2 py-1.5">
+                <span>Meta ahorro</span>
+                <span>89%</span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg bg-white/5 px-2 py-1.5">
+                <span>Inversiones</span>
+                <span>+2.1%</span>
               </div>
             </div>
           </div>
