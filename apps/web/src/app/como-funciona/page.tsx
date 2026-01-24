@@ -1,6 +1,11 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { LogoText } from '@/components/logo';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { motion, useScroll, useTransform, useSpring } from 'motion/react';
 
 type Layout =
@@ -396,7 +401,49 @@ const PRODUCTS: Product[] = PRODUCT_SEEDS.map((product) => ({
 }));
 
 export default function ComoFuncionaPage() {
-  return <HeroParallax products={PRODUCTS} />;
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="sticky top-0 z-50 border-b border-foreground/10 bg-background/80 backdrop-blur-xl">
+        <nav
+          className="container mx-auto flex h-16 items-center justify-between px-4"
+          aria-label="Navegación principal"
+        >
+          <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 rounded-full px-2 py-1 text-sm font-semibold text-foreground/80 transition-colors hover:text-foreground"
+            >
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              <span className="hidden sm:inline">Volver al inicio</span>
+              <span className="sm:hidden">Volver</span>
+            </Link>
+            <LogoText
+              className="hidden gap-2 sm:flex"
+              logoClassName="h-8 w-8"
+              textClassName="text-lg"
+            />
+          </div>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <ThemeToggle />
+            <Link href="/auth/login">
+              <Button variant="ghost" size="sm" className="text-[12px] font-semibold sm:text-sm">
+                Entrar
+              </Button>
+            </Link>
+            <Link href="/auth/register">
+              <Button
+                size="sm"
+                className="relative overflow-hidden rounded-full bg-[linear-gradient(135deg,var(--accent-a,#10b981),var(--accent-b,#14b8a6))] px-4 text-[12px] font-semibold text-white shadow-[0_12px_30px_-18px_rgba(16,185,129,0.85)] transition-transform duration-300 hover:-translate-y-0.5 sm:px-5 sm:text-sm"
+              >
+                <span className="relative z-10">Crear cuenta</span>
+              </Button>
+            </Link>
+          </div>
+        </nav>
+      </header>
+      <HeroParallax products={PRODUCTS} />
+    </div>
+  );
 }
 
 export const HeroParallax = ({ products }: { products: Product[] }) => {

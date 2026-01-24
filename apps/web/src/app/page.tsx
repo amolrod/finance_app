@@ -215,6 +215,11 @@ export default function HomePage() {
 
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
+            <Link href="/como-funciona">
+              <Button variant="ghost" size="sm" className="text-[12px] font-semibold sm:text-sm">
+                Cómo funciona
+              </Button>
+            </Link>
             <Link href="/auth/login">
               <Button variant="ghost" size="sm" className="text-[12px] font-semibold sm:text-sm">
                 Entrar
