@@ -119,9 +119,8 @@ export default function InvestmentsPage() {
       >
         <div className="flex items-center gap-3">
           <div className="relative">
-            <div className="absolute -inset-1 rounded-2xl bg-cyan-500/30 blur-md" />
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-cyan-500/30 bg-background/80 shadow-soft">
-              <Briefcase className="h-5 w-5 text-cyan-600" />
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-foreground/10 bg-foreground/5">
+              <Briefcase className="h-5 w-5 text-foreground/70" />
             </div>
           </div>
           <div>
@@ -165,12 +164,11 @@ export default function InvestmentsPage() {
           transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.05 }}
         >
           <Card className="card-hover relative overflow-hidden bg-background/80 border-foreground/10 shadow-soft">
-            <div className="absolute inset-0 opacity-60" style={{ backgroundImage: 'radial-gradient(circle at top right, rgba(16,185,129,0.18), transparent 60%)' }} />
             <CardContent className="relative p-4">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[13px] text-muted-foreground">Total Invertido</span>
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10">
-                  <DollarSign className="h-4 w-4 text-emerald-600" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-foreground/10 bg-foreground/5">
+                  <DollarSign className="h-4 w-4 text-foreground/70" />
                 </div>
               </div>
               <p className="text-2xl font-semibold tabular-nums">
@@ -188,12 +186,11 @@ export default function InvestmentsPage() {
           transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.1 }}
         >
           <Card className="card-hover relative overflow-hidden bg-background/80 border-foreground/10 shadow-soft">
-            <div className="absolute inset-0 opacity-60" style={{ backgroundImage: 'radial-gradient(circle at top right, rgba(59,130,246,0.18), transparent 60%)' }} />
             <CardContent className="relative p-4">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[13px] text-muted-foreground">Valor Actual</span>
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-500/30 bg-blue-500/10">
-                  <BarChart3 className="h-4 w-4 text-blue-600" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-foreground/10 bg-foreground/5">
+                  <BarChart3 className="h-4 w-4 text-foreground/70" />
                 </div>
               </div>
               <p className="text-2xl font-semibold tabular-nums">
@@ -215,22 +212,21 @@ export default function InvestmentsPage() {
           transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.15 }}
         >
           <Card className="card-hover relative overflow-hidden bg-background/80 border-foreground/10 shadow-soft">
-            <div className="absolute inset-0 opacity-60" style={{ backgroundImage: 'radial-gradient(circle at top right, rgba(14,165,233,0.2), transparent 60%)' }} />
             <CardContent className="relative p-4">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[13px] text-muted-foreground">P&L No Realizado</span>
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-sky-500/30 bg-sky-500/10">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-foreground/10 bg-foreground/5">
                   {unrealizedPnL !== null && unrealizedPnL >= 0 ? (
-                    <TrendingUp className="h-4 w-4 text-sky-600" />
+                    <TrendingUp className="h-4 w-4 text-foreground/70" />
                   ) : (
-                    <TrendingDown className="h-4 w-4 text-sky-600" />
+                    <TrendingDown className="h-4 w-4 text-foreground/70" />
                   )}
                 </div>
               </div>
               <p className={cn(
                 "text-2xl font-semibold tabular-nums",
                 unrealizedPnL !== null && unrealizedPnL >= 0 
-                  ? "text-green-600 dark:text-green-500" 
+                  ? "text-emerald-600/80 dark:text-emerald-400/80" 
                   : "text-foreground"
               )}>
                 {loadingPortfolio 
@@ -255,17 +251,16 @@ export default function InvestmentsPage() {
           transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.2 }}
         >
           <Card className="card-hover relative overflow-hidden bg-background/80 border-foreground/10 shadow-soft">
-            <div className="absolute inset-0 opacity-60" style={{ backgroundImage: 'radial-gradient(circle at top right, rgba(99,102,241,0.18), transparent 60%)' }} />
             <CardContent className="relative p-4">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[13px] text-muted-foreground">P&L Realizado</span>
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-indigo-500/30 bg-indigo-500/10">
-                  <PieChart className="h-4 w-4 text-indigo-600" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-foreground/10 bg-foreground/5">
+                  <PieChart className="h-4 w-4 text-foreground/70" />
                 </div>
               </div>
               <p className={cn(
                 "text-2xl font-semibold tabular-nums",
-                realizedPnL >= 0 ? "text-green-600 dark:text-green-500" : "text-foreground"
+                realizedPnL >= 0 ? "text-emerald-600/80 dark:text-emerald-400/80" : "text-foreground"
               )}>
                 {loadingPortfolio 
                   ? '...'
@@ -314,7 +309,7 @@ export default function InvestmentsPage() {
                         <div className="hidden md:flex h-2 w-28 rounded-full bg-foreground/10 overflow-hidden">
                           <div
                             className="h-full rounded-full"
-                            style={{ width: `${percentage}%`, backgroundColor: accentColor }}
+                            style={{ width: `${percentage}%`, backgroundColor: accentColor, opacity: 0.6 }}
                           />
                         </div>
                         <span className="text-[13px] text-muted-foreground tabular-nums">

@@ -105,9 +105,8 @@ export default function RecurringTransactionsPage() {
       >
         <div className="flex items-center gap-3">
           <div className="relative">
-            <div className="absolute -inset-1 rounded-2xl bg-indigo-500/30 blur-md" />
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-indigo-500/30 bg-background/80 shadow-soft">
-              <Repeat className="h-5 w-5 text-indigo-600" />
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-foreground/10 bg-foreground/5">
+              <Repeat className="h-5 w-5 text-foreground/70" />
             </div>
           </div>
           <div>
@@ -121,8 +120,8 @@ export default function RecurringTransactionsPage() {
         {/* Stats */}
         <div className="flex gap-2">
           <div className="flex items-center gap-2.5 rounded-lg bg-background/80 border border-foreground/10 px-3 py-2 shadow-soft">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md border border-emerald-500/30 bg-emerald-500/10">
-              <Play className="h-3.5 w-3.5 text-emerald-600 ml-0.5" />
+            <div className="flex h-7 w-7 items-center justify-center rounded-md border border-foreground/10 bg-foreground/5">
+              <Play className="h-3.5 w-3.5 text-foreground/70 ml-0.5" />
             </div>
             <div>
               <p className="text-lg font-semibold tabular-nums">{activeCount}</p>
@@ -130,8 +129,8 @@ export default function RecurringTransactionsPage() {
             </div>
           </div>
           <div className="flex items-center gap-2.5 rounded-lg bg-background/80 border border-foreground/10 px-3 py-2 shadow-soft">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-500/30 bg-slate-500/10">
-              <Pause className="h-3.5 w-3.5 text-slate-600" />
+            <div className="flex h-7 w-7 items-center justify-center rounded-md border border-foreground/10 bg-foreground/5">
+              <Pause className="h-3.5 w-3.5 text-foreground/70" />
             </div>
             <div>
               <p className="text-lg font-semibold tabular-nums">{pausedCount}</p>
@@ -204,9 +203,9 @@ export default function RecurringTransactionsPage() {
                         <div
                           className="relative flex h-9 w-9 items-center justify-center rounded-xl border bg-background/90"
                           style={{
-                            borderColor: `${accentColor}55`,
-                            boxShadow: `0 10px 24px -16px ${accentColor}cc`,
-                            backgroundImage: `linear-gradient(140deg, ${accentColor}22, rgba(255,255,255,0.9))`,
+                            borderColor: `${accentColor}40`,
+                            boxShadow: `0 8px 18px -16px ${accentColor}88`,
+                            backgroundImage: `linear-gradient(140deg, ${accentColor}12, rgba(255,255,255,0.8))`,
                           }}
                         >
                           <span className="text-[9px] font-semibold" style={{ color: accentColor }}>
@@ -239,7 +238,7 @@ export default function RecurringTransactionsPage() {
                     <div className="flex items-center gap-4">
                       <span className={cn(
                         'text-[14px] font-medium tabular-nums',
-                        item.type === 'INCOME' ? 'text-green-600 dark:text-green-500' : 'text-foreground'
+                        item.type === 'INCOME' ? 'text-emerald-600/80 dark:text-emerald-400/80' : 'text-foreground'
                       )}>
                         <ConvertedAmount 
                           amount={item.amount} 

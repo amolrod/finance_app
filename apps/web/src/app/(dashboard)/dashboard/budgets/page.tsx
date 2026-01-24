@@ -299,14 +299,13 @@ export default function BudgetsPage() {
         >
           <AnimatePresence mode="popLayout">
             {budgets.map((budget, index) => {
-              const spent = new Decimal(budget.spentAmount);
-              const total = new Decimal(budget.limitAmount);
               const remaining = new Decimal(budget.remainingAmount);
               const percentage = budget.percentageUsed;
               const isOverBudget = percentage >= 100;
               const isWarning = percentage >= 80 && percentage < 100;
               const accentColor = budget.categoryColor || COLOR_PALETTE[index % COLOR_PALETTE.length];
               const statusLabel = isOverBudget ? 'Excedido' : isWarning ? 'Alerta' : 'En orden';
+              const statusDot = isOverBudget ? '#f43f5e' : isWarning ? '#f59e0b' : '#10b981';
               
               return (
                 <motion.div
@@ -318,7 +317,7 @@ export default function BudgetsPage() {
                 >
                   <Card className="group relative overflow-hidden card-hover h-full bg-background/80 border-foreground/10 shadow-soft">
                     <div
-                      className="absolute inset-x-0 top-0 h-1 opacity-80"
+                      className="absolute inset-x-0 top-0 h-0.5 opacity-50"
                       style={{
                         backgroundImage: `linear-gradient(90deg, ${accentColor}, transparent)`,
                       }}
@@ -336,8 +335,8 @@ export default function BudgetsPage() {
                               className="relative flex h-10 w-10 items-center justify-center rounded-2xl border bg-background/90"
                               style={{
                                 borderColor: `${accentColor}55`,
-                                boxShadow: `0 10px 24px -16px ${accentColor}cc`,
-                                backgroundImage: `linear-gradient(140deg, ${accentColor}22, rgba(255,255,255,0.9))`,
+                                boxShadow: `0 8px 18px -16px ${accentColor}88`,
+                                backgroundImage: `linear-gradient(140deg, ${accentColor}14, rgba(255,255,255,0.75))`,
                               }}
                             >
                               <span className="text-[10px] font-semibold" style={{ color: accentColor }}>
@@ -355,14 +354,8 @@ export default function BudgetsPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-1">
-                          <span className={cn(
-                            'text-[10px] font-medium px-2 py-0.5 rounded-full border',
-                            isOverBudget
-                              ? 'border-rose-500/40 text-rose-500 bg-rose-500/10'
-                              : isWarning
-                                ? 'border-amber-500/40 text-amber-500 bg-amber-500/10'
-                                : 'border-emerald-500/40 text-emerald-500 bg-emerald-500/10'
-                          )}>
+                          <span className="inline-flex items-center gap-1 rounded-full border border-foreground/10 bg-foreground/5 px-2 py-0.5 text-[10px] font-medium text-foreground/70">
+                            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: statusDot }} />
                             {statusLabel}
                           </span>
                           <Button
@@ -391,7 +384,7 @@ export default function BudgetsPage() {
                             value={Math.min(percentage, 100)}
                             indicatorClassName={cn(
                               'transition-all',
-                              isOverBudget ? 'bg-rose-500' : isWarning ? 'bg-amber-500' : 'bg-emerald-500'
+                              isOverBudget ? 'bg-rose-500/70' : isWarning ? 'bg-amber-500/70' : 'bg-emerald-500/70'
                             )}
                           />
                           <span className="absolute right-0 -top-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded bg-secondary tabular-nums">
@@ -407,10 +400,10 @@ export default function BudgetsPage() {
                             {formatAmount(remaining.abs().toNumber())} excedido
                           </span>
                         ) : (
-                          <span className="text-[12px] font-medium text-green-600 dark:text-green-500 flex items-center gap-1">
-                            <CheckCircle2 className="h-3 w-3" />
-                            {formatAmount(parseFloat(budget.remainingAmount))} disponible
-                          </span>
+                        <span className="text-[12px] font-medium text-emerald-600/80 dark:text-emerald-400/80 flex items-center gap-1">
+                          <CheckCircle2 className="h-3 w-3" />
+                          {formatAmount(parseFloat(budget.remainingAmount))} disponible
+                        </span>
                         )}
                       </div>
                     </CardContent>

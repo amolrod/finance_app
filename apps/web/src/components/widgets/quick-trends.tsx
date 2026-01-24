@@ -95,10 +95,10 @@ export function QuickTrendsWidget({
               <div 
                 className="flex h-8 w-8 items-center justify-center rounded-xl border bg-background/80"
                 style={{
-                  borderColor: `${accentColor}55`,
+                  borderColor: `${accentColor}40`,
                   color: accentColor,
-                  backgroundImage: `linear-gradient(140deg, ${accentColor}22, rgba(255,255,255,0.9))`,
-                  boxShadow: `0 10px 24px -16px ${accentColor}cc`,
+                  backgroundImage: `linear-gradient(140deg, ${accentColor}10, rgba(255,255,255,0.8))`,
+                  boxShadow: `0 8px 18px -16px ${accentColor}88`,
                 }}
               >
                 <span className="text-[9px] font-semibold">

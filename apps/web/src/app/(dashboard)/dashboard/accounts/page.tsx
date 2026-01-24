@@ -384,15 +384,15 @@ export default function AccountsPage() {
                     <div className="flex items-start gap-3">
                       <div className="relative">
                         <div
-                          className="absolute -inset-1 rounded-2xl opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100"
+                          className="absolute -inset-1 rounded-2xl opacity-0 blur-sm transition-opacity duration-300 group-hover:opacity-60"
                           style={{ backgroundColor: accentColor }}
                         />
                         <div
                           className="relative flex h-11 w-11 items-center justify-center rounded-2xl border bg-background/90 shadow-sm"
                           style={{
-                            borderColor: `${accentColor}55`,
-                            boxShadow: `0 10px 24px -16px ${accentColor}cc`,
-                            backgroundImage: `linear-gradient(140deg, ${accentColor}22, rgba(255,255,255,0.85))`,
+                            borderColor: `${accentColor}40`,
+                            boxShadow: `0 8px 18px -16px ${accentColor}88`,
+                            backgroundImage: `linear-gradient(140deg, ${accentColor}12, rgba(255,255,255,0.8))`,
                           }}
                         >
                           <Icon className="h-5 w-5" style={{ color: accentColor }} />

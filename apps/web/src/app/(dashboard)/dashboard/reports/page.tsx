@@ -183,9 +183,8 @@ export default function ReportsPage() {
       >
         <div className="flex items-center gap-3">
           <div className="relative">
-            <div className="absolute -inset-1 rounded-2xl bg-sky-500/30 blur-md" />
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-sky-500/30 bg-background/80 shadow-soft">
-              <BarChart3 className="h-5 w-5 text-sky-600" />
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-foreground/10 bg-foreground/5">
+              <BarChart3 className="h-5 w-5 text-foreground/70" />
             </div>
           </div>
           <div>
@@ -291,12 +290,12 @@ export default function ReportsPage() {
           <Card className="border-foreground/10 bg-background/80 shadow-soft">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-[13px] font-medium text-muted-foreground">Total Ingresos</CardTitle>
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10">
-                <TrendingUp className="h-4 w-4 text-emerald-600" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-foreground/10 bg-foreground/5">
+                <TrendingUp className="h-4 w-4 text-foreground/70" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-semibold tabular-nums text-green-600 dark:text-green-500">
+              <div className="text-2xl font-semibold tabular-nums text-emerald-600/80 dark:text-emerald-400/80">
                 +{formatAmount(summary.income)}
               </div>
               <p className="text-[13px] text-muted-foreground mt-1">
@@ -315,12 +314,12 @@ export default function ReportsPage() {
           <Card className="border-foreground/10 bg-background/80 shadow-soft">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-[13px] font-medium text-muted-foreground">Total Gastos</CardTitle>
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-rose-500/30 bg-rose-500/10">
-                <TrendingDown className="h-4 w-4 text-rose-500" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-foreground/10 bg-foreground/5">
+                <TrendingDown className="h-4 w-4 text-foreground/70" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-semibold tabular-nums">
+              <div className="text-2xl font-semibold tabular-nums text-foreground">
                 -{formatAmount(summary.expense)}
               </div>
               <p className="text-[13px] text-muted-foreground mt-1">
@@ -339,14 +338,14 @@ export default function ReportsPage() {
           <Card className="border-foreground/10 bg-background/80 shadow-soft">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-[13px] font-medium text-muted-foreground">Balance Neto</CardTitle>
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-sky-500/30 bg-sky-500/10">
-                <Wallet className="h-4 w-4 text-sky-600" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-foreground/10 bg-foreground/5">
+                <Wallet className="h-4 w-4 text-foreground/70" />
               </div>
             </CardHeader>
             <CardContent>
               <div className={cn(
                 "text-2xl font-semibold tabular-nums",
-                summary.balance >= 0 ? 'text-green-600 dark:text-green-500' : 'text-foreground'
+                summary.balance >= 0 ? 'text-emerald-600/80 dark:text-emerald-400/80' : 'text-foreground'
               )}>
                 {summary.balance >= 0 ? '+' : ''}{formatAmount(summary.balance)}
               </div>
@@ -385,8 +384,8 @@ export default function ReportsPage() {
           <Card className="border-foreground/10 bg-background/80 shadow-soft">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-[13px] font-medium text-muted-foreground">Días Analizados</CardTitle>
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-500/30 bg-blue-500/10">
-                <Calendar className="h-4 w-4 text-blue-600" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-foreground/10 bg-foreground/5">
+                <Calendar className="h-4 w-4 text-foreground/70" />
               </div>
             </CardHeader>
             <CardContent>
@@ -413,15 +412,15 @@ export default function ReportsPage() {
           <Card className="border-foreground/10 bg-background/80 shadow-soft">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-[13px] font-medium text-muted-foreground">Tasa de Ahorro</CardTitle>
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10">
-                <PiggyBank className="h-4 w-4 text-emerald-600" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-foreground/10 bg-foreground/5">
+                <PiggyBank className="h-4 w-4 text-foreground/70" />
               </div>
             </CardHeader>
             <CardContent>
               <div className={cn(
                 "text-xl font-semibold tabular-nums",
                 summary.income > 0 && (summary.balance / summary.income) * 100 >= 20 
-                  ? 'text-green-600 dark:text-green-500' 
+                  ? 'text-emerald-600/80 dark:text-emerald-400/80' 
                   : 'text-foreground'
               )}>
                 {summary.income > 0 
@@ -443,8 +442,8 @@ export default function ReportsPage() {
           <Card className="border-foreground/10 bg-background/80 shadow-soft">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-[13px] font-medium text-muted-foreground">Gasto Diario Promedio</CardTitle>
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10">
-                <CreditCard className="h-4 w-4 text-amber-600" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-foreground/10 bg-foreground/5">
+                <CreditCard className="h-4 w-4 text-foreground/70" />
               </div>
             </CardHeader>
             <CardContent>
@@ -472,8 +471,8 @@ export default function ReportsPage() {
           <Card className="border-foreground/10 bg-background/80 shadow-soft">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-[13px] font-medium text-muted-foreground">Categorías Activas</CardTitle>
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-violet-500/30 bg-violet-500/10">
-                <FileSpreadsheet className="h-4 w-4 text-violet-600" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-foreground/10 bg-foreground/5">
+                <FileSpreadsheet className="h-4 w-4 text-foreground/70" />
               </div>
             </CardHeader>
             <CardContent>
@@ -554,9 +553,8 @@ export default function ReportsPage() {
                           <div
                             className="flex h-7 w-7 items-center justify-center rounded-full border bg-background/80 shrink-0"
                             style={{
-                              borderColor: `${accentColor}55`,
+                              borderColor: `${accentColor}40`,
                               color: accentColor,
-                              boxShadow: `0 10px 24px -16px ${accentColor}cc`,
                             }}
                           >
                             <span className="text-[9px] font-semibold">
@@ -571,15 +569,15 @@ export default function ReportsPage() {
                           {category.transactionCount}
                         </span>
                       </TableCell>
-                      <TableCell className="text-right text-emerald-600 dark:text-emerald-400">
+                      <TableCell className="text-right text-emerald-600/80 dark:text-emerald-400/80">
                         {category.income > 0 ? `+${formatAmount(category.income)}` : '-'}
                       </TableCell>
-                      <TableCell className="text-right text-red-600 dark:text-red-400">
+                      <TableCell className="text-right text-rose-500/80 dark:text-rose-400/80">
                         {category.expense > 0 ? `-${formatAmount(category.expense)}` : '-'}
                       </TableCell>
                       <TableCell className={cn(
                         "text-right font-semibold",
-                        balance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+                        balance >= 0 ? 'text-emerald-600/80 dark:text-emerald-400/80' : 'text-rose-500/80 dark:text-rose-400/80'
                       )}>
                         {balance >= 0 ? '+' : ''}{formatAmount(balance)}
                       </TableCell>

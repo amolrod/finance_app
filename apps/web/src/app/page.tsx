@@ -495,6 +495,15 @@ export default function HomePage() {
               </p>
             </div>
             <div className="flex items-center gap-6">
+              <Link href="/landing-lab">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-full border-foreground/15 bg-background/80 text-[12px] font-semibold"
+                >
+                  Landing experimental
+                </Button>
+              </Link>
               <ThemeToggle />
               <a
                 href="https://github.com/amolrod/finance_app"

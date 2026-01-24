@@ -369,15 +369,15 @@ export default function CategoriesPage() {
                       <div className="flex items-center gap-2.5">
                         <div className="relative">
                           <div
-                            className="absolute -inset-1 rounded-2xl opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100"
+                            className="absolute -inset-1 rounded-2xl opacity-0 blur-sm transition-opacity duration-300 group-hover:opacity-60"
                             style={{ backgroundColor: accentColor }}
                           />
                           <div
                             className="relative flex h-10 w-10 items-center justify-center rounded-2xl border bg-background/90"
                             style={{
-                              borderColor: `${accentColor}55`,
-                              boxShadow: `0 10px 24px -16px ${accentColor}cc`,
-                              backgroundImage: `linear-gradient(140deg, ${accentColor}22, rgba(255,255,255,0.9))`,
+                              borderColor: `${accentColor}40`,
+                              boxShadow: `0 8px 18px -16px ${accentColor}88`,
+                              backgroundImage: `linear-gradient(140deg, ${accentColor}12, rgba(255,255,255,0.85))`,
                             }}
                           >
                             <span className="text-[11px] font-semibold" style={{ color: accentColor }}>
@@ -423,7 +423,7 @@ export default function CategoriesPage() {
                               <div
                                 className="flex h-6 w-6 items-center justify-center rounded-full border bg-background/80"
                                 style={{
-                                  borderColor: `${child.color || accentColor}55`,
+                                  borderColor: `${child.color || accentColor}40`,
                                   color: child.color || accentColor,
                                 }}
                               >

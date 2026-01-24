@@ -510,18 +510,18 @@ export default function TransactionsPage() {
           <div className="rounded-2xl border border-foreground/10 bg-background/80 p-4 shadow-soft">
             <div className="flex items-center justify-between">
               <p className="text-[12px] text-muted-foreground">Ingresos</p>
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full border border-foreground/10 bg-foreground/5 text-foreground/70">
                 <TrendingUp className="h-4 w-4" />
               </div>
             </div>
-            <p className="mt-3 text-lg font-semibold text-emerald-600">
+            <p className="mt-3 text-lg font-semibold text-foreground">
               +{formatAmount(transactionSummary.income, preferredCurrency)}
             </p>
           </div>
           <div className="rounded-2xl border border-foreground/10 bg-background/80 p-4 shadow-soft">
             <div className="flex items-center justify-between">
               <p className="text-[12px] text-muted-foreground">Gastos</p>
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-500/15 text-rose-500">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full border border-foreground/10 bg-foreground/5 text-foreground/70">
                 <TrendingDown className="h-4 w-4" />
               </div>
             </div>
@@ -532,7 +532,7 @@ export default function TransactionsPage() {
           <div className="rounded-2xl border border-foreground/10 bg-background/80 p-4 shadow-soft">
             <div className="flex items-center justify-between">
               <p className="text-[12px] text-muted-foreground">Balance</p>
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-500/15 text-sky-600">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full border border-foreground/10 bg-foreground/5 text-foreground/70">
                 <ArrowUpRight className="h-4 w-4" />
               </div>
             </div>
@@ -544,7 +544,7 @@ export default function TransactionsPage() {
           <div className="rounded-2xl border border-foreground/10 bg-background/80 p-4 shadow-soft">
             <div className="flex items-center justify-between">
               <p className="text-[12px] text-muted-foreground">Movimientos</p>
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-foreground/5 text-muted-foreground">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full border border-foreground/10 bg-foreground/5 text-foreground/70">
                 <Receipt className="h-4 w-4" />
               </div>
             </div>
@@ -818,16 +818,12 @@ export default function TransactionsPage() {
                     {/* Icon */}
                     <div className="relative flex h-9 w-9 items-center justify-center shrink-0">
                       <div
-                        className="absolute -inset-1 rounded-xl opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100"
-                        style={{ backgroundColor: accentColor }}
-                      />
-                      <div
                         className="relative flex h-9 w-9 items-center justify-center rounded-xl border bg-background/80"
                         style={{
-                          borderColor: `${accentColor}55`,
+                          borderColor: `${accentColor}40`,
                           color: accentColor,
-                          backgroundImage: `linear-gradient(140deg, ${accentColor}22, rgba(255,255,255,0.9))`,
-                          boxShadow: `0 10px 24px -16px ${accentColor}cc`,
+                          backgroundImage: `linear-gradient(140deg, ${accentColor}10, rgba(255,255,255,0.8))`,
+                          boxShadow: `0 8px 18px -16px ${accentColor}88`,
                         }}
                       >
                         <Icon className="h-4 w-4" />
@@ -902,7 +898,7 @@ export default function TransactionsPage() {
                     {/* Amount */}
                     <div className={cn(
                       'text-[13px] font-semibold shrink-0 tabular-nums',
-                      isIncome ? 'text-green-600 dark:text-green-500' : ''
+                      isIncome ? 'text-emerald-600/80 dark:text-emerald-400/80' : ''
                     )}>
                       <ConvertedAmount 
                         amount={tx.amount} 

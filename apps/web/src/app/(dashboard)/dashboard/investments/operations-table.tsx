@@ -29,11 +29,11 @@ import { useCurrency } from '@/contexts/currency-context';
 import type { OperationType } from '@/types/api';
 
 const operationTypeLabels: Record<OperationType, { label: string; className: string; color: string }> = {
-  BUY: { label: 'Compra', className: 'border-rose-500/30 text-rose-500 bg-rose-500/10', color: '#f43f5e' },
-  SELL: { label: 'Venta', className: 'border-emerald-500/30 text-emerald-600 bg-emerald-500/10', color: '#10b981' },
-  DIVIDEND: { label: 'Dividendo', className: 'border-sky-500/30 text-sky-600 bg-sky-500/10', color: '#0ea5e9' },
-  FEE: { label: 'Comisión', className: 'border-amber-500/30 text-amber-600 bg-amber-500/10', color: '#f59e0b' },
-  SPLIT: { label: 'Split', className: 'border-indigo-500/30 text-indigo-600 bg-indigo-500/10', color: '#6366f1' },
+  BUY: { label: 'Compra', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: '#f43f5e' },
+  SELL: { label: 'Venta', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: '#10b981' },
+  DIVIDEND: { label: 'Dividendo', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: '#0ea5e9' },
+  FEE: { label: 'Comisión', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: '#f59e0b' },
+  SPLIT: { label: 'Split', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: '#6366f1' },
 };
 
 interface OperationsTableProps {
@@ -125,13 +125,13 @@ export function OperationsTable({ onEdit }: OperationsTableProps) {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <div
-                          className="flex h-8 w-8 items-center justify-center rounded-lg border bg-background/80"
-                          style={{
-                            borderColor: `${typeInfo.color}55`,
-                            color: typeInfo.color,
-                            boxShadow: `0 10px 24px -16px ${typeInfo.color}cc`,
-                          }}
-                        >
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border bg-background/80"
+                        style={{
+                          borderColor: `${typeInfo.color}40`,
+                          color: typeInfo.color,
+                          boxShadow: `0 8px 18px -16px ${typeInfo.color}88`,
+                        }}
+                      >
                           <span className="text-[9px] font-semibold">{symbol}</span>
                         </div>
                         <div>
@@ -152,7 +152,7 @@ export function OperationsTable({ onEdit }: OperationsTableProps) {
                       {convertAndFormat(price, op.currency)}
                     </TableCell>
                     <TableCell className={`text-right font-mono ${
-                      op.type === 'BUY' || op.type === 'FEE' ? 'text-foreground' : 'text-green-600 dark:text-green-500'
+                      op.type === 'BUY' || op.type === 'FEE' ? 'text-foreground' : 'text-emerald-600/80 dark:text-emerald-400/80'
                     }`}>
                       {op.type === 'BUY' || op.type === 'FEE' ? '-' : '+'}
                       {convertAndFormat(Math.abs(total), op.currency)}

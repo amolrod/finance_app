@@ -255,10 +255,10 @@ export default function TagsPage() {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ delay: index * 0.02 }}
-                        className="group inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[13px] font-medium border bg-background/70 shadow-sm backdrop-blur-sm hover:shadow-md transition-all cursor-default"
+                        className="group inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[13px] font-medium border bg-background/80 backdrop-blur-sm transition-all cursor-default hover:shadow-sm"
                         style={{
                           borderColor: `${accentColor}55`,
-                          backgroundImage: `linear-gradient(120deg, ${accentColor}1f, transparent 70%)`,
+                          backgroundImage: `linear-gradient(120deg, ${accentColor}10, transparent 70%)`,
                         }}
                       >
                         <div

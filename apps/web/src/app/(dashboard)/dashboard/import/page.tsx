@@ -283,9 +283,9 @@ export default function ImportPage() {
                 className={cn(
                   'flex h-8 w-8 items-center justify-center rounded-full border text-[12px] font-medium',
                   isComplete
-                    ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600'
+                    ? 'border-foreground/20 bg-foreground/5 text-foreground'
                     : isActive
-                      ? 'border-foreground/30 bg-foreground/5 text-foreground'
+                      ? 'border-foreground/30 bg-background text-foreground'
                       : 'border-border/60 text-muted-foreground'
                 )}
               >
@@ -375,7 +375,7 @@ export default function ImportPage() {
                   <div
                     {...getRootProps()}
                     className={cn(
-                      'border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-200 bg-gradient-to-br from-foreground/[0.03] via-transparent to-transparent',
+                      'border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-200 bg-foreground/[0.02]',
                       isDragActive && 'border-primary bg-primary/5',
                       !selectedAccountId && 'opacity-50 cursor-not-allowed',
                       previewMutation.isPending && 'opacity-50 cursor-wait'
@@ -604,13 +604,13 @@ export default function ImportPage() {
                         </TableCell>
                         <TableCell>
                           {tx.type === 'INCOME' ? (
-                        <div className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium bg-emerald-500/10 text-emerald-600">
-                          <ArrowDownRight className="h-3.5 w-3.5" />
+                        <div className="inline-flex items-center gap-1 rounded-full border border-foreground/10 bg-foreground/5 px-2 py-0.5 text-[11px] font-medium text-foreground/70">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500/70" />
                           Ingreso
                         </div>
                           ) : (
-                            <div className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium bg-rose-500/10 text-rose-500">
-                              <ArrowUpRight className="h-3.5 w-3.5" />
+                            <div className="inline-flex items-center gap-1 rounded-full border border-foreground/10 bg-foreground/5 px-2 py-0.5 text-[11px] font-medium text-foreground/70">
+                              <span className="h-1.5 w-1.5 rounded-full bg-rose-500/70" />
                               Gasto
                             </div>
                           )}
