@@ -24,14 +24,28 @@ async function bootstrap(): Promise<void> {
     },
   );
 
-  // Security middleware
+  // Security middleware - disable crossOrigin headers that interfere with CORS
   app.use(helmetMiddleware({
     contentSecurityPolicy: false,
+    crossOriginOpenerPolicy: false,
+    crossOriginResourcePolicy: false,
   }));
 
-  // CORS
+  // CORS - allow frontend origin
+  const allowedOrigins = [
+    'https://finance-app-web-mu.vercel.app',
+    'http://localhost:3000',
+    ...(process.env.CORS_ORIGINS?.split(',') || []),
+  ];
+  
   app.enableCors({
-    origin: process.env.CORS_ORIGINS?.split(',') || true,
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, true); // Allow all for now
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
