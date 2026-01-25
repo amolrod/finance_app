@@ -58,6 +58,8 @@ interface TransactionSelection {
   };
 }
 
+type ImportPreviewTransaction = ImportPreview['transactions'][number];
+
 const deriveCategoryName = (description: string | null | undefined) => {
   if (!description) return '';
   const cleaned = description
@@ -73,6 +75,12 @@ const normalizeCategoryKey = (value: string) => {
     .replace(/[^a-z0-9\s]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+};
+
+const getCategoryCandidate = (tx: ImportPreviewTransaction) => {
+  const suggestedName = tx.suggestedCategory?.categoryName?.trim();
+  if (suggestedName) return suggestedName;
+  return deriveCategoryName(tx.description);
 };
 
 export default function ImportPage() {
@@ -215,14 +223,60 @@ export default function ImportPage() {
     if (!pending.length) return;
     setIsAutoCreating(true);
     (async () => {
+      const createdCategories: Array<{ id: string; name: string; type: 'INCOME' | 'EXPENSE' }> = [];
       for (const item of pending) {
         try {
-          await createCategoryMutation.mutateAsync({
+          const created = await createCategoryMutation.mutateAsync({
             name: item.name,
             type: item.type,
           });
+          createdCategories.push({
+            id: created.id,
+            name: created.name,
+            type: created.type,
+          });
         } catch {
           // ignore single failures
+        }
+      }
+      if (createdCategories.length && preview) {
+        setSelections((prev) => {
+          const next = { ...prev };
+          preview.transactions.forEach((tx) => {
+            if (tx.isDuplicate) return;
+            if (next[tx.hash]?.categoryId) return;
+            const candidate = getCategoryCandidate(tx);
+            if (!candidate) return;
+            const key = normalizeCategoryKey(candidate);
+            const match = createdCategories.find(
+              (category) =>
+                normalizeCategoryKey(category.name) === key && category.type === tx.type
+            );
+            if (match) {
+              next[tx.hash] = {
+                ...next[tx.hash],
+                categoryId: match.id,
+              };
+            }
+          });
+          return next;
+        });
+        const newSources: Record<string, 'auto'> = {};
+        preview.transactions.forEach((tx) => {
+          if (tx.isDuplicate) return;
+          const candidate = getCategoryCandidate(tx);
+          if (!candidate) return;
+          const key = normalizeCategoryKey(candidate);
+          const match = createdCategories.find(
+            (category) =>
+              normalizeCategoryKey(category.name) === key && category.type === tx.type
+          );
+          if (match) {
+            newSources[tx.hash] = 'auto';
+          }
+        });
+        if (Object.keys(newSources).length) {
+          setSuggestionSources((prev) => ({ ...prev, ...newSources }));
         }
       }
       toast({
@@ -438,18 +492,74 @@ export default function ImportPage() {
     );
     const skippedByUser = preview.totalTransactions - selectedTransactions.length;
 
-    const transactions: ImportTransaction[] = selectedTransactions.map((tx) => ({
-      hash: tx.hash,
-      categoryId: selections[tx.hash]?.categoryId,
-      description: selections[tx.hash]?.description || tx.description,
-      date: tx.originalDate,
-      amount: tx.amount,
-      type: tx.type,
-      suggestedCategoryId: tx.suggestedCategory?.categoryId,
-      confidence: tx.suggestedCategory
-        ? Math.round(tx.suggestedCategory.confidence * 100)
-        : undefined,
-    }));
+    const categoryLookup = new Map(categoryNameMap);
+    const pendingCategories = new Map<string, { name: string; type: 'INCOME' | 'EXPENSE' }>();
+
+    selectedTransactions.forEach((tx) => {
+      if (selections[tx.hash]?.categoryId) return;
+      const candidate = getCategoryCandidate(tx);
+      if (!candidate) return;
+      const key = normalizeCategoryKey(candidate);
+      if (!key) return;
+      if (categoryLookup.has(key)) return;
+      if (!pendingCategories.has(key)) {
+        pendingCategories.set(key, { name: candidate, type: tx.type });
+      }
+    });
+
+    if (pendingCategories.size > 0) {
+      setIsAutoCreating(true);
+      for (const [key, item] of pendingCategories.entries()) {
+        try {
+          const created = await createCategoryMutation.mutateAsync({
+            name: item.name,
+            type: item.type,
+          });
+          categoryLookup.set(key, {
+            id: created.id,
+            name: created.name,
+            type: created.type,
+          });
+        } catch {
+          const fallback = categories.find(
+            (category) => normalizeCategoryKey(category.name) === key
+          );
+          if (fallback) {
+            categoryLookup.set(key, {
+              id: fallback.id,
+              name: fallback.name,
+              type: fallback.type,
+            });
+          }
+        }
+      }
+      setIsAutoCreating(false);
+    }
+
+    const transactions: ImportTransaction[] = selectedTransactions.map((tx) => {
+      let categoryId = selections[tx.hash]?.categoryId;
+      if (!categoryId) {
+        const candidate = getCategoryCandidate(tx);
+        const key = candidate ? normalizeCategoryKey(candidate) : '';
+        const match = key ? categoryLookup.get(key) : undefined;
+        if (match && match.type === tx.type) {
+          categoryId = match.id;
+        }
+      }
+
+      return {
+        hash: tx.hash,
+        categoryId,
+        description: selections[tx.hash]?.description || tx.description,
+        date: tx.originalDate,
+        amount: tx.amount,
+        type: tx.type,
+        suggestedCategoryId: tx.suggestedCategory?.categoryId,
+        confidence: tx.suggestedCategory
+          ? Math.round(tx.suggestedCategory.confidence * 100)
+          : undefined,
+      };
+    });
 
     try {
       const batches = chunkTransactions(transactions, 100);
@@ -1055,14 +1165,16 @@ export default function ImportPage() {
               </div>
               <Button
                 onClick={handleConfirmImport}
-                disabled={selectedCount === 0 || isConfirming}
+                disabled={selectedCount === 0 || isConfirming || isAutoCreating}
               >
-                {isConfirming ? (
+                {isConfirming || isAutoCreating ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     {batchProgress.total > 1
                       ? `Importando ${batchProgress.current}/${batchProgress.total}...`
-                      : 'Importando...'}
+                      : isAutoCreating
+                        ? 'Preparando categorias...'
+                        : 'Importando...'}
                   </>
                 ) : (
                   <>

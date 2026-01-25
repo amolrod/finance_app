@@ -93,7 +93,7 @@ export function useUpdateTransaction() {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateTransactionDto }) => {
-      return apiClient.patch<Transaction>(`/transactions/${id}`, data);
+      return apiClient.put<Transaction>(`/transactions/${id}`, data);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: transactionKeys.all });
