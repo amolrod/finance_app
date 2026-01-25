@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
+import { useAuthStore } from '@/stores/auth-store';
 import type {
   Category,
   CategoryType,
@@ -16,24 +17,29 @@ export const categoryKeys = {
 
 // Get all categories
 export function useCategories(type?: CategoryType) {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  
   return useQuery({
     queryKey: categoryKeys.list(type),
     queryFn: async () => {
       const params = type ? { type } : undefined;
       return apiClient.get<Category[]>('/categories', params);
     },
+    enabled: isAuthenticated,
     placeholderData: (previousData) => previousData,
   });
 }
 
 // Get single category
 export function useCategory(id: string) {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  
   return useQuery({
     queryKey: categoryKeys.detail(id),
     queryFn: async () => {
       return apiClient.get<Category>(`/categories/${id}`);
     },
-    enabled: !!id,
+    enabled: isAuthenticated && !!id,
   });
 }
 

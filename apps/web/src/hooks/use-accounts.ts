@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
+import { useAuthStore } from '@/stores/auth-store';
 import type {
   Account,
   AccountListResponse,
@@ -18,6 +19,8 @@ export const accountKeys = {
 
 // Get all accounts
 export function useAccounts(includeArchived = false) {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  
   return useQuery({
     queryKey: accountKeys.list({ includeArchived }),
     queryFn: async () => {
@@ -25,29 +28,35 @@ export function useAccounts(includeArchived = false) {
       const response = await apiClient.get<AccountListResponse>('/accounts', params);
       return response.data;
     },
+    enabled: isAuthenticated,
     placeholderData: (previousData) => previousData, // Mostrar datos previos mientras carga
   });
 }
 
 // Get single account
 export function useAccount(id: string) {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  
   return useQuery({
     queryKey: accountKeys.detail(id),
     queryFn: async () => {
       return apiClient.get<Account>(`/accounts/${id}`);
     },
-    enabled: !!id,
+    enabled: isAuthenticated && !!id,
   });
 }
 
 // Get account summary
 export function useAccountSummary(targetCurrency?: string) {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  
   return useQuery({
     queryKey: [...accountKeys.summary(), targetCurrency],
     queryFn: async () => {
       const params = targetCurrency ? { currency: targetCurrency } : undefined;
       return apiClient.get<AccountSummary>('/accounts/summary', params);
     },
+    enabled: isAuthenticated,
     placeholderData: (previousData) => previousData,
   });
 }

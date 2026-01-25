@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
+import { useAuthStore } from '@/stores/auth-store';
 import type { Notification } from '@/types/api';
 
 export const notificationKeys = {
@@ -10,24 +11,30 @@ export const notificationKeys = {
 
 // Get all notifications
 export function useNotifications(unreadOnly: boolean = false) {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  
   return useQuery({
     queryKey: notificationKeys.list(unreadOnly),
     queryFn: async () => {
       return apiClient.get<Notification[]>('/notifications', { unreadOnly: unreadOnly.toString() });
     },
+    enabled: isAuthenticated,
   });
 }
 
 // Get unread count
 export function useUnreadNotificationCount() {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  
   return useQuery({
     queryKey: notificationKeys.count(),
     queryFn: async () => {
       const result = await apiClient.get<{ count: number }>('/notifications/count');
       return result.count;
     },
+    enabled: isAuthenticated,
     // Poll every 30 seconds for updates
-    refetchInterval: 30000,
+    refetchInterval: isAuthenticated ? 30000 : false,
   });
 }
 

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
+import { useAuthStore } from '@/stores/auth-store';
 import type {
   Transaction,
   CreateTransactionDto,
@@ -20,17 +21,22 @@ export const transactionKeys = {
 
 // Get transactions with pagination
 export function useTransactions(filters?: TransactionFilters) {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  
   return useQuery({
     queryKey: transactionKeys.list(filters),
     queryFn: async () => {
       return apiClient.get<TransactionListResponse>('/transactions', filters);
     },
+    enabled: isAuthenticated,
     placeholderData: (previousData) => previousData,
   });
 }
 
 // Infinite scroll transactions
 export function useInfiniteTransactions(filters?: Omit<TransactionFilters, 'page'>) {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  
   return useInfiniteQuery({
     queryKey: transactionKeys.infinite(filters),
     queryFn: async ({ pageParam = 1 }) => {
@@ -47,17 +53,20 @@ export function useInfiniteTransactions(filters?: Omit<TransactionFilters, 'page
       }
       return undefined;
     },
+    enabled: isAuthenticated,
   });
 }
 
 // Get single transaction
 export function useTransaction(id: string) {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  
   return useQuery({
     queryKey: transactionKeys.detail(id),
     queryFn: async () => {
       return apiClient.get<Transaction>(`/transactions/${id}`);
     },
-    enabled: !!id,
+    enabled: isAuthenticated && !!id,
   });
 }
 
