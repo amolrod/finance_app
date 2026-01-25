@@ -45,6 +45,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { useCurrency } from '@/contexts/currency-context';
 import {
   useCreateInvestmentOperation,
   useUpdateInvestmentOperation,
@@ -53,12 +54,22 @@ import {
 import { useCreateAsset } from '@/hooks/use-assets';
 import type { Asset, OperationType, AssetType } from '@/types/api';
 
+const parseLocaleNumber = (value: unknown) => {
+  if (typeof value === 'string') {
+    const normalized = value.replace(',', '.').trim();
+    if (!normalized) return undefined;
+    const parsed = Number(normalized);
+    return Number.isNaN(parsed) ? value : parsed;
+  }
+  return value;
+};
+
 const formSchema = z.object({
   assetId: z.string().min(1, 'Selecciona un activo'),
   type: z.enum(['BUY', 'SELL', 'DIVIDEND', 'FEE', 'SPLIT']),
-  quantity: z.number().positive('La cantidad debe ser positiva'),
-  pricePerUnit: z.number().min(0, 'El precio debe ser positivo o cero'),
-  fees: z.number().min(0).optional(),
+  quantity: z.preprocess(parseLocaleNumber, z.number().positive('La cantidad debe ser positiva')),
+  pricePerUnit: z.preprocess(parseLocaleNumber, z.number().min(0, 'El precio debe ser positivo o cero')),
+  fees: z.preprocess(parseLocaleNumber, z.number().min(0)).optional(),
   currency: z.string().min(1, 'Selecciona una moneda'),
   occurredAt: z.string().min(1, 'Selecciona una fecha'),
   notes: z.string().optional(),
@@ -90,6 +101,7 @@ interface NewAssetState {
 
 export function OperationForm({ open, onClose, editId, assets }: Props) {
   const { toast } = useToast();
+  const { preferredCurrency, formatAmount, getCurrencySymbol } = useCurrency();
   const [showNewAsset, setShowNewAsset] = useState(false);
   const [newAsset, setNewAsset] = useState<NewAssetState>({ symbol: '', name: '', type: 'STOCK' });
   const [assetSearchOpen, setAssetSearchOpen] = useState(false);
@@ -105,6 +117,14 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
         a.name.toLowerCase().includes(query)
     );
   }, [assets, assetSearchQuery]);
+
+  const currencyOptions = useMemo(() => {
+    const base = ['EUR', 'USD', 'GBP', 'MXN'];
+    if (preferredCurrency && !base.includes(preferredCurrency)) {
+      return [preferredCurrency, ...base];
+    }
+    return base;
+  }, [preferredCurrency]);
   
   const { data: existingData } = useInvestmentOperation(editId || '');
   const createMutation = useCreateInvestmentOperation();
@@ -119,7 +139,7 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
       quantity: undefined as unknown as number,
       pricePerUnit: undefined as unknown as number,
       fees: undefined as unknown as number,
-      currency: 'USD',
+      currency: preferredCurrency || 'USD',
       occurredAt: new Date().toISOString().split('T')[0],
       notes: '',
     },
@@ -140,6 +160,14 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
       });
     }
   }, [existingData, editId, form]);
+
+  useEffect(() => {
+    if (!open || editId) return;
+    const current = form.getValues('currency');
+    if (!current || current === 'USD') {
+      form.setValue('currency', preferredCurrency || 'USD');
+    }
+  }, [preferredCurrency, open, editId, form]);
 
   // Reset form when closing
   useEffect(() => {
@@ -202,11 +230,22 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
     }
   };
 
+  const toNumber = (value: unknown) => {
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') {
+      const normalized = value.replace(',', '.').trim();
+      const parsed = Number(normalized);
+      return Number.isNaN(parsed) ? 0 : parsed;
+    }
+    return 0;
+  };
+
   // Calculate total
-  const quantity = form.watch('quantity') || 0;
-  const price = form.watch('pricePerUnit') || 0;
-  const fees = form.watch('fees') || 0;
+  const quantity = toNumber(form.watch('quantity'));
+  const price = toNumber(form.watch('pricePerUnit'));
+  const fees = toNumber(form.watch('fees'));
   const type = form.watch('type');
+  const currency = form.watch('currency') || preferredCurrency || 'USD';
   let total = quantity * price;
   if (type === 'BUY') total += fees;
   else if (type === 'SELL') total -= fees;
@@ -396,15 +435,9 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
                         type="text"
                         inputMode="decimal"
                         placeholder="10"
-                        value={field.value === undefined || field.value === 0 ? '' : field.value}
+                        value={field.value ?? ''}
                         onChange={(e) => {
-                          const val = e.target.value;
-                          if (val === '') {
-                            field.onChange(undefined);
-                          } else {
-                            const num = parseFloat(val);
-                            if (!isNaN(num)) field.onChange(num);
-                          }
+                          field.onChange(e.target.value);
                         }}
                       />
                     </FormControl>
@@ -424,15 +457,9 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
                         type="text"
                         inputMode="decimal"
                         placeholder="150.00"
-                        value={field.value === undefined || field.value === 0 ? '' : field.value}
+                        value={field.value ?? ''}
                         onChange={(e) => {
-                          const val = e.target.value;
-                          if (val === '') {
-                            field.onChange(undefined);
-                          } else {
-                            const num = parseFloat(val);
-                            if (!isNaN(num)) field.onChange(num);
-                          }
+                          field.onChange(e.target.value);
                         }}
                       />
                     </FormControl>
@@ -443,7 +470,7 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
             </div>
 
             {/* Fees & Date */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="fees"
@@ -455,18 +482,37 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
                         type="text"
                         inputMode="decimal"
                         placeholder="5.99"
-                        value={field.value === undefined || field.value === 0 ? '' : field.value}
+                        value={field.value ?? ''}
                         onChange={(e) => {
-                          const val = e.target.value;
-                          if (val === '') {
-                            field.onChange(undefined);
-                          } else {
-                            const num = parseFloat(val);
-                            if (!isNaN(num)) field.onChange(num);
-                          }
+                          field.onChange(e.target.value);
                         }}
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="currency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Moneda</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {currencyOptions.map((code) => (
+                          <SelectItem key={code} value={code}>
+                            {code} ({getCurrencySymbol(code)})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -492,7 +538,7 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Total de la operación:</span>
                 <span className="font-mono font-medium">
-                  ${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {formatAmount(total, currency)}
                 </span>
               </div>
             </div>
