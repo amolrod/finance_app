@@ -142,6 +142,32 @@ export default function ReportsPage() {
     link.click();
   };
 
+  const exportToExcel = () => {
+    if (!transactions?.data) return;
+
+    const headers = ['Fecha', 'Tipo', 'Descripción', 'Categoría', 'Cuenta', 'Monto', 'Moneda'];
+    const rows = transactions.data.map(t => [
+      formatDate(t.occurredAt),
+      t.type === 'INCOME' ? 'Ingreso' : t.type === 'EXPENSE' ? 'Gasto' : 'Transferencia',
+      t.description || '',
+      t.category?.name || '',
+      t.account?.name || '',
+      t.amount,
+      t.currency,
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(',')),
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `transacciones_${filters.startDate}_${filters.endDate}.xls`;
+    link.click();
+  };
+
   // Quick date presets
   const setDatePreset = (preset: string) => {
     const now = new Date();
@@ -194,13 +220,22 @@ export default function ReportsPage() {
             </p>
           </div>
         </div>
-        <Button 
-          onClick={exportToCSV} 
-          disabled={!transactions?.data?.length}
-        >
-          <Download className="mr-2 h-4 w-4" />
-          Exportar CSV
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            onClick={exportToCSV} 
+            disabled={!transactions?.data?.length}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Exportar CSV
+          </Button>
+          <Button
+            variant="outline"
+            onClick={exportToExcel}
+            disabled={!transactions?.data?.length}
+          >
+            Exportar Excel
+          </Button>
+        </div>
       </motion.div>
 
       {/* Date Filters - Mejorado */}

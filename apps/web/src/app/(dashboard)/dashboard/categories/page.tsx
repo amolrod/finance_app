@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCategories, useCreateCategory, useDeleteCategory } from '@/hooks/use-categories';
 import { Button } from '@/components/ui/button';
@@ -31,6 +31,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { CategoryType } from '@/types/api';
 import { COLOR_PALETTE } from '@/lib/color-palettes';
+import { CategoryRule, loadCategoryRules, saveCategoryRules } from '@/lib/category-rules';
+import { logAuditEvent } from '@/lib/audit-log';
 
 const categorySchema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
@@ -41,7 +43,27 @@ const categorySchema = z.object({
 
 type CategoryForm = z.infer<typeof categorySchema>;
 
+const ruleSchema = z.object({
+  name: z.string().min(1, 'El nombre es requerido'),
+  keyword: z.string().min(1, 'La palabra clave es requerida'),
+  match: z.enum(['contains', 'startsWith', 'endsWith']),
+  type: z.enum(['ALL', 'EXPENSE', 'INCOME']),
+  categoryId: z.string().min(1, 'Selecciona una categoria'),
+});
+
+type RuleForm = z.infer<typeof ruleSchema>;
+
 const defaultColors = COLOR_PALETTE;
+const ruleTypeLabels = {
+  ALL: 'Todo',
+  EXPENSE: 'Gasto',
+  INCOME: 'Ingreso',
+} as const;
+const matchLabels = {
+  contains: 'contiene',
+  startsWith: 'empieza con',
+  endsWith: 'termina con',
+} as const;
 
 const getCategoryInitials = (name: string) => {
   const trimmed = name.trim();
@@ -54,11 +76,17 @@ const getCategoryInitials = (name: string) => {
 export default function CategoriesPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<CategoryType>('EXPENSE');
+  const [ruleDialogOpen, setRuleDialogOpen] = useState(false);
+  const [rules, setRules] = useState<CategoryRule[]>([]);
   const { toast } = useToast();
 
   const { data: categories, isLoading } = useCategories();
   const createMutation = useCreateCategory();
   const deleteMutation = useDeleteCategory();
+
+  useEffect(() => {
+    setRules(loadCategoryRules());
+  }, []);
 
   const {
     register,
@@ -78,6 +106,21 @@ export default function CategoriesPage() {
   const selectedColor = watch('color');
   const selectedType = watch('type');
 
+  const ruleForm = useForm<RuleForm>({
+    resolver: zodResolver(ruleSchema),
+    defaultValues: {
+      name: '',
+      keyword: '',
+      match: 'contains',
+      type: 'EXPENSE',
+      categoryId: '',
+    },
+  });
+
+  const categoryById = useMemo(() => {
+    return new Map((categories || []).map((category) => [category.id, category]));
+  }, [categories]);
+
   const filteredCategories = categories?.filter((cat) => cat.type === activeTab) || [];
   const parentCategories = filteredCategories.filter((cat) => !cat.parentId);
 
@@ -93,6 +136,7 @@ export default function CategoriesPage() {
         title: 'Categoría creada',
         description: 'La categoría se ha creado correctamente.',
       });
+      logAuditEvent({ action: 'Categoria creada', detail: data.name });
       setIsDialogOpen(false);
       reset();
     } catch (error) {
@@ -101,6 +145,38 @@ export default function CategoriesPage() {
         description: 'No se pudo crear la categoría.',
         variant: 'destructive',
       });
+    }
+  };
+
+  const onRuleSubmit = (data: RuleForm) => {
+    const newRule: CategoryRule = {
+      id: typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}`,
+      name: data.name,
+      keyword: data.keyword,
+      match: data.match,
+      type: data.type,
+      categoryId: data.categoryId,
+      createdAt: new Date().toISOString(),
+    };
+    const nextRules = [newRule, ...rules];
+    setRules(nextRules);
+    saveCategoryRules(nextRules);
+    ruleForm.reset();
+    setRuleDialogOpen(false);
+    toast({
+      title: 'Regla creada',
+      description: 'Se aplicara automaticamente a nuevas importaciones.',
+    });
+    logAuditEvent({ action: 'Regla creada', detail: data.name });
+  };
+
+  const removeRule = (id: string) => {
+    const rule = rules.find((item) => item.id === id);
+    const nextRules = rules.filter((rule) => rule.id !== id);
+    setRules(nextRules);
+    saveCategoryRules(nextRules);
+    if (rule) {
+      logAuditEvent({ action: 'Regla eliminada', detail: rule.name });
     }
   };
 
@@ -121,6 +197,7 @@ export default function CategoriesPage() {
         title: 'Categoría eliminada',
         description: 'La categoría se ha eliminado correctamente.',
       });
+      logAuditEvent({ action: 'Categoria eliminada', detail: name });
     } catch (error) {
       toast({
         title: 'Error',
@@ -282,6 +359,160 @@ export default function CategoriesPage() {
             </form>
           </DialogContent>
         </Dialog>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.12 }}
+      >
+        <Card className="border-foreground/10 bg-background/80 shadow-soft">
+          <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <CardTitle className="text-base">Reglas inteligentes</CardTitle>
+              <CardDescription className="text-[13px]">
+                Aplica categorias automaticamente segun el comercio o la descripcion.
+              </CardDescription>
+            </div>
+            <Dialog open={ruleDialogOpen} onOpenChange={setRuleDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="outline" className="h-9 text-[13px]">
+                  Nueva regla
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle className="text-[17px]">Crear regla</DialogTitle>
+                  <DialogDescription className="text-[13px]">
+                    Reglas simples con palabras clave para categorizar movimientos.
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={ruleForm.handleSubmit(onRuleSubmit)}>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="ruleName">Nombre</Label>
+                      <Input id="ruleName" {...ruleForm.register('name')} />
+                      {ruleForm.formState.errors.name && (
+                        <p className="text-sm text-destructive">{ruleForm.formState.errors.name.message}</p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="ruleKeyword">Palabra clave</Label>
+                      <Input id="ruleKeyword" placeholder="Ej: supermercado" {...ruleForm.register('keyword')} />
+                      {ruleForm.formState.errors.keyword && (
+                        <p className="text-sm text-destructive">{ruleForm.formState.errors.keyword.message}</p>
+                      )}
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Coincidencia</Label>
+                        <Select
+                          defaultValue="contains"
+                          onValueChange={(value) => ruleForm.setValue('match', value as RuleForm['match'])}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Contiene" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="contains">Contiene</SelectItem>
+                            <SelectItem value="startsWith">Empieza con</SelectItem>
+                            <SelectItem value="endsWith">Termina con</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Aplica a</Label>
+                        <Select
+                          defaultValue="EXPENSE"
+                          onValueChange={(value) => ruleForm.setValue('type', value as RuleForm['type'])}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Gasto" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="ALL">Todo</SelectItem>
+                            <SelectItem value="EXPENSE">Gastos</SelectItem>
+                            <SelectItem value="INCOME">Ingresos</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Categoria</Label>
+                      <Select onValueChange={(value) => ruleForm.setValue('categoryId', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona una categoria" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories?.map((category) => (
+                            <SelectItem key={category.id} value={category.id}>
+                              {category.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {ruleForm.formState.errors.categoryId && (
+                        <p className="text-sm text-destructive">
+                          {ruleForm.formState.errors.categoryId.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setRuleDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit" size="sm">
+                      Guardar regla
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </CardHeader>
+          <CardContent>
+            {!rules.length ? (
+              <div className="rounded-xl border border-dashed border-foreground/15 bg-background/60 px-4 py-6 text-center text-[13px] text-muted-foreground">
+                Todavia no tienes reglas. Crea una para automatizar tus categorias.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {rules.map((rule) => {
+                  const category = categoryById.get(rule.categoryId);
+                  return (
+                    <div
+                      key={rule.id}
+                      className="flex flex-col gap-3 rounded-xl border border-foreground/10 bg-background/70 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div>
+                        <p className="text-[13px] font-semibold text-foreground/80">{rule.name}</p>
+                        <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                          <span className="rounded-full border border-foreground/10 bg-foreground/5 px-2 py-0.5">
+                            {ruleTypeLabels[rule.type]}
+                          </span>
+                          <span>
+                            {matchLabels[rule.match]} "{rule.keyword}"
+                          </span>
+                          <span className="text-foreground/70">
+                            → {category?.name || 'Categoria eliminada'}
+                          </span>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                        onClick={() => removeRule(rule.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </motion.div>
 
       {/* Tabs mejorados */}

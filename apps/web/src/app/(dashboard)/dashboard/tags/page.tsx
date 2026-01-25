@@ -23,6 +23,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { COLOR_PALETTE } from '@/lib/color-palettes';
+import { logAuditEvent } from '@/lib/audit-log';
 
 const tagSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
@@ -75,6 +76,7 @@ export default function TagsPage() {
         title: 'Etiqueta creada',
         description: 'La etiqueta se ha creado correctamente.',
       });
+      logAuditEvent({ action: 'Etiqueta creada', detail: data.name });
       setIsDialogOpen(false);
       reset();
     } catch (error) {
@@ -95,6 +97,7 @@ export default function TagsPage() {
         title: 'Etiqueta eliminada',
         description: 'La etiqueta se ha eliminado correctamente.',
       });
+      logAuditEvent({ action: 'Etiqueta eliminada', detail: name });
     } catch (error) {
       toast({
         title: 'Error',

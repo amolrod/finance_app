@@ -34,6 +34,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Decimal from 'decimal.js';
 import { COLOR_PALETTE } from '@/lib/color-palettes';
+import { logAuditEvent } from '@/lib/audit-log';
 
 const budgetSchema = z.object({
   categoryId: z.string().min(1, 'La categoría es requerida'),
@@ -84,6 +85,7 @@ export default function BudgetsPage() {
         title: 'Presupuesto creado',
         description: 'El presupuesto se ha creado correctamente.',
       });
+      logAuditEvent({ action: 'Presupuesto creado', detail: data.periodMonth });
       setIsDialogOpen(false);
       reset({ periodMonth: getCurrentMonth() });
     } catch (error) {
@@ -104,6 +106,7 @@ export default function BudgetsPage() {
         title: 'Presupuesto eliminado',
         description: 'El presupuesto se ha eliminado correctamente.',
       });
+      logAuditEvent({ action: 'Presupuesto eliminado', detail: name });
     } catch (error) {
       toast({
         title: 'Error',

@@ -34,6 +34,7 @@ import { z } from 'zod';
 import type { AccountType } from '@/types/api';
 import Decimal from 'decimal.js';
 import { COLOR_PALETTE } from '@/lib/color-palettes';
+import { logAuditEvent } from '@/lib/audit-log';
 
 const accountSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
@@ -107,6 +108,7 @@ export default function AccountsPage() {
         title: 'Cuenta creada',
         description: 'La cuenta se ha creado correctamente.',
       });
+      logAuditEvent({ action: 'Cuenta creada', detail: data.name });
       setIsDialogOpen(false);
       reset();
     } catch (error) {
@@ -127,6 +129,7 @@ export default function AccountsPage() {
         title: 'Cuenta eliminada',
         description: 'La cuenta se ha eliminado correctamente.',
       });
+      logAuditEvent({ action: 'Cuenta eliminada', detail: name });
     } catch (error) {
       toast({
         title: 'Error',

@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDropzone } from 'react-dropzone';
 import { useAccounts } from '@/hooks/use-accounts';
 import { useCategories } from '@/hooks/use-categories';
+import { useTransactions } from '@/hooks/use-transactions';
 import { usePreviewImport, useConfirmImport } from '@/hooks/use-import';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -44,6 +45,8 @@ import { useToast } from '@/hooks/use-toast';
 import { formatCurrency, formatDate, cn, getInitials } from '@/lib/utils';
 import type { ImportPreview, ImportTransaction } from '@/types/api';
 import { COLOR_PALETTE } from '@/lib/color-palettes';
+import { CategoryRule, applyCategoryRules, loadCategoryRules, normalizeText } from '@/lib/category-rules';
+import { logAuditEvent } from '@/lib/audit-log';
 
 type ImportStep = 'upload' | 'preview' | 'result';
 
@@ -60,6 +63,9 @@ export default function ImportPage() {
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [selections, setSelections] = useState<TransactionSelection>({});
+  const [suggestionSources, setSuggestionSources] = useState<Record<string, 'rule' | 'history'>>({});
+  const [categoryRules, setCategoryRules] = useState<CategoryRule[]>([]);
+  const [viewFilter, setViewFilter] = useState<'all' | 'selected' | 'duplicates' | 'uncategorized' | 'needsReview'>('all');
   const [importResult, setImportResult] = useState<{
     imported: number;
     skipped: number;
@@ -69,11 +75,61 @@ export default function ImportPage() {
   const { toast } = useToast();
   const { data: accountsData } = useAccounts();
   const { data: categoriesData } = useCategories();
+  const { data: historyTransactions } = useTransactions({ limit: 300 });
   const previewMutation = usePreviewImport();
   const confirmMutation = useConfirmImport();
 
   const accounts = accountsData || [];
   const categories = categoriesData || [];
+
+  useEffect(() => {
+    setCategoryRules(loadCategoryRules());
+  }, []);
+
+  const learnedCategoryMap = useMemo(() => {
+    const map = new Map<string, { categoryId: string; count: number }>();
+    (historyTransactions?.data || []).forEach((tx) => {
+      if (!tx.description || !tx.categoryId) return;
+      if (tx.type === 'TRANSFER') return;
+      const key = `${tx.type}-${normalizeText(tx.description)}`;
+      const existing = map.get(key);
+      if (!existing) {
+        map.set(key, { categoryId: tx.categoryId, count: 1 });
+      } else {
+        map.set(key, { categoryId: existing.categoryId, count: existing.count + 1 });
+      }
+    });
+    return map;
+  }, [historyTransactions?.data]);
+
+  useEffect(() => {
+    if (!preview) return;
+    const updatedSources: Record<string, 'rule' | 'history'> = {};
+    setSelections((prev) => {
+      const next = { ...prev };
+      preview.transactions.forEach((tx) => {
+        if (tx.isDuplicate) return;
+        if (next[tx.hash]?.categoryId) return;
+        const normalized = tx.description ? normalizeText(tx.description) : '';
+        const ruleCategoryId = applyCategoryRules(categoryRules, tx.description, tx.type);
+        const learnedCategoryId = normalized
+          ? learnedCategoryMap.get(`${tx.type}-${normalized}`)?.categoryId
+          : undefined;
+        const categoryId = ruleCategoryId || learnedCategoryId;
+        if (categoryId) {
+          next[tx.hash] = {
+            ...next[tx.hash],
+            categoryId,
+          };
+          updatedSources[tx.hash] = ruleCategoryId ? 'rule' : 'history';
+        }
+      });
+      return next;
+    });
+    if (Object.keys(updatedSources).length) {
+      setSuggestionSources((prev) => ({ ...prev, ...updatedSources }));
+    }
+  }, [categoryRules, learnedCategoryMap, preview]);
 
   // File upload handler
   const onDrop = useCallback(
@@ -100,14 +156,33 @@ export default function ImportPage() {
 
         // Initialize selections
         const initialSelections: TransactionSelection = {};
+        const initialSources: Record<string, 'rule' | 'history'> = {};
+
         result.transactions.forEach((tx) => {
+          const normalized = tx.description ? normalizeText(tx.description) : '';
+          const ruleCategoryId = applyCategoryRules(categoryRules, tx.description, tx.type);
+          const learnedCategoryId = normalized
+            ? learnedCategoryMap.get(`${tx.type}-${normalized}`)?.categoryId
+            : undefined;
+          let categoryId = tx.suggestedCategory?.categoryId;
+
+          if (!categoryId && ruleCategoryId) {
+            categoryId = ruleCategoryId;
+            initialSources[tx.hash] = 'rule';
+          }
+          if (!categoryId && learnedCategoryId) {
+            categoryId = learnedCategoryId;
+            initialSources[tx.hash] = 'history';
+          }
+
           initialSelections[tx.hash] = {
             selected: !tx.isDuplicate,
-            categoryId: tx.suggestedCategory?.categoryId,
+            categoryId,
             description: tx.description,
           };
         });
         setSelections(initialSelections);
+        setSuggestionSources(initialSources);
 
         setStep('preview');
       } catch (error) {
@@ -118,7 +193,7 @@ export default function ImportPage() {
         });
       }
     },
-    [selectedAccountId, previewMutation, toast]
+    [selectedAccountId, previewMutation, toast, categoryRules, learnedCategoryMap]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -189,6 +264,40 @@ export default function ImportPage() {
       .reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
   }, [preview, selections]);
 
+  const validationStats = useMemo(() => {
+    if (!preview) {
+      return { duplicates: 0, missingDescription: 0, zeroAmount: 0, uncategorized: 0 };
+    }
+    const missingDescription = preview.transactions.filter((tx) => !tx.description || !tx.description.trim()).length;
+    const zeroAmount = preview.transactions.filter((tx) => Number(tx.amount) === 0).length;
+    const uncategorized = preview.transactions.filter((tx) => !selections[tx.hash]?.categoryId).length;
+    return {
+      duplicates: preview.duplicatesFound,
+      missingDescription,
+      zeroAmount,
+      uncategorized,
+    };
+  }, [preview, selections]);
+
+  const filteredTransactions = useMemo(() => {
+    if (!preview) return [];
+    return preview.transactions.filter((tx) => {
+      if (viewFilter === 'selected') {
+        return selections[tx.hash]?.selected;
+      }
+      if (viewFilter === 'duplicates') {
+        return tx.isDuplicate;
+      }
+      if (viewFilter === 'uncategorized') {
+        return !selections[tx.hash]?.categoryId;
+      }
+      if (viewFilter === 'needsReview') {
+        return !tx.description || tx.amount === 0;
+      }
+      return true;
+    });
+  }, [preview, selections, viewFilter]);
+
   // Confirm import
   const handleConfirmImport = async () => {
     if (!preview || !selectedAccountId) return;
@@ -218,6 +327,10 @@ export default function ImportPage() {
         title: 'Importación completada',
         description: `Se importaron ${result.imported} transacciones`,
       });
+      logAuditEvent({
+        action: 'Importacion completada',
+        detail: `${result.imported} transacciones`,
+      });
     } catch (error) {
       toast({
         title: 'Error en importación',
@@ -232,6 +345,8 @@ export default function ImportPage() {
     setStep('upload');
     setPreview(null);
     setSelections({});
+    setSuggestionSources({});
+    setViewFilter('all');
     setImportResult(null);
   };
 
@@ -462,7 +577,20 @@ export default function ImportPage() {
       {step === 'preview' && preview && (
         <div className="space-y-6">
           {/* Summary Cards */}
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-5">
+            <Card className="border-foreground/10 bg-background/80 shadow-soft">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-[13px] font-medium text-muted-foreground">
+                  Rango de fechas
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-sm font-semibold">
+                  {formatDate(preview.dateRange.from)}
+                </div>
+                <p className="text-[12px] text-muted-foreground">hasta {formatDate(preview.dateRange.to)}</p>
+              </CardContent>
+            </Card>
             <Card className="border-foreground/10 bg-background/80 shadow-soft">
               <CardHeader className="pb-2">
                 <CardTitle className="text-[13px] font-medium text-muted-foreground">
@@ -537,6 +665,50 @@ export default function ImportPage() {
             </div>
           )}
 
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 text-[12px] text-muted-foreground">
+              <span className="rounded-full border border-foreground/10 bg-foreground/5 px-3 py-1">
+                Duplicados: {validationStats.duplicates}
+              </span>
+              <span className="rounded-full border border-foreground/10 bg-foreground/5 px-3 py-1">
+                Sin descripcion: {validationStats.missingDescription}
+              </span>
+              <span className="rounded-full border border-foreground/10 bg-foreground/5 px-3 py-1">
+                Monto cero: {validationStats.zeroAmount}
+              </span>
+              <span className="rounded-full border border-foreground/10 bg-foreground/5 px-3 py-1">
+                Sin categoria: {validationStats.uncategorized}
+              </span>
+            </div>
+            <div className="ml-auto flex flex-wrap gap-2">
+              {([
+                { key: 'all', label: 'Todo' },
+                { key: 'selected', label: 'Seleccionadas' },
+                { key: 'duplicates', label: 'Duplicados' },
+                { key: 'uncategorized', label: 'Sin categoria' },
+                { key: 'needsReview', label: 'Revisar' },
+              ] as const).map((filter) => (
+                <Button
+                  key={filter.key}
+                  variant={viewFilter === filter.key ? 'default' : 'outline'}
+                  size="sm"
+                  className="h-8 text-[12px]"
+                  onClick={() => setViewFilter(filter.key)}
+                >
+                  {filter.label}
+                </Button>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-[12px]"
+                onClick={() => setCategoryRules(loadCategoryRules())}
+              >
+                Aplicar reglas
+              </Button>
+            </div>
+          </div>
+
           {/* Transaction Table */}
           <Card className="border-foreground/10 bg-background/80 shadow-soft">
             <CardHeader>
@@ -578,14 +750,17 @@ export default function ImportPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {preview.transactions.map((tx, index) => (
-                      <TableRow
-                        key={`${tx.hash}-${index}`}
-                        className={cn(
-                          tx.isDuplicate && 'opacity-50 bg-muted/30',
-                          !selections[tx.hash]?.selected && 'opacity-60'
-                        )}
-                      >
+                    {filteredTransactions.map((tx, index) => {
+                      const needsReview = !tx.description || Number(tx.amount) === 0;
+                      return (
+                        <TableRow
+                          key={`${tx.hash}-${index}`}
+                          className={cn(
+                            tx.isDuplicate && 'opacity-50 bg-muted/30',
+                            !selections[tx.hash]?.selected && 'opacity-60',
+                            needsReview && 'border-l-2 border-amber-400/40'
+                          )}
+                        >
                         <TableCell>
                           <Checkbox
                             checked={selections[tx.hash]?.selected || false}
@@ -657,7 +832,7 @@ export default function ImportPage() {
                                 })}
                             </SelectContent>
                           </Select>
-                          {tx.suggestedCategory && (
+                          {tx.suggestedCategory ? (
                             <div
                               className={cn(
                                 'text-xs mt-1',
@@ -667,7 +842,11 @@ export default function ImportPage() {
                               Sugerida: {tx.suggestedCategory.categoryName} (
                               {Math.round(tx.suggestedCategory.confidence * 100)}%)
                             </div>
-                          )}
+                          ) : suggestionSources[tx.hash] ? (
+                            <div className="text-xs mt-1 text-muted-foreground">
+                              Sugerida por {suggestionSources[tx.hash] === 'rule' ? 'regla' : 'historial'}
+                            </div>
+                          ) : null}
                         </TableCell>
                         <TableCell>
                           {tx.isDuplicate ? (
@@ -687,8 +866,9 @@ export default function ImportPage() {
                             </Badge>
                           )}
                         </TableCell>
-                      </TableRow>
-                    ))}
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>

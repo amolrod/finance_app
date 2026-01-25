@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,10 +26,11 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { User, Palette, Bell, Shield, Globe, Settings, Loader2 } from 'lucide-react';
+import { User, Palette, Bell, Shield, Globe, Settings, Loader2, Monitor, Smartphone, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from 'next-themes';
 import { useCurrency } from '@/contexts/currency-context';
+import { AuditEvent, clearAuditLog, loadAuditLog } from '@/lib/audit-log';
 
 const profileSchema = z.object({
   firstName: z.string().min(1, 'Mínimo 1 caracter'),
@@ -68,6 +70,13 @@ export default function SettingsPage() {
     weeklyReport: false,
     monthlyReport: true,
   });
+  const [securityPreferences, setSecurityPreferences] = useState({
+    twoFactor: false,
+    sessionAlerts: true,
+    trustedDevices: true,
+  });
+  const [auditLog, setAuditLog] = useState<AuditEvent[]>([]);
+  const [sessionLabel, setSessionLabel] = useState('Este dispositivo');
   const { preferredCurrency, setPreferredCurrency } = useCurrency();
   const cardClassName = 'bg-background/80 border-foreground/10 shadow-soft';
 
@@ -105,6 +114,17 @@ export default function SettingsPage() {
       confirmText: '',
     },
   });
+
+  useEffect(() => {
+    setAuditLog(loadAuditLog());
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const ua = navigator.userAgent;
+    const isMobile = /iPhone|Android|iPad/i.test(ua);
+    setSessionLabel(isMobile ? 'Dispositivo movil' : 'Escritorio');
+  }, []);
 
   const onProfileSubmit = async (data: ProfileFormData) => {
     try {
@@ -172,6 +192,26 @@ export default function SettingsPage() {
     toast({
       title: 'Preferencias actualizadas',
       description: 'Tus notificaciones han sido configuradas.',
+    });
+  };
+
+  const toggleSecurityPreference = (key: keyof typeof securityPreferences) => {
+    setSecurityPreferences((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+    toast({
+      title: 'Seguridad actualizada',
+      description: 'Tus preferencias de seguridad se han guardado.',
+    });
+  };
+
+  const handleClearAuditLog = () => {
+    clearAuditLog();
+    setAuditLog([]);
+    toast({
+      title: 'Historial limpiado',
+      description: 'Se elimino la actividad guardada.',
     });
   };
 
@@ -361,6 +401,172 @@ export default function SettingsPage() {
             </form>
           </CardContent>
         </Card>
+        </motion.div>
+
+        {/* Seguridad avanzada */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.14 }}
+        >
+          <Card className={cardClassName}>
+            <CardHeader>
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary">
+                  <Shield className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div>
+                  <CardTitle className="text-[14px] font-medium">Seguridad avanzada</CardTitle>
+                  <CardDescription className="text-[12px]">
+                    Ajusta recordatorios y proteccion adicional
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between rounded-lg border border-foreground/10 bg-background/70 px-4 py-3">
+                <div>
+                  <p className="text-[13px] font-medium">Autenticacion en dos pasos</p>
+                  <p className="text-[12px] text-muted-foreground">Recomendado para proteger tu cuenta</p>
+                </div>
+                <Switch
+                  checked={securityPreferences.twoFactor}
+                  onCheckedChange={() => toggleSecurityPreference('twoFactor')}
+                />
+              </div>
+              <div className="flex items-center justify-between rounded-lg border border-foreground/10 bg-background/70 px-4 py-3">
+                <div>
+                  <p className="text-[13px] font-medium">Alertas de inicio</p>
+                  <p className="text-[12px] text-muted-foreground">Te avisaremos cuando haya un nuevo acceso</p>
+                </div>
+                <Switch
+                  checked={securityPreferences.sessionAlerts}
+                  onCheckedChange={() => toggleSecurityPreference('sessionAlerts')}
+                />
+              </div>
+              <div className="flex items-center justify-between rounded-lg border border-foreground/10 bg-background/70 px-4 py-3">
+                <div>
+                  <p className="text-[13px] font-medium">Dispositivos confiables</p>
+                  <p className="text-[12px] text-muted-foreground">Evita verificaciones repetidas</p>
+                </div>
+                <Switch
+                  checked={securityPreferences.trustedDevices}
+                  onCheckedChange={() => toggleSecurityPreference('trustedDevices')}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Sesiones activas */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.16 }}
+        >
+          <Card className={cardClassName}>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary">
+                    <Monitor className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-[14px] font-medium">Sesiones activas</CardTitle>
+                    <CardDescription className="text-[12px]">
+                      Controla desde donde estas conectado
+                    </CardDescription>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    toast({
+                      title: 'Sesiones cerradas',
+                      description: 'Se cerraron las sesiones en otros dispositivos.',
+                    })
+                  }
+                >
+                  Cerrar otras sesiones
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between rounded-lg border border-foreground/10 bg-background/70 px-4 py-3">
+                <div className="flex items-center gap-3">
+                  {sessionLabel.includes('movil') ? (
+                    <Smartphone className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Monitor className="h-4 w-4 text-muted-foreground" />
+                  )}
+                  <div>
+                    <p className="text-[13px] font-medium">{sessionLabel}</p>
+                    <p className="text-[12px] text-muted-foreground">Sesion actual</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
+                  <Clock className="h-3.5 w-3.5" />
+                  {new Date().toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' })}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Auditoria */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.18 }}
+        >
+          <Card className={cardClassName}>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-[14px] font-medium">Actividad reciente</CardTitle>
+                    <CardDescription className="text-[12px]">
+                      Registro de cambios relevantes en tu cuenta
+                    </CardDescription>
+                  </div>
+                </div>
+                <Button size="sm" variant="outline" onClick={handleClearAuditLog}>
+                  Limpiar
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {!auditLog.length ? (
+                <div className="rounded-lg border border-dashed border-foreground/15 bg-background/70 px-4 py-6 text-center text-[13px] text-muted-foreground">
+                  Aun no hay eventos registrados.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {auditLog.slice(0, 6).map((event) => (
+                    <div
+                      key={event.id}
+                      className="flex flex-col gap-1 rounded-lg border border-foreground/10 bg-background/70 px-4 py-3"
+                    >
+                      <div className="flex items-center justify-between">
+                        <p className="text-[13px] font-medium">{event.action}</p>
+                        <span className="text-[11px] text-muted-foreground">
+                          {new Date(event.createdAt).toLocaleString('es-ES', {
+                            dateStyle: 'medium',
+                            timeStyle: 'short',
+                          })}
+                        </span>
+                      </div>
+                      {event.detail && <p className="text-[12px] text-muted-foreground">{event.detail}</p>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* Apariencia */}

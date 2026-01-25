@@ -6,8 +6,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTransactions, useCreateTransaction, useDeleteTransaction, useUpdateTransaction } from '@/hooks/use-transactions';
 import { useAccounts } from '@/hooks/use-accounts';
 import { useCategories } from '@/hooks/use-categories';
+import { useTags } from '@/hooks/use-tags';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -38,6 +40,7 @@ import type { TransactionType, TransactionFilters, Transaction } from '@/types/a
 import { BatchActionsBar, useSelection } from '@/components/ui/batch-actions';
 import { useCurrency } from '@/contexts/currency-context';
 import { COLOR_PALETTE } from '@/lib/color-palettes';
+import { logAuditEvent } from '@/lib/audit-log';
 
 const transactionSchema = z.object({
   type: z.enum(['INCOME', 'EXPENSE', 'TRANSFER']),
@@ -80,6 +83,10 @@ export default function TransactionsPage() {
   const [editValues, setEditValues] = useState<{ description?: string; categoryId?: string }>({});
   const [batchCategoryDialogOpen, setBatchCategoryDialogOpen] = useState(false);
   const [batchCategoryId, setBatchCategoryId] = useState<string>('');
+  const [tagDialogOpen, setTagDialogOpen] = useState(false);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [tagApplyMode, setTagApplyMode] = useState<'add' | 'replace'>('add');
+  const [isApplyingTags, setIsApplyingTags] = useState(false);
   const { toast } = useToast();
   const { preferredCurrency, convertAmount, formatAmount } = useCurrency();
 
@@ -131,6 +138,7 @@ export default function TransactionsPage() {
   const { data: transactions, isLoading } = useTransactions(filters);
   const { data: accounts } = useAccounts();
   const { data: categories } = useCategories();
+  const { data: tags } = useTags();
   const createMutation = useCreateTransaction();
   const deleteMutation = useDeleteTransaction();
   const updateMutation = useUpdateTransaction();
@@ -174,6 +182,10 @@ export default function TransactionsPage() {
         title: 'Transacción creada',
         description: 'La transacción se ha registrado correctamente.',
       });
+      logAuditEvent({
+        action: 'Transaccion creada',
+        detail: data.description || typeLabels[data.type],
+      });
       setIsDialogOpen(false);
       reset();
     } catch (error) {
@@ -194,6 +206,7 @@ export default function TransactionsPage() {
         title: 'Transacción eliminada',
         description: 'La transacción ha sido revertida.',
       });
+      logAuditEvent({ action: 'Transaccion eliminada', detail: id });
     } catch (error) {
       toast({
         title: 'Error',
@@ -232,6 +245,7 @@ export default function TransactionsPage() {
         title: 'Transacción actualizada',
         description: 'Los cambios se han guardado correctamente.',
       });
+      logAuditEvent({ action: 'Transaccion actualizada', detail: editValues.description || editingId });
       cancelEditing();
     } catch (error) {
       toast({
@@ -241,6 +255,56 @@ export default function TransactionsPage() {
       });
     }
   }, [editingId, editValues, updateMutation, toast, cancelEditing]);
+
+  const toggleTagSelection = (tagId: string) => {
+    setSelectedTagIds((prev) => {
+      if (prev.includes(tagId)) {
+        return prev.filter((id) => id !== tagId);
+      }
+      return [...prev, tagId];
+    });
+  };
+
+  const applyTagsToSelection = async () => {
+    if (!selectedTagIds.length || selection.selectedItems.length === 0) return;
+    setIsApplyingTags(true);
+    try {
+      await Promise.all(
+        selection.selectedItems.map((tx) => {
+          const existingTagIds = tx.tags?.map((tag) => tag.id) || [];
+          const mergedTagIds =
+            tagApplyMode === 'replace'
+              ? selectedTagIds
+              : Array.from(new Set([...existingTagIds, ...selectedTagIds]));
+          return updateMutation.mutateAsync({
+            id: tx.id,
+            data: {
+              tagIds: mergedTagIds,
+            },
+          });
+        })
+      );
+      toast({
+        title: 'Etiquetas aplicadas',
+        description: 'Se actualizaron las transacciones seleccionadas.',
+      });
+      logAuditEvent({
+        action: 'Etiquetas aplicadas',
+        detail: `${selection.selectedItems.length} transacciones`,
+      });
+      selection.clearSelection();
+      setTagDialogOpen(false);
+      setSelectedTagIds([]);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'No se pudieron aplicar las etiquetas.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsApplyingTags(false);
+    }
+  };
 
   // Batch action handlers - confirmation handled by BatchActionsBar
   const handleBatchDelete = useCallback(async () => {
@@ -253,6 +317,10 @@ export default function TransactionsPage() {
       toast({
         title: 'Transacciones eliminadas',
         description: `Se han revertido ${selection.selectedIds.size} transacciones.`,
+      });
+      logAuditEvent({
+        action: 'Transacciones eliminadas',
+        detail: `${selection.selectedIds.size} transacciones`,
       });
       selection.clearSelection();
     } catch (error) {
@@ -279,6 +347,10 @@ export default function TransactionsPage() {
       toast({
         title: 'Categorías actualizadas',
         description: `Se han categorizado ${selection.selectedIds.size} transacciones.`,
+      });
+      logAuditEvent({
+        action: 'Transacciones categorizadas',
+        detail: `${selection.selectedIds.size} transacciones`,
       });
       selection.clearSelection();
       setBatchCategoryDialogOpen(false);
@@ -891,6 +963,23 @@ export default function TransactionsPage() {
                             )}
                             {isReversed && ' • Revertida'}
                           </p>
+                          {tx.tags && tx.tags.length > 0 && (
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {tx.tags.slice(0, 3).map((tag) => (
+                                <Badge
+                                  key={tag.id}
+                                  variant="outline"
+                                  className="border-foreground/10 bg-background text-[10px] text-muted-foreground"
+                                >
+                                  <span
+                                    className="mr-1 h-1.5 w-1.5 rounded-full"
+                                    style={{ backgroundColor: tag.color || '#94a3b8' }}
+                                  />
+                                  {tag.name}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
                         </>
                       )}
                     </div>
@@ -970,6 +1059,10 @@ export default function TransactionsPage() {
           await handleBatchDelete();
         }}
         onCategorize={() => setBatchCategoryDialogOpen(true)}
+        onTag={() => {
+          setSelectedTagIds([]);
+          setTagDialogOpen(true);
+        }}
       />
 
       {/* Batch Categorize Dialog */}
@@ -1020,6 +1113,84 @@ export default function TransactionsPage() {
             <Button onClick={handleBatchCategorize} disabled={!batchCategoryId}>
               <FolderOpen className="h-4 w-4 mr-2" />
               Aplicar categoría
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Batch Tag Dialog */}
+      <Dialog open={tagDialogOpen} onOpenChange={setTagDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Etiquetar transacciones</DialogTitle>
+            <DialogDescription>
+              Aplica etiquetas a las {selection.selectedIds.size} transacciones seleccionadas
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={tagApplyMode === 'add' ? 'default' : 'outline'}
+                onClick={() => setTagApplyMode('add')}
+              >
+                Agregar
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={tagApplyMode === 'replace' ? 'default' : 'outline'}
+                onClick={() => setTagApplyMode('replace')}
+              >
+                Reemplazar
+              </Button>
+            </div>
+
+            {!tags?.length ? (
+              <div className="rounded-xl border border-dashed border-foreground/15 bg-background/70 px-4 py-6 text-center text-[13px] text-muted-foreground">
+                No hay etiquetas creadas. Crea una para empezar.
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {tags.map((tag) => {
+                  const isSelected = selectedTagIds.includes(tag.id);
+                  return (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      onClick={() => toggleTagSelection(tag.id)}
+                      className={cn(
+                        'flex items-center gap-2 rounded-full border px-3 py-1 text-[12px] transition',
+                        isSelected
+                          ? 'border-foreground/40 bg-foreground/10 text-foreground'
+                          : 'border-foreground/10 bg-background hover:bg-secondary/60'
+                      )}
+                    >
+                      <span
+                        className="h-2.5 w-2.5 rounded-full"
+                        style={{ backgroundColor: tag.color || '#94a3b8' }}
+                      />
+                      {tag.name}
+                      {isSelected && <Check className="h-3 w-3" />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="ghost" size="sm" onClick={() => setTagDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              onClick={applyTagsToSelection}
+              disabled={!selectedTagIds.length || isApplyingTags}
+              isLoading={isApplyingTags}
+            >
+              Aplicar etiquetas
             </Button>
           </DialogFooter>
         </DialogContent>
