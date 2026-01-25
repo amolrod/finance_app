@@ -4,13 +4,12 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ExchangeRatesService, SUPPORTED_CURRENCIES } from './exchange-rates.service';
 
 @Controller('exchange-rates')
-@UseGuards(JwtAuthGuard)
 @SkipThrottle()
 export class ExchangeRatesController {
   constructor(private readonly exchangeRatesService: ExchangeRatesService) {}
 
   /**
-   * Obtiene las monedas soportadas
+   * Obtiene las monedas soportadas (público)
    */
   @Get('currencies')
   getSupportedCurrencies() {
@@ -23,7 +22,7 @@ export class ExchangeRatesController {
   }
 
   /**
-   * Obtiene el tipo de cambio entre dos monedas
+   * Obtiene el tipo de cambio entre dos monedas (público)
    */
   @Get('rate')
   async getRate(

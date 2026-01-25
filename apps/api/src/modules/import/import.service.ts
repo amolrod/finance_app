@@ -177,7 +177,24 @@ export class ImportService {
       }
     }
 
-    // Process each transaction
+    // Prepare transactions for batch insert
+    const transactionsToCreate: Array<{
+      userId: string;
+      accountId: string;
+      categoryId: string | null;
+      type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
+      status: 'COMPLETED';
+      amount: Decimal;
+      currency: string;
+      description: string;
+      notes: string;
+      occurredAt: Date;
+    }> = [];
+    
+    let totalBalanceChange = new Decimal(0);
+    const budgetUpdates: Map<string, { amount: number; date: Date }[]> = new Map();
+
+    // Process each transaction - prepare data
     for (const txDto of dto.transactions) {
       if (txDto.skip) {
         result.skipped++;
@@ -187,14 +204,11 @@ export class ImportService {
       // Merge preview data with user selections
       const previewTx = txDto.hash ? previewMap.get(txDto.hash) : null;
       
-      // Get values from DTO first, then fall back to preview
-      // Note: preview uses originalDate, not date
       const date = txDto.date || previewTx?.originalDate || previewTx?.date;
       const description = txDto.description || previewTx?.description;
       const amount = txDto.amount ?? previewTx?.amount;
       const type = txDto.type || previewTx?.type;
       
-      // Get suggested category info from preview
       const suggestedCategoryId = txDto.suggestedCategoryId || previewTx?.suggestedCategory?.categoryId;
       const confidence = txDto.confidence ?? previewTx?.suggestedCategory?.confidence ?? 0;
 
@@ -206,52 +220,83 @@ export class ImportService {
       }
 
       try {
-        // Use categoryId from DTO, or fall back to suggested category if confidence is >= 50%
         const categoryId = txDto.categoryId || 
           (suggestedCategoryId && confidence >= 50 ? suggestedCategoryId : null);
 
         const transactionDate = new Date(date);
+        const amountDecimal = new Decimal(amount);
         
-        const transaction = await this.prisma.transaction.create({
-          data: {
-            userId,
-            accountId: dto.accountId,
-            categoryId,
-            type,
-            status: 'COMPLETED',
-            amount: new Decimal(amount),
-            currency: account.currency,
-            description,
-            notes: txDto.notes || 'Importado desde extracto bancario',
-            occurredAt: transactionDate,
-          },
+        transactionsToCreate.push({
+          userId,
+          accountId: dto.accountId,
+          categoryId,
+          type,
+          status: 'COMPLETED',
+          amount: amountDecimal,
+          currency: account.currency,
+          description,
+          notes: txDto.notes || 'Importado desde extracto bancario',
+          occurredAt: transactionDate,
         });
 
-        result.transactionIds.push(transaction.id);
-        result.imported++;
-
-        // Update account balance
+        // Calculate balance change
         const balanceChange = type === 'INCOME' 
-          ? new Decimal(amount) 
-          : new Decimal(amount).negated();
+          ? amountDecimal
+          : amountDecimal.negated();
+        totalBalanceChange = totalBalanceChange.plus(balanceChange);
 
-        await this.prisma.account.update({
-          where: { id: dto.accountId },
-          data: {
-            currentBalance: {
-              increment: balanceChange,
-            },
-          },
-        });
-
-        // Update budget if expense with category (using transaction date for correct month)
+        // Track budget updates
         if (type === 'EXPENSE' && categoryId) {
-          await this.updateBudget(userId, categoryId, amount, transactionDate);
+          if (!budgetUpdates.has(categoryId)) {
+            budgetUpdates.set(categoryId, []);
+          }
+          budgetUpdates.get(categoryId)!.push({ amount, date: transactionDate });
         }
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Error desconocido';
-        this.logger.error(`Error importing transaction: ${message}`);
+        this.logger.error(`Error preparing transaction: ${message}`);
         result.errors.push(`Error en "${txDto.description}": ${message}`);
+      }
+    }
+
+    // Execute batch insert in a transaction
+    if (transactionsToCreate.length > 0) {
+      try {
+        await this.prisma.$transaction(async (tx) => {
+          // Batch create all transactions
+          const created = await tx.transaction.createMany({
+            data: transactionsToCreate,
+          });
+          result.imported = created.count;
+
+          // Update account balance once
+          await tx.account.update({
+            where: { id: dto.accountId },
+            data: {
+              currentBalance: {
+                increment: totalBalanceChange,
+              },
+            },
+          });
+        }, {
+          timeout: 25000, // 25 second timeout for the transaction
+        });
+
+        // Update budgets outside the main transaction (less critical)
+        for (const [categoryId, updates] of budgetUpdates.entries()) {
+          for (const update of updates) {
+            try {
+              await this.updateBudget(userId, categoryId, update.amount, update.date);
+            } catch (error) {
+              // Log but don't fail the import for budget update errors
+              this.logger.warn(`Budget update failed for category ${categoryId}:`, error);
+            }
+          }
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Error desconocido';
+        this.logger.error(`Batch import failed: ${message}`);
+        throw new BadRequestException(`Error al importar transacciones: ${message}`);
       }
     }
 
