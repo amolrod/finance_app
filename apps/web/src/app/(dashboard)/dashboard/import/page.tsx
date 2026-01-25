@@ -84,6 +84,8 @@ export default function ImportPage() {
   const [categoryRules, setCategoryRules] = useState<CategoryRule[]>([]);
   const [viewFilter, setViewFilter] = useState<'all' | 'selected' | 'duplicates' | 'uncategorized' | 'needsReview'>('all');
   const [isAutoCreating, setIsAutoCreating] = useState(false);
+  const [isBatchConfirming, setIsBatchConfirming] = useState(false);
+  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number }>({ current: 0, total: 0 });
   const autoCreatedRef = useRef<Set<string>>(new Set());
   const [importResult, setImportResult] = useState<{
     imported: number;
@@ -383,6 +385,8 @@ export default function ImportPage() {
       .reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
   }, [preview, selections]);
 
+  const isConfirming = confirmMutation.isPending || isBatchConfirming;
+
   const validationStats = useMemo(() => {
     if (!preview) {
       return { duplicates: 0, missingDescription: 0, zeroAmount: 0, uncategorized: 0 };
@@ -417,14 +421,26 @@ export default function ImportPage() {
     });
   }, [preview, selections, viewFilter]);
 
+  const chunkTransactions = useCallback((items: ImportTransaction[], chunkSize: number) => {
+    const chunks: ImportTransaction[][] = [];
+    for (let i = 0; i < items.length; i += chunkSize) {
+      chunks.push(items.slice(i, i + chunkSize));
+    }
+    return chunks;
+  }, []);
+
   // Confirm import
   const handleConfirmImport = async () => {
     if (!preview || !selectedAccountId) return;
 
-    const transactions: ImportTransaction[] = preview.transactions.map((tx) => ({
+    const selectedTransactions = preview.transactions.filter(
+      (tx) => selections[tx.hash]?.selected
+    );
+    const skippedByUser = preview.totalTransactions - selectedTransactions.length;
+
+    const transactions: ImportTransaction[] = selectedTransactions.map((tx) => ({
       hash: tx.hash,
       categoryId: selections[tx.hash]?.categoryId,
-      skip: !selections[tx.hash]?.selected,
       description: selections[tx.hash]?.description || tx.description,
       date: tx.originalDate,
       amount: tx.amount,
@@ -436,15 +452,27 @@ export default function ImportPage() {
     }));
 
     try {
-      const result = await confirmMutation.mutateAsync({
-        accountId: selectedAccountId,
-        transactions,
-      });
+      const batches = chunkTransactions(transactions, 100);
+      let totalImported = 0;
+      let totalSkipped = 0;
+
+      setIsBatchConfirming(true);
+      setBatchProgress({ current: 0, total: batches.length });
+
+      for (let i = 0; i < batches.length; i += 1) {
+        setBatchProgress({ current: i + 1, total: batches.length });
+        const result = await confirmMutation.mutateAsync({
+          accountId: selectedAccountId,
+          transactions: batches[i],
+        });
+        totalImported += result.imported;
+        totalSkipped += result.skipped;
+      }
 
       setImportResult({
-        imported: result.imported,
-        skipped: result.skipped,
-        duplicates: result.duplicates,
+        imported: totalImported,
+        skipped: skippedByUser + totalSkipped,
+        duplicates: preview.duplicatesFound,
       });
       setStep('result');
 
@@ -454,7 +482,7 @@ export default function ImportPage() {
       });
       logAuditEvent({
         action: 'Importacion completada',
-        detail: `${result.imported} transacciones`,
+        detail: `${totalImported} transacciones`,
       });
     } catch (error) {
       toast({
@@ -462,6 +490,9 @@ export default function ImportPage() {
         description: error instanceof Error ? error.message : 'Error desconocido',
         variant: 'destructive',
       });
+    } finally {
+      setIsBatchConfirming(false);
+      setBatchProgress({ current: 0, total: 0 });
     }
   };
 
@@ -472,6 +503,8 @@ export default function ImportPage() {
     setSelections({});
     setSuggestionSources({});
     setViewFilter('all');
+    setIsBatchConfirming(false);
+    setBatchProgress({ current: 0, total: 0 });
     setImportResult(null);
   };
 
@@ -1022,12 +1055,14 @@ export default function ImportPage() {
               </div>
               <Button
                 onClick={handleConfirmImport}
-                disabled={selectedCount === 0 || confirmMutation.isPending}
+                disabled={selectedCount === 0 || isConfirming}
               >
-                {confirmMutation.isPending ? (
+                {isConfirming ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Importando...
+                    {batchProgress.total > 1
+                      ? `Importando ${batchProgress.current}/${batchProgress.total}...`
+                      : 'Importando...'}
                   </>
                 ) : (
                   <>
