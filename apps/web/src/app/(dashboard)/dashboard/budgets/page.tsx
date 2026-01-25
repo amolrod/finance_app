@@ -331,10 +331,6 @@ export default function BudgetsPage() {
                         <div className="flex items-center gap-2.5">
                           <div className="relative">
                             <div
-                              className="absolute -inset-1 rounded-2xl opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100"
-                              style={{ backgroundColor: accentColor }}
-                            />
-                            <div
                               className="relative flex h-10 w-10 items-center justify-center rounded-2xl border bg-background/90"
                               style={{
                                 borderColor: `${accentColor}55`,
