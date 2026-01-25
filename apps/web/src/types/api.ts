@@ -568,12 +568,17 @@ export interface ImportTransaction {
   categoryId?: string;
   skip?: boolean;
   description?: string;
+  date?: string;
+  amount?: number;
+  type?: 'INCOME' | 'EXPENSE' | 'TRANSFER';
+  suggestedCategoryId?: string;
+  confidence?: number;
 }
 
 export interface ConfirmImportDto {
   accountId: string;
   transactions: ImportTransaction[];
-  preview: ImportPreview;
+  preview?: ImportPreview;
 }
 
 export interface ImportResultDto {
@@ -583,4 +588,3 @@ export interface ImportResultDto {
   errors: number;
   transactionIds: string[];
 }
-

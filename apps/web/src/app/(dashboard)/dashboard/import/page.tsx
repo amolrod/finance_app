@@ -68,6 +68,13 @@ const deriveCategoryName = (description: string | null | undefined) => {
   return candidate.slice(0, 28);
 };
 
+const normalizeCategoryKey = (value: string) => {
+  return normalizeText(value)
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
 export default function ImportPage() {
   const [step, setStep] = useState<ImportStep>('upload');
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
@@ -96,10 +103,11 @@ export default function ImportPage() {
   const categories = categoriesData || [];
 
   const categoryNameMap = useMemo(() => {
-    const map = new Map<string, { id: string; name: string }>();
+    const map = new Map<string, { id: string; name: string; type: 'INCOME' | 'EXPENSE' }>();
     categories.forEach((category) => {
-      const key = `${normalizeText(category.name)}|${category.type}`;
-      map.set(key, { id: category.id, name: category.name });
+      const key = normalizeCategoryKey(category.name);
+      if (!key) return;
+      map.set(key, { id: category.id, name: category.name, type: category.type });
     });
     return map;
   }, [categories]);
@@ -145,9 +153,9 @@ export default function ImportPage() {
           : undefined;
 
         if (!categoryId && tx.suggestedCategory?.categoryName) {
-          const key = `${normalizeText(tx.suggestedCategory.categoryName)}|${tx.type}`;
-          const match = categoryNameMap.get(key);
-          if (match) {
+          const key = normalizeCategoryKey(tx.suggestedCategory.categoryName);
+          const match = key ? categoryNameMap.get(key) : undefined;
+          if (match && match.type === tx.type) {
             categoryId = match.id;
             source = 'auto';
           }
@@ -156,9 +164,9 @@ export default function ImportPage() {
         if (!categoryId) {
           const derivedName = deriveCategoryName(tx.description);
           if (derivedName) {
-            const key = `${normalizeText(derivedName)}|${tx.type}`;
-            const match = categoryNameMap.get(key);
-            if (match) {
+            const key = normalizeCategoryKey(derivedName);
+            const match = key ? categoryNameMap.get(key) : undefined;
+            if (match && match.type === tx.type) {
               categoryId = match.id;
               source = 'auto';
             }
@@ -194,7 +202,8 @@ export default function ImportPage() {
       const derivedName = deriveCategoryName(tx.description);
       const candidate = suggestedName || derivedName;
       if (!candidate) return;
-      const key = `${normalizeText(candidate)}|${tx.type}`;
+      const key = normalizeCategoryKey(candidate);
+      if (!key) return;
       if (existing.has(key) || autoCreatedRef.current.has(key)) return;
       pending.push({ name: candidate, type: tx.type });
       existing.add(key);
@@ -265,17 +274,21 @@ export default function ImportPage() {
             initialSources[tx.hash] = 'history';
           }
           if (!categoryId && tx.suggestedCategory?.categoryName) {
-            const key = `${normalizeText(tx.suggestedCategory.categoryName)}|${tx.type}`;
-            categoryId = categoryNameMap.get(key)?.id;
+            const key = normalizeCategoryKey(tx.suggestedCategory.categoryName);
+            const match = key ? categoryNameMap.get(key) : undefined;
+            if (match && match.type === tx.type) {
+              categoryId = match.id;
+              initialSources[tx.hash] = 'auto';
+            }
           }
 
           if (!categoryId) {
             const derivedName = deriveCategoryName(tx.description);
             if (derivedName) {
-              const derivedKey = `${normalizeText(derivedName)}|${tx.type}`;
-              const existing = categoryNameMap.get(derivedKey);
-              if (existing) {
-                categoryId = existing.id;
+              const derivedKey = normalizeCategoryKey(derivedName);
+              const existingCategory = derivedKey ? categoryNameMap.get(derivedKey) : undefined;
+              if (existingCategory && existingCategory.type === tx.type) {
+                categoryId = existingCategory.id;
                 initialSources[tx.hash] = 'auto';
               }
             }
@@ -412,14 +425,20 @@ export default function ImportPage() {
       hash: tx.hash,
       categoryId: selections[tx.hash]?.categoryId,
       skip: !selections[tx.hash]?.selected,
-      description: selections[tx.hash]?.description,
+      description: selections[tx.hash]?.description || tx.description,
+      date: tx.originalDate,
+      amount: tx.amount,
+      type: tx.type,
+      suggestedCategoryId: tx.suggestedCategory?.categoryId,
+      confidence: tx.suggestedCategory
+        ? Math.round(tx.suggestedCategory.confidence * 100)
+        : undefined,
     }));
 
     try {
       const result = await confirmMutation.mutateAsync({
         accountId: selectedAccountId,
         transactions,
-        preview,
       });
 
       setImportResult({
