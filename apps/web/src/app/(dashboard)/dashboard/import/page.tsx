@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDropzone } from 'react-dropzone';
 import { useAccounts } from '@/hooks/use-accounts';
-import { useCategories } from '@/hooks/use-categories';
+import { useCategories, useCreateCategory } from '@/hooks/use-categories';
 import { useTransactions } from '@/hooks/use-transactions';
 import { usePreviewImport, useConfirmImport } from '@/hooks/use-import';
 import { Button } from '@/components/ui/button';
@@ -58,14 +58,26 @@ interface TransactionSelection {
   };
 }
 
+const deriveCategoryName = (description: string | null | undefined) => {
+  if (!description) return '';
+  const cleaned = description
+    .replace(/\d+/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const candidate = cleaned.split(/[-|,]/)[0]?.trim() || cleaned;
+  return candidate.slice(0, 28);
+};
+
 export default function ImportPage() {
   const [step, setStep] = useState<ImportStep>('upload');
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [selections, setSelections] = useState<TransactionSelection>({});
-  const [suggestionSources, setSuggestionSources] = useState<Record<string, 'rule' | 'history'>>({});
+  const [suggestionSources, setSuggestionSources] = useState<Record<string, 'rule' | 'history' | 'auto'>>({});
   const [categoryRules, setCategoryRules] = useState<CategoryRule[]>([]);
   const [viewFilter, setViewFilter] = useState<'all' | 'selected' | 'duplicates' | 'uncategorized' | 'needsReview'>('all');
+  const [isAutoCreating, setIsAutoCreating] = useState(false);
+  const autoCreatedRef = useRef<Set<string>>(new Set());
   const [importResult, setImportResult] = useState<{
     imported: number;
     skipped: number;
@@ -78,9 +90,19 @@ export default function ImportPage() {
   const { data: historyTransactions } = useTransactions({ limit: 300 });
   const previewMutation = usePreviewImport();
   const confirmMutation = useConfirmImport();
+  const createCategoryMutation = useCreateCategory();
 
   const accounts = accountsData || [];
   const categories = categoriesData || [];
+
+  const categoryNameMap = useMemo(() => {
+    const map = new Map<string, { id: string; name: string }>();
+    categories.forEach((category) => {
+      const key = `${normalizeText(category.name)}|${category.type}`;
+      map.set(key, { id: category.id, name: category.name });
+    });
+    return map;
+  }, [categories]);
 
   useEffect(() => {
     setCategoryRules(loadCategoryRules());
@@ -104,7 +126,7 @@ export default function ImportPage() {
 
   useEffect(() => {
     if (!preview) return;
-    const updatedSources: Record<string, 'rule' | 'history'> = {};
+    const updatedSources: Record<string, 'rule' | 'history' | 'auto'> = {};
     setSelections((prev) => {
       const next = { ...prev };
       preview.transactions.forEach((tx) => {
@@ -115,13 +137,42 @@ export default function ImportPage() {
         const learnedCategoryId = normalized
           ? learnedCategoryMap.get(`${tx.type}-${normalized}`)?.categoryId
           : undefined;
-        const categoryId = ruleCategoryId || learnedCategoryId;
+        let categoryId = ruleCategoryId || learnedCategoryId;
+        let source: 'rule' | 'history' | 'auto' | undefined = ruleCategoryId
+          ? 'rule'
+          : learnedCategoryId
+          ? 'history'
+          : undefined;
+
+        if (!categoryId && tx.suggestedCategory?.categoryName) {
+          const key = `${normalizeText(tx.suggestedCategory.categoryName)}|${tx.type}`;
+          const match = categoryNameMap.get(key);
+          if (match) {
+            categoryId = match.id;
+            source = 'auto';
+          }
+        }
+
+        if (!categoryId) {
+          const derivedName = deriveCategoryName(tx.description);
+          if (derivedName) {
+            const key = `${normalizeText(derivedName)}|${tx.type}`;
+            const match = categoryNameMap.get(key);
+            if (match) {
+              categoryId = match.id;
+              source = 'auto';
+            }
+          }
+        }
+
         if (categoryId) {
           next[tx.hash] = {
             ...next[tx.hash],
             categoryId,
           };
-          updatedSources[tx.hash] = ruleCategoryId ? 'rule' : 'history';
+          if (source) {
+            updatedSources[tx.hash] = source;
+          }
         }
       });
       return next;
@@ -129,7 +180,47 @@ export default function ImportPage() {
     if (Object.keys(updatedSources).length) {
       setSuggestionSources((prev) => ({ ...prev, ...updatedSources }));
     }
-  }, [categoryRules, learnedCategoryMap, preview]);
+  }, [categoryRules, learnedCategoryMap, preview, categoryNameMap]);
+
+  useEffect(() => {
+    if (!preview || isAutoCreating) return;
+    const existing = new Set(categoryNameMap.keys());
+    const pending: Array<{ name: string; type: 'INCOME' | 'EXPENSE' }> = [];
+
+    preview.transactions.forEach((tx) => {
+      if (tx.isDuplicate) return;
+      if (selections[tx.hash]?.categoryId) return;
+      const suggestedName = tx.suggestedCategory?.categoryName?.trim();
+      const derivedName = deriveCategoryName(tx.description);
+      const candidate = suggestedName || derivedName;
+      if (!candidate) return;
+      const key = `${normalizeText(candidate)}|${tx.type}`;
+      if (existing.has(key) || autoCreatedRef.current.has(key)) return;
+      pending.push({ name: candidate, type: tx.type });
+      existing.add(key);
+      autoCreatedRef.current.add(key);
+    });
+
+    if (!pending.length) return;
+    setIsAutoCreating(true);
+    (async () => {
+      for (const item of pending) {
+        try {
+          await createCategoryMutation.mutateAsync({
+            name: item.name,
+            type: item.type,
+          });
+        } catch {
+          // ignore single failures
+        }
+      }
+      toast({
+        title: 'Categorias creadas',
+        description: `Se crearon ${pending.length} categorias nuevas para la importacion.`,
+      });
+    })()
+      .finally(() => setIsAutoCreating(false));
+  }, [preview, selections, categoryNameMap, createCategoryMutation, toast, isAutoCreating]);
 
   // File upload handler
   const onDrop = useCallback(
@@ -156,7 +247,7 @@ export default function ImportPage() {
 
         // Initialize selections
         const initialSelections: TransactionSelection = {};
-        const initialSources: Record<string, 'rule' | 'history'> = {};
+        const initialSources: Record<string, 'rule' | 'history' | 'auto'> = {};
 
         result.transactions.forEach((tx) => {
           const normalized = tx.description ? normalizeText(tx.description) : '';
@@ -164,15 +255,30 @@ export default function ImportPage() {
           const learnedCategoryId = normalized
             ? learnedCategoryMap.get(`${tx.type}-${normalized}`)?.categoryId
             : undefined;
-          let categoryId = tx.suggestedCategory?.categoryId;
-
-          if (!categoryId && ruleCategoryId) {
+          let categoryId: string | undefined;
+          if (ruleCategoryId) {
             categoryId = ruleCategoryId;
             initialSources[tx.hash] = 'rule';
           }
           if (!categoryId && learnedCategoryId) {
             categoryId = learnedCategoryId;
             initialSources[tx.hash] = 'history';
+          }
+          if (!categoryId && tx.suggestedCategory?.categoryName) {
+            const key = `${normalizeText(tx.suggestedCategory.categoryName)}|${tx.type}`;
+            categoryId = categoryNameMap.get(key)?.id;
+          }
+
+          if (!categoryId) {
+            const derivedName = deriveCategoryName(tx.description);
+            if (derivedName) {
+              const derivedKey = `${normalizeText(derivedName)}|${tx.type}`;
+              const existing = categoryNameMap.get(derivedKey);
+              if (existing) {
+                categoryId = existing.id;
+                initialSources[tx.hash] = 'auto';
+              }
+            }
           }
 
           initialSelections[tx.hash] = {
@@ -193,7 +299,7 @@ export default function ImportPage() {
         });
       }
     },
-    [selectedAccountId, previewMutation, toast, categoryRules, learnedCategoryMap]
+    [selectedAccountId, previewMutation, toast, categoryRules, learnedCategoryMap, categoryNameMap]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -681,6 +787,12 @@ export default function ImportPage() {
               </span>
             </div>
             <div className="ml-auto flex flex-wrap gap-2">
+              {isAutoCreating && (
+                <div className="flex items-center gap-2 rounded-full border border-foreground/10 bg-foreground/5 px-3 py-1 text-[12px] text-muted-foreground">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Creando categorias...
+                </div>
+              )}
               {([
                 { key: 'all', label: 'Todo' },
                 { key: 'selected', label: 'Seleccionadas' },
@@ -844,7 +956,12 @@ export default function ImportPage() {
                             </div>
                           ) : suggestionSources[tx.hash] ? (
                             <div className="text-xs mt-1 text-muted-foreground">
-                              Sugerida por {suggestionSources[tx.hash] === 'rule' ? 'regla' : 'historial'}
+                              Sugerida por{' '}
+                              {suggestionSources[tx.hash] === 'rule'
+                                ? 'regla'
+                                : suggestionSources[tx.hash] === 'history'
+                                ? 'historial'
+                                : 'auto'}
                             </div>
                           ) : null}
                         </TableCell>

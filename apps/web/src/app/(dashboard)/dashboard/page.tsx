@@ -145,6 +145,13 @@ export default function DashboardPage() {
     }
   };
 
+  const restoreOnboarding = () => {
+    setOnboardingDismissed(false);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('financeapp.onboardingDismissed');
+    }
+  };
+
   const activeTransactions = useMemo(() => {
     if (demoMode && !(chartTransactions?.data?.length || 0)) {
       return DEMO_TRANSACTIONS;
@@ -377,6 +384,20 @@ export default function DashboardPage() {
       >
         <h1 className="text-2xl font-semibold tracking-tight">Hola, {firstName}</h1>
         <p className="text-sm text-muted-foreground capitalize">{today}</p>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => toggleDemoMode(!demoMode)}
+          >
+            {demoMode ? 'Demo activa' : 'Cargar demo'}
+          </Button>
+          {onboardingDismissed && (
+            <Button size="sm" variant="ghost" onClick={restoreOnboarding}>
+              Mostrar guia
+            </Button>
+          )}
+        </div>
       </motion.div>
 
       {showOnboarding && (
@@ -403,7 +424,7 @@ export default function DashboardPage() {
                     {demoMode ? 'Desactivar demo' : 'Cargar demo'}
                   </Button>
                   <Button variant="ghost" size="sm" onClick={dismissOnboarding}>
-                    Ocultar
+                    Ocultar por ahora
                   </Button>
                 </div>
               </div>
