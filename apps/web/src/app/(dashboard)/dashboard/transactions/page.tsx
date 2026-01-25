@@ -3,8 +3,10 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTransactions, useCreateTransaction, useDeleteTransaction, useUpdateTransaction } from '@/hooks/use-transactions';
-import { useAccounts } from '@/hooks/use-accounts';
+import { useQueryClient } from '@tanstack/react-query';
+import { useTransactions, useCreateTransaction, useDeleteTransaction, useUpdateTransaction, transactionKeys } from '@/hooks/use-transactions';
+import { useAccounts, accountKeys } from '@/hooks/use-accounts';
+import { budgetKeys } from '@/hooks/use-budgets';
 import { useCategories } from '@/hooks/use-categories';
 import { useTags } from '@/hooks/use-tags';
 import { Button } from '@/components/ui/button';
@@ -23,6 +25,16 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -31,7 +43,7 @@ import {
 } from '@/components/ui/select';
 import { formatDate, cn, getInitials } from '@/lib/utils';
 import { ConvertedAmount } from '@/components/converted-amount';
-import { Plus, ArrowUpRight, ArrowDownRight, ArrowLeftRight, Trash2, Search, Filter, X, FolderOpen, Pencil, Check, XIcon, TrendingUp, TrendingDown, Receipt } from 'lucide-react';
+import { Plus, ArrowUpRight, ArrowDownRight, ArrowLeftRight, Trash2, Search, Filter, X, FolderOpen, Pencil, Check, XIcon, TrendingUp, TrendingDown, Receipt, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -41,6 +53,7 @@ import { BatchActionsBar, useSelection } from '@/components/ui/batch-actions';
 import { useCurrency } from '@/contexts/currency-context';
 import { COLOR_PALETTE } from '@/lib/color-palettes';
 import { logAuditEvent } from '@/lib/audit-log';
+import { apiClient } from '@/lib/api-client';
 
 const transactionSchema = z.object({
   type: z.enum(['INCOME', 'EXPENSE', 'TRANSFER']),
@@ -77,7 +90,8 @@ const getSeedColor = (seed: string) => {
 export default function TransactionsPage() {
   const searchParams = useSearchParams();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [filters, setFilters] = useState<TransactionFilters>({ limit: 50 });
+  const [filters, setFilters] = useState<TransactionFilters>({});
+  const [page, setPage] = useState(1);
   const [activeFiltersFromUrl, setActiveFiltersFromUrl] = useState<string[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<{ description?: string; categoryId?: string }>({});
@@ -87,8 +101,13 @@ export default function TransactionsPage() {
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [tagApplyMode, setTagApplyMode] = useState<'add' | 'replace'>('add');
   const [isApplyingTags, setIsApplyingTags] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Transaction | null>(null);
+  const [isBatchDeleting, setIsBatchDeleting] = useState(false);
+  const [batchDeleteProgress, setBatchDeleteProgress] = useState({ current: 0, total: 0, failed: 0 });
   const { toast } = useToast();
   const { preferredCurrency, convertAmount, formatAmount } = useCurrency();
+  const queryClient = useQueryClient();
+  const limit = 50;
 
   // Read URL parameters on mount
   useEffect(() => {
@@ -99,7 +118,7 @@ export default function TransactionsPage() {
     const accountId = searchParams.get('accountId');
     
     const urlFilters: string[] = [];
-    const newFilters: TransactionFilters = { limit: 50 };
+    const newFilters: TransactionFilters = {};
     
     if (categoryId) {
       newFilters.categoryId = categoryId;
@@ -124,18 +143,25 @@ export default function TransactionsPage() {
     
     if (urlFilters.length > 0) {
       setFilters(newFilters);
+      setPage(1);
       setActiveFiltersFromUrl(urlFilters);
     }
   }, [searchParams]);
 
   const clearUrlFilters = () => {
-    setFilters({ limit: 50 });
+    setFilters({});
+    setPage(1);
+    selection.clearSelection();
     setActiveFiltersFromUrl([]);
     // Clear URL params
     window.history.replaceState({}, '', '/dashboard/transactions');
   };
 
-  const { data: transactions, isLoading } = useTransactions(filters);
+  const queryFilters = useMemo(
+    () => ({ ...filters, page, limit }),
+    [filters, page, limit]
+  );
+  const { data: transactions, isLoading } = useTransactions(queryFilters);
   const { data: accounts } = useAccounts();
   const { data: categories } = useCategories();
   const { data: tags } = useTags();
@@ -149,6 +175,9 @@ export default function TransactionsPage() {
     [transactions?.data]
   );
   const selection = useSelection(transactionItems);
+  useEffect(() => {
+    selection.clearSelection();
+  }, [page, selection.clearSelection]);
 
   const {
     register,
@@ -197,16 +226,20 @@ export default function TransactionsPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de eliminar esta transacción? Se creará una transacción de reversión.')) return;
+  const handleDelete = (tx: Transaction) => {
+    setDeleteTarget(tx);
+  };
 
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await deleteMutation.mutateAsync(id);
+      await deleteMutation.mutateAsync(deleteTarget.id);
       toast({
         title: 'Transacción eliminada',
         description: 'La transacción ha sido revertida.',
       });
-      logAuditEvent({ action: 'Transaccion eliminada', detail: id });
+      logAuditEvent({ action: 'Transaccion eliminada', detail: deleteTarget.id });
+      setDeleteTarget(null);
     } catch (error) {
       toast({
         title: 'Error',
@@ -307,30 +340,71 @@ export default function TransactionsPage() {
   };
 
   // Batch action handlers - confirmation handled by BatchActionsBar
-  const handleBatchDelete = useCallback(async () => {
+  const handleBatchDelete = useCallback(async (items: Transaction[]) => {
+    if (!items.length) return;
+    const ids = items.map((item) => item.id);
+    setIsBatchDeleting(true);
+    setBatchDeleteProgress({ current: 0, total: ids.length, failed: 0 });
+    const previousQueries: { queryKey: readonly unknown[]; data: unknown }[] = [];
+
+    queryClient.getQueriesData({ queryKey: transactionKeys.lists() }).forEach(([queryKey, data]) => {
+      previousQueries.push({ queryKey, data });
+      if (data && typeof data === 'object' && 'data' in data) {
+        const listData = data as { data: Transaction[]; total: number };
+        const nextData = listData.data.filter((t) => !ids.includes(t.id));
+        queryClient.setQueryData(queryKey, {
+          ...listData,
+          data: nextData,
+          total: Math.max(0, listData.total - (listData.data.length - nextData.length)),
+        });
+      }
+    });
+
     try {
-      const deletePromises = Array.from(selection.selectedIds).map(id => 
-        deleteMutation.mutateAsync(id)
-      );
-      await Promise.all(deletePromises);
+      let failed = 0;
+      for (let i = 0; i < ids.length; i += 1) {
+        try {
+          await apiClient.delete(`/transactions/${ids[i]}`);
+        } catch {
+          failed += 1;
+        }
+        setBatchDeleteProgress({ current: i + 1, total: ids.length, failed });
+      }
       
-      toast({
-        title: 'Transacciones eliminadas',
-        description: `Se han revertido ${selection.selectedIds.size} transacciones.`,
-      });
+      if (failed > 0) {
+        toast({
+          title: 'Eliminación parcial',
+          description: `Se eliminaron ${ids.length - failed} de ${ids.length} transacciones.`,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Transacciones eliminadas',
+          description: `Se han revertido ${ids.length} transacciones.`,
+        });
+      }
       logAuditEvent({
         action: 'Transacciones eliminadas',
-        detail: `${selection.selectedIds.size} transacciones`,
+        detail: `${ids.length} transacciones`,
       });
       selection.clearSelection();
     } catch (error) {
+      previousQueries.forEach(({ queryKey, data }) => {
+        queryClient.setQueryData(queryKey, data);
+      });
       toast({
         title: 'Error',
         description: 'No se pudieron eliminar algunas transacciones.',
         variant: 'destructive',
       });
+    } finally {
+      queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+      queryClient.invalidateQueries({ queryKey: accountKeys.all });
+      queryClient.invalidateQueries({ queryKey: budgetKeys.all });
+      setIsBatchDeleting(false);
+      setBatchDeleteProgress({ current: 0, total: 0, failed: 0 });
     }
-  }, [selection, deleteMutation, toast]);
+  }, [selection, toast, queryClient]);
 
   const handleBatchCategorize = useCallback(async () => {
     if (!batchCategoryId) return;
@@ -401,6 +475,14 @@ export default function TransactionsPage() {
       count: transactions.data.length,
     };
   }, [transactions?.data, convertAmount]);
+
+  const totalPages = transactions ? Math.ceil(transactions.total / limit) : 1;
+  const currentPage = transactions?.page || page;
+  const batchDeleteStatus = isBatchDeleting
+    ? `Eliminando ${batchDeleteProgress.current}/${batchDeleteProgress.total}${
+        batchDeleteProgress.failed ? ` · fallos ${batchDeleteProgress.failed}` : ''
+      }`
+    : undefined;
 
   return (
     <div className="space-y-6">
@@ -685,7 +767,11 @@ export default function TransactionsPage() {
                 <Input
                   placeholder="Buscar transacciones..."
                   className="pl-9 bg-muted/30"
-                  onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                  onChange={(e) => {
+                    setFilters({ ...filters, search: e.target.value });
+                    setPage(1);
+                    selection.clearSelection();
+                  }}
                 />
               </div>
             </div>
@@ -698,6 +784,8 @@ export default function TransactionsPage() {
                   newFilters.type = value as TransactionType;
                 }
                 setFilters(newFilters);
+                setPage(1);
+                selection.clearSelection();
               }}>
                 <SelectTrigger className="w-[140px] bg-muted/30">
                   <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
@@ -733,6 +821,8 @@ export default function TransactionsPage() {
                   newFilters.accountId = value;
                 }
                 setFilters(newFilters);
+                setPage(1);
+                selection.clearSelection();
               }}>
                 <SelectTrigger className="w-[160px] bg-muted/30">
                   <SelectValue placeholder="Cuenta" />
@@ -759,6 +849,8 @@ export default function TransactionsPage() {
                       delete newFilters.startDate;
                     }
                     setFilters(newFilters);
+                    setPage(1);
+                    selection.clearSelection();
                   }}
                 />
                 <span className="text-muted-foreground">-</span>
@@ -774,6 +866,8 @@ export default function TransactionsPage() {
                       delete newFilters.endDate;
                     }
                     setFilters(newFilters);
+                    setPage(1);
+                    selection.clearSelection();
                   }}
                 />
               </div>
@@ -1033,7 +1127,7 @@ export default function TransactionsPage() {
                               variant="ghost"
                               size="icon"
                               className="opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7"
-                              onClick={() => handleDelete(tx.id)}
+                              onClick={() => handleDelete(tx)}
                             >
                               <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
                             </Button>
@@ -1047,6 +1141,29 @@ export default function TransactionsPage() {
               </AnimatePresence>
             </div>
           )}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 p-4 border-t border-border/40">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-[12px] text-muted-foreground">
+                Página {currentPage} de {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
       </motion.div>
@@ -1055,15 +1172,33 @@ export default function TransactionsPage() {
       <BatchActionsBar
         selectedItems={selection.selectedItems}
         onClearSelection={selection.clearSelection}
-        onDelete={async () => {
-          await handleBatchDelete();
-        }}
+        onDelete={handleBatchDelete}
         onCategorize={() => setBatchCategoryDialogOpen(true)}
         onTag={() => {
           setSelectedTagIds([]);
           setTagDialogOpen(true);
         }}
+        isBusy={isBatchDeleting}
+        statusLabel={batchDeleteStatus}
       />
+
+      {/* Single Delete Dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar transacción?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Se creará una transacción de reversión. Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} disabled={deleteMutation.isPending}>
+              {deleteMutation.isPending ? 'Eliminando...' : 'Eliminar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Batch Categorize Dialog */}
       <Dialog open={batchCategoryDialogOpen} onOpenChange={setBatchCategoryDialogOpen}>
