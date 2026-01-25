@@ -51,7 +51,7 @@ import {
   useUpdateInvestmentOperation,
   useInvestmentOperation,
 } from '@/hooks/use-investments';
-import { useCreateAsset } from '@/hooks/use-assets';
+import { useCreateAsset, useUpdateAsset } from '@/hooks/use-assets';
 import type { Asset, OperationType, AssetType } from '@/types/api';
 
 const parseLocaleNumber = (value: unknown) => {
@@ -97,13 +97,19 @@ interface NewAssetState {
   symbol: string;
   name: string;
   type: AssetType;
+  currency: string;
 }
 
 export function OperationForm({ open, onClose, editId, assets }: Props) {
   const { toast } = useToast();
   const { preferredCurrency, formatAmount, getCurrencySymbol } = useCurrency();
   const [showNewAsset, setShowNewAsset] = useState(false);
-  const [newAsset, setNewAsset] = useState<NewAssetState>({ symbol: '', name: '', type: 'STOCK' });
+  const [newAsset, setNewAsset] = useState<NewAssetState>({
+    symbol: '',
+    name: '',
+    type: 'STOCK',
+    currency: preferredCurrency || 'USD',
+  });
   const [assetSearchOpen, setAssetSearchOpen] = useState(false);
   const [assetSearchQuery, setAssetSearchQuery] = useState('');
 
@@ -130,6 +136,7 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
   const createMutation = useCreateInvestmentOperation();
   const updateMutation = useUpdateInvestmentOperation();
   const createAssetMutation = useCreateAsset();
+  const updateAssetMutation = useUpdateAsset();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -144,6 +151,7 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
       notes: '',
     },
   });
+  const assetId = form.watch('assetId');
 
   // Populate form when editing
   useEffect(() => {
@@ -169,6 +177,17 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
     }
   }, [preferredCurrency, open, editId, form]);
 
+  useEffect(() => {
+    if (!assetId || editId) return;
+    const selected = assets.find((asset) => asset.id === assetId);
+    if (!selected?.currency) return;
+    const currentCurrency = form.getValues('currency');
+    const isDirty = !!form.formState.dirtyFields.currency;
+    if (!isDirty && currentCurrency !== selected.currency) {
+      form.setValue('currency', selected.currency, { shouldDirty: false });
+    }
+  }, [assetId, assets, editId, form]);
+
   // Reset form when closing
   useEffect(() => {
     if (!open) {
@@ -177,7 +196,22 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
   }, [open, form]);
 
   const onSubmit = async (values: FormValues) => {
+    const selectedAsset = assets.find((asset) => asset.id === values.assetId);
     try {
+      if (selectedAsset && values.currency && values.currency !== selectedAsset.currency) {
+        try {
+          await updateAssetMutation.mutateAsync({
+            id: selectedAsset.id,
+            data: { currency: values.currency },
+          });
+        } catch {
+          toast({
+            title: 'Aviso',
+            description: 'No se pudo actualizar la moneda del activo. La operación se guardará igualmente.',
+          });
+        }
+      }
+
       const payload = {
         ...values,
         fees: values.fees || 0,
@@ -216,10 +250,11 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
         symbol: newAsset.symbol.toUpperCase(),
         name: newAsset.name,
         type: newAsset.type,
+        currency: newAsset.currency,
       });
       form.setValue('assetId', created.id);
       setShowNewAsset(false);
-      setNewAsset({ symbol: '', name: '', type: 'STOCK' });
+      setNewAsset({ symbol: '', name: '', type: 'STOCK', currency: preferredCurrency || 'USD' });
       toast({ title: 'Activo creado', description: `${created.symbol} ha sido añadido` });
     } catch {
       toast({
@@ -385,6 +420,21 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
                     </SelectContent>
                   </Select>
                 </div>
+                <Select
+                  value={newAsset.currency}
+                  onValueChange={(value) => setNewAsset({ ...newAsset, currency: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Moneda del activo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {currencyOptions.map((code) => (
+                      <SelectItem key={code} value={code}>
+                        {code} ({getCurrencySymbol(code)})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Input
                   placeholder="Nombre completo (ej: Apple Inc.)"
                   value={newAsset.name}

@@ -338,8 +338,7 @@ export default function BudgetsPage() {
                               className="relative flex h-10 w-10 items-center justify-center rounded-2xl border bg-background/90"
                               style={{
                                 borderColor: `${accentColor}55`,
-                                boxShadow: `0 8px 18px -16px ${accentColor}88`,
-                                backgroundImage: `linear-gradient(140deg, ${accentColor}14, rgba(255,255,255,0.75))`,
+                                backgroundColor: `${accentColor}1a`,
                               }}
                             >
                               <span className="text-[10px] font-semibold" style={{ color: accentColor }}>
@@ -387,7 +386,7 @@ export default function BudgetsPage() {
                             value={Math.min(percentage, 100)}
                             indicatorClassName={cn(
                               'transition-all',
-                              isOverBudget ? 'bg-rose-500/70' : isWarning ? 'bg-amber-500/70' : 'bg-emerald-500/70'
+                              isOverBudget ? 'bg-rose-500/50' : isWarning ? 'bg-amber-500/50' : 'bg-emerald-500/50'
                             )}
                           />
                           <span className="absolute right-0 -top-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded bg-secondary tabular-nums">

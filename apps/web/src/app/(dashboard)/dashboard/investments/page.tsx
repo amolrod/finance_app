@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Plus, DollarSign, PieChart, BarChart3, RefreshCcw, Clock, Briefcase, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,7 +41,7 @@ export default function InvestmentsPage() {
   const [editOperationId, setEditOperationId] = useState<string | null>(null);
   const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null);
   const { toast } = useToast();
-  const { convertAndFormat } = useCurrency();
+  const { convertAmount, formatAmount, preferredCurrency } = useCurrency();
   
   const { data: portfolio, isLoading: loadingPortfolio } = usePortfolioSummary();
   const { data: holdings, isLoading: loadingHoldings } = useHoldings();
@@ -58,10 +58,89 @@ export default function InvestmentsPage() {
     }
   }, [autoRefreshData?.lastUpdated]);
 
-  const totalInvested = portfolio ? parseFloat(portfolio.totalInvested) : 0;
-  const totalCurrentValue = portfolio?.totalCurrentValue ? parseFloat(portfolio.totalCurrentValue) : null;
-  const unrealizedPnL = portfolio?.totalUnrealizedPnL ? parseFloat(portfolio.totalUnrealizedPnL) : null;
-  const realizedPnL = portfolio ? parseFloat(portfolio.totalRealizedPnL) : 0;
+  const holdingsData = holdings || portfolio?.holdings || [];
+  const holdingCurrencies = useMemo(() => {
+    return new Set(holdingsData.map((h) => h.currency).filter(Boolean));
+  }, [holdingsData]);
+  const isSingleCurrency = holdingCurrencies.size <= 1;
+  const baseCurrency =
+    (isSingleCurrency ? holdingCurrencies.values().next().value : preferredCurrency) ||
+    preferredCurrency ||
+    'USD';
+
+  const portfolioTotals = useMemo(() => {
+    if (!holdingsData.length) {
+      return {
+        totalInvested: portfolio ? parseFloat(portfolio.totalInvested) : 0,
+        totalCurrentValue: portfolio?.totalCurrentValue ? parseFloat(portfolio.totalCurrentValue) : null,
+        totalUnrealizedPnL: portfolio?.totalUnrealizedPnL ? parseFloat(portfolio.totalUnrealizedPnL) : null,
+        totalRealizedPnL: portfolio ? parseFloat(portfolio.totalRealizedPnL) : 0,
+      };
+    }
+
+    let totalInvested = 0;
+    let totalCurrentValue: number | null = 0;
+    let totalUnrealizedPnL: number | null = 0;
+    let totalRealizedPnL = 0;
+
+    holdingsData.forEach((holding) => {
+      const invested = parseFloat(holding.totalInvested || '0');
+      const currentValue = holding.currentValue ? parseFloat(holding.currentValue) : null;
+      const unrealized = holding.unrealizedPnL ? parseFloat(holding.unrealizedPnL) : null;
+      const realized = parseFloat(holding.realizedPnL || '0');
+      const fromCurrency = holding.currency || baseCurrency;
+      const convert = (amount: number) =>
+        isSingleCurrency ? amount : (convertAmount(amount, fromCurrency) ?? amount);
+
+      totalInvested += convert(invested);
+      totalRealizedPnL += convert(realized);
+      if (currentValue !== null && totalCurrentValue !== null) {
+        totalCurrentValue += convert(currentValue);
+      } else if (currentValue === null) {
+        totalCurrentValue = null;
+      }
+      if (unrealized !== null && totalUnrealizedPnL !== null) {
+        totalUnrealizedPnL += convert(unrealized);
+      } else if (unrealized === null) {
+        totalUnrealizedPnL = null;
+      }
+    });
+
+    return { totalInvested, totalCurrentValue, totalUnrealizedPnL, totalRealizedPnL };
+  }, [holdingsData, baseCurrency, convertAmount, isSingleCurrency, portfolio]);
+
+  const totalInvested = portfolioTotals.totalInvested;
+  const totalCurrentValue = portfolioTotals.totalCurrentValue;
+  const unrealizedPnL = portfolioTotals.totalUnrealizedPnL;
+  const realizedPnL = portfolioTotals.totalRealizedPnL;
+
+  const byAssetType = useMemo(() => {
+    if (!holdingsData.length) return {};
+    const summary: Record<string, { invested: number; currentValue: number | null; count: number }> = {};
+    holdingsData.forEach((holding) => {
+      const type = holding.type;
+      if (!type) return;
+      if (!summary[type]) {
+        summary[type] = { invested: 0, currentValue: 0, count: 0 };
+      }
+      const invested = parseFloat(holding.totalInvested || '0');
+      const currentValue = holding.currentValue ? parseFloat(holding.currentValue) : null;
+      const fromCurrency = holding.currency || baseCurrency;
+      const convert = (amount: number) =>
+        isSingleCurrency ? amount : (convertAmount(amount, fromCurrency) ?? amount);
+
+      summary[type].invested += convert(invested);
+      if (summary[type].currentValue !== null) {
+        if (currentValue !== null) {
+          summary[type].currentValue += convert(currentValue);
+        } else {
+          summary[type].currentValue = null;
+        }
+      }
+      summary[type].count += 1;
+    });
+    return summary;
+  }, [holdingsData, baseCurrency, convertAmount, isSingleCurrency]);
 
   const unrealizedPnLPercent = totalInvested > 0 && unrealizedPnL !== null
     ? (unrealizedPnL / totalInvested) * 100
@@ -172,7 +251,7 @@ export default function InvestmentsPage() {
                 </div>
               </div>
               <p className="text-2xl font-semibold tabular-nums">
-                {loadingPortfolio ? '...' : convertAndFormat(totalInvested, 'USD')}
+                {loadingPortfolio ? '...' : formatAmount(totalInvested, baseCurrency)}
               </p>
               <p className="text-[11px] text-muted-foreground mt-0.5">Coste base total</p>
             </CardContent>
@@ -197,7 +276,7 @@ export default function InvestmentsPage() {
                 {loadingPortfolio 
                   ? '...' 
                   : totalCurrentValue !== null 
-                    ? convertAndFormat(totalCurrentValue, 'USD')
+                    ? formatAmount(totalCurrentValue, baseCurrency)
                     : 'Sin datos'}
               </p>
               <p className="text-[11px] text-muted-foreground mt-0.5">A precios de mercado</p>
@@ -232,7 +311,7 @@ export default function InvestmentsPage() {
                 {loadingPortfolio 
                   ? '...'
                   : unrealizedPnL !== null 
-                    ? `${unrealizedPnL >= 0 ? '+' : ''}${convertAndFormat(unrealizedPnL, 'USD')}`
+                    ? `${unrealizedPnL >= 0 ? '+' : ''}${formatAmount(unrealizedPnL, baseCurrency)}`
                     : 'Sin datos'}
               </p>
               <p className="text-[11px] text-muted-foreground mt-0.5">
@@ -264,7 +343,7 @@ export default function InvestmentsPage() {
               )}>
                 {loadingPortfolio 
                   ? '...'
-                  : `${realizedPnL >= 0 ? '+' : ''}${convertAndFormat(realizedPnL, 'USD')}`}
+                  : `${realizedPnL >= 0 ? '+' : ''}${formatAmount(realizedPnL, baseCurrency)}`}
               </p>
               <p className="text-[11px] text-muted-foreground mt-0.5">Ganancias cerradas</p>
             </CardContent>
@@ -273,7 +352,7 @@ export default function InvestmentsPage() {
       </div>
 
       {/* Asset Type Distribution - Estilo lista Apple */}
-      {portfolio && Object.keys(portfolio.byAssetType).length > 0 && (
+      {Object.keys(byAssetType).length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -286,8 +365,8 @@ export default function InvestmentsPage() {
             </CardHeader>
             <CardContent className="p-0">
               <div className="divide-y divide-border/50">
-                {Object.entries(portfolio.byAssetType).map(([type, data]) => {
-                  const invested = parseFloat(data.invested);
+                {Object.entries(byAssetType).map(([type, data]) => {
+                  const invested = data.invested;
                   const percentage = totalInvested > 0 ? (invested / totalInvested) * 100 : 0;
                   const accentColor = assetTypeColors[type as AssetType] || COLOR_PALETTE[3];
                   
@@ -313,7 +392,7 @@ export default function InvestmentsPage() {
                           />
                         </div>
                         <span className="text-[13px] text-muted-foreground tabular-nums">
-                          {convertAndFormat(invested, 'USD')}
+                          {formatAmount(invested, baseCurrency)}
                         </span>
                         <span className="text-[13px] font-medium tabular-nums w-14 text-right">
                           {percentage.toFixed(1)}%
