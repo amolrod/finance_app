@@ -51,7 +51,7 @@ const investmentKeys = {
 
 // Get all operations
 export function useInvestmentOperations(filters: OperationFilters = {}) {
-  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+  const isAuthenticated = useAuthStore((state) => !state.isLoading && !!state.accessToken);
 
   return useQuery({
     queryKey: investmentKeys.operationsList(filters),
@@ -72,7 +72,7 @@ export function useInvestmentOperations(filters: OperationFilters = {}) {
 
 // Get single operation
 export function useInvestmentOperation(id: string) {
-  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+  const isAuthenticated = useAuthStore((state) => !state.isLoading && !!state.accessToken);
 
   return useQuery({
     queryKey: investmentKeys.operation(id),
@@ -85,7 +85,7 @@ export function useInvestmentOperation(id: string) {
 
 // Get holdings
 export function useHoldings() {
-  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+  const isAuthenticated = useAuthStore((state) => !state.isLoading && !!state.accessToken);
 
   return useQuery({
     queryKey: investmentKeys.holdings(),
@@ -98,7 +98,7 @@ export function useHoldings() {
 
 // Get portfolio summary
 export function usePortfolioSummary() {
-  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+  const isAuthenticated = useAuthStore((state) => !state.isLoading && !!state.accessToken);
 
   return useQuery({
     queryKey: investmentKeys.portfolio(),
@@ -155,7 +155,7 @@ export function useDeleteInvestmentOperation() {
 }
 
 export function useInvestmentPriceHistory(assetIds: string[], range: string) {
-  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+  const isAuthenticated = useAuthStore((state) => !state.isLoading && !!state.accessToken);
 
   return useQuery({
     queryKey: investmentKeys.priceHistory(range, assetIds),
@@ -171,7 +171,7 @@ export function useInvestmentPriceHistory(assetIds: string[], range: string) {
 }
 
 export function useInvestmentGoals() {
-  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+  const isAuthenticated = useAuthStore((state) => !state.isLoading && !!state.accessToken);
 
   return useQuery({
     queryKey: investmentKeys.goals(),
@@ -242,7 +242,7 @@ export function useRefreshPrices() {
 // Auto-refresh prices every 5 minutes
 export function useAutoRefreshPrices(enabled: boolean = true) {
   const queryClient = useQueryClient();
-  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+  const isAuthenticated = useAuthStore((state) => !state.isLoading && !!state.accessToken);
 
   return useQuery({
     queryKey: [...investmentKeys.all, 'auto-refresh'],

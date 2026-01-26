@@ -11,7 +11,7 @@ export const notificationKeys = {
 
 // Get all notifications
 export function useNotifications(unreadOnly: boolean = false) {
-  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+  const isAuthenticated = useAuthStore((state) => !state.isLoading && !!state.accessToken);
   
   return useQuery({
     queryKey: notificationKeys.list(unreadOnly),
@@ -24,7 +24,7 @@ export function useNotifications(unreadOnly: boolean = false) {
 
 // Get unread count
 export function useUnreadNotificationCount() {
-  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+  const isAuthenticated = useAuthStore((state) => !state.isLoading && !!state.accessToken);
   
   return useQuery({
     queryKey: notificationKeys.count(),

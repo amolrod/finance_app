@@ -21,7 +21,7 @@ const assetKeys = {
 
 // Get all assets
 export function useAssets(filters: { search?: string; type?: AssetType } = {}) {
-  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+  const isAuthenticated = useAuthStore((state) => !state.isLoading && !!state.accessToken);
 
   return useQuery({
     queryKey: assetKeys.list(filters),
@@ -37,7 +37,7 @@ export function useAssets(filters: { search?: string; type?: AssetType } = {}) {
 }
 
 export function useAssetSearch(query: string) {
-  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+  const isAuthenticated = useAuthStore((state) => !state.isLoading && !!state.accessToken);
   const normalized = query.trim();
   return useQuery({
     queryKey: assetKeys.search(normalized),
@@ -50,7 +50,7 @@ export function useAssetSearch(query: string) {
 
 // Get single asset
 export function useAsset(id: string) {
-  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+  const isAuthenticated = useAuthStore((state) => !state.isLoading && !!state.accessToken);
 
   return useQuery({
     queryKey: assetKeys.detail(id),
