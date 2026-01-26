@@ -6,7 +6,7 @@
   "main": "dist/main.js",
   "scripts": {
     "postinstall": "prisma generate",
-    "build": "tsc -p tsconfig.build.json",
+    "build": "prisma generate && tsc -p tsconfig.build.json",
     "build:nest": "nest build",
     "dev": "nest start --watch",
     "start": "node dist/main",
