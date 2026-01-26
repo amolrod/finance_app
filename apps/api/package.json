@@ -6,7 +6,7 @@
   "main": "dist/main.js",
   "scripts": {
     "postinstall": "prisma generate",
-    "build": "prisma generate && tsc -p tsconfig.build.json",
+    "build": "bun run db:generate && tsc -p tsconfig.build.json",
     "build:nest": "nest build",
     "dev": "nest start --watch",
     "start": "node dist/main",
@@ -20,7 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist coverage",
-    "db:generate": "prisma generate",
+    "db:generate": "bunx prisma generate --schema=./prisma/schema.prisma",
     "db:migrate": "prisma migrate dev",
     "db:migrate:prod": "prisma migrate deploy",
     "db:seed": "ts-node prisma/seed.ts",
