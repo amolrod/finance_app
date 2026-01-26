@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Check, ChevronsUpDown, Search } from 'lucide-react';
+import { Check, ChevronsUpDown } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -43,6 +43,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useCurrency } from '@/contexts/currency-context';
@@ -51,8 +52,8 @@ import {
   useUpdateInvestmentOperation,
   useInvestmentOperation,
 } from '@/hooks/use-investments';
-import { useCreateAsset, useUpdateAsset } from '@/hooks/use-assets';
-import type { Asset, OperationType, AssetType } from '@/types/api';
+import { useCreateAsset, useUpdateAsset, useAssetSearch } from '@/hooks/use-assets';
+import type { Asset, OperationType, AssetType, AssetSearchResult } from '@/types/api';
 
 const parseLocaleNumber = (value: unknown) => {
   if (typeof value === 'string') {
@@ -112,6 +113,7 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
   });
   const [assetSearchOpen, setAssetSearchOpen] = useState(false);
   const [assetSearchQuery, setAssetSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
   // Filtrar activos por búsqueda
   const filteredAssets = useMemo(() => {
@@ -123,6 +125,13 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
         a.name.toLowerCase().includes(query)
     );
   }, [assets, assetSearchQuery]);
+
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setDebouncedSearch(assetSearchQuery.trim());
+    }, 250);
+    return () => clearTimeout(handle);
+  }, [assetSearchQuery]);
 
   const currencyOptions = useMemo(() => {
     const base = ['EUR', 'USD', 'GBP', 'MXN'];
@@ -137,6 +146,7 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
   const updateMutation = useUpdateInvestmentOperation();
   const createAssetMutation = useCreateAsset();
   const updateAssetMutation = useUpdateAsset();
+  const { data: marketResults = [], isFetching: isSearchingMarket } = useAssetSearch(debouncedSearch);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -194,6 +204,35 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
       form.reset();
     }
   }, [open, form]);
+
+  const handleSelectMarketAsset = async (result: AssetSearchResult) => {
+    try {
+      if (result.assetId) {
+        form.setValue('assetId', result.assetId);
+        if (result.currency) {
+          form.setValue('currency', result.currency, { shouldDirty: false });
+        }
+      } else {
+        const created = await createAssetMutation.mutateAsync({
+          symbol: result.symbol,
+          name: result.name,
+          type: result.type,
+          currency: result.currency || preferredCurrency || 'USD',
+          exchange: result.exchange,
+        });
+        form.setValue('assetId', created.id);
+        form.setValue('currency', created.currency, { shouldDirty: false });
+      }
+      setAssetSearchOpen(false);
+      setAssetSearchQuery('');
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'No se pudo añadir el activo desde el mercado.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const onSubmit = async (values: FormValues) => {
     const selectedAsset = assets.find((asset) => asset.id === values.assetId);
@@ -349,36 +388,81 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
                                   + Crear nuevo activo
                                 </Button>
                               </CommandEmpty>
-                              <CommandGroup>
-                                {filteredAssets.slice(0, 50).map((asset) => (
-                                  <CommandItem
-                                    key={asset.id}
-                                    value={asset.id}
-                                    onSelect={() => {
-                                      field.onChange(asset.id);
-                                      setAssetSearchOpen(false);
-                                      setAssetSearchQuery('');
-                                    }}
-                                  >
-                                    <Check
-                                      className={cn(
-                                        'mr-2 h-4 w-4',
-                                        field.value === asset.id ? 'opacity-100' : 'opacity-0'
-                                      )}
-                                    />
-                                    <span className="font-mono font-medium mr-2">{asset.symbol}</span>
-                                    <span className="text-muted-foreground truncate">{asset.name}</span>
-                                    <span className="ml-auto text-xs text-muted-foreground">
-                                      {asset.type === 'STOCK' && 'Acción'}
-                                      {asset.type === 'ETF' && 'ETF'}
-                                      {asset.type === 'CRYPTO' && 'Cripto'}
-                                      {asset.type === 'BOND' && 'Bono'}
-                                      {asset.type === 'MUTUAL_FUND' && 'Fondo'}
-                                      {asset.type === 'OTHER' && 'Otro'}
-                                    </span>
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
+                              {filteredAssets.length > 0 && (
+                                <CommandGroup heading="Tus activos">
+                                  {filteredAssets.slice(0, 50).map((asset) => (
+                                    <CommandItem
+                                      key={asset.id}
+                                      value={asset.id}
+                                      onSelect={() => {
+                                        field.onChange(asset.id);
+                                        setAssetSearchOpen(false);
+                                        setAssetSearchQuery('');
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          'mr-2 h-4 w-4',
+                                          field.value === asset.id ? 'opacity-100' : 'opacity-0'
+                                        )}
+                                      />
+                                      <span className="font-mono font-medium mr-2">{asset.symbol}</span>
+                                      <span className="text-muted-foreground truncate">{asset.name}</span>
+                                      <span className="ml-auto text-xs text-muted-foreground">
+                                        {asset.type === 'STOCK' && 'Acción'}
+                                        {asset.type === 'ETF' && 'ETF'}
+                                        {asset.type === 'CRYPTO' && 'Cripto'}
+                                        {asset.type === 'BOND' && 'Bono'}
+                                        {asset.type === 'MUTUAL_FUND' && 'Fondo'}
+                                        {asset.type === 'OTHER' && 'Otro'}
+                                      </span>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              )}
+                              {assetSearchQuery.trim().length >= 2 && (
+                                <CommandGroup heading="Mercado">
+                                  {isSearchingMarket && (
+                                    <div className="px-2 py-2 text-xs text-muted-foreground">
+                                      Buscando en mercados...
+                                    </div>
+                                  )}
+                                  {!isSearchingMarket && marketResults.length === 0 && (
+                                    <div className="px-2 py-2 text-xs text-muted-foreground">
+                                      Sin resultados en el mercado.
+                                    </div>
+                                  )}
+                                  {marketResults.map((result) => (
+                                    <CommandItem
+                                      key={`${result.symbol}-${result.type}`}
+                                      value={`${result.symbol}-${result.type}`}
+                                      onSelect={() => handleSelectMarketAsset(result)}
+                                    >
+                                      <div className="flex w-full items-center gap-2">
+                                        <span className="font-mono font-medium">{result.symbol}</span>
+                                        <span className="text-muted-foreground truncate">
+                                          {result.name}
+                                        </span>
+                                        <span className="ml-auto text-xs text-muted-foreground">
+                                          {result.type === 'STOCK' && 'Acción'}
+                                          {result.type === 'ETF' && 'ETF'}
+                                          {result.type === 'CRYPTO' && 'Cripto'}
+                                          {result.type === 'BOND' && 'Bono'}
+                                          {result.type === 'MUTUAL_FUND' && 'Fondo'}
+                                          {result.type === 'OTHER' && 'Otro'}
+                                          {result.exchange ? ` · ${result.exchange}` : ''}
+                                        </span>
+                                        <Badge
+                                          variant="outline"
+                                          className="ml-2 border-foreground/10 text-[10px] text-muted-foreground"
+                                        >
+                                          {result.assetId ? 'Ya añadido' : 'Añadir'}
+                                        </Badge>
+                                      </div>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              )}
                             </CommandList>
                           </Command>
                         </PopoverContent>

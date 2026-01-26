@@ -34,6 +34,12 @@ export class AssetsController {
     return this.assetsService.findAll(query);
   }
 
+  @Get('search')
+  @ApiOperation({ summary: 'Search external market assets' })
+  search(@Query('query') query: string) {
+    return this.assetsService.searchExternal(query || '');
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get asset by ID' })
   findOne(@Param('id', ParseUUIDPipe) id: string) {

@@ -2,6 +2,34 @@ import { Injectable, NotFoundException, ConflictException } from '@nestjs/common
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateAssetDto, UpdateAssetDto, AssetQueryDto } from './dto';
 import { AssetType, Prisma } from '@prisma/client';
+import axios from 'axios';
+
+type AssetSearchResult = {
+  symbol: string;
+  name: string;
+  type: AssetType;
+  exchange?: string;
+  currency?: string;
+  source: string;
+  assetId?: string;
+};
+
+const YAHOO_SEARCH_URL = 'https://query1.finance.yahoo.com/v1/finance/search';
+const SUPPORTED_QUOTE_TYPES = new Map<string, AssetType>([
+  ['EQUITY', AssetType.STOCK],
+  ['ETF', AssetType.ETF],
+  ['MUTUALFUND', AssetType.MUTUAL_FUND],
+  ['CRYPTOCURRENCY', AssetType.CRYPTO],
+  ['BOND', AssetType.BOND],
+]);
+
+const normalizeCryptoSymbol = (symbol: string) => {
+  const upper = symbol.toUpperCase();
+  if (upper.includes('-')) {
+    return upper.split('-')[0];
+  }
+  return upper;
+};
 
 @Injectable()
 export class AssetsService {
@@ -128,5 +156,78 @@ export class AssetsService {
       type,
       name: name || symbol,
     });
+  }
+
+  async searchExternal(query: string): Promise<AssetSearchResult[]> {
+    const trimmed = query.trim();
+    if (!trimmed) return [];
+
+    const response = await axios.get(YAHOO_SEARCH_URL, {
+      params: {
+        q: trimmed,
+        quotesCount: 12,
+        newsCount: 0,
+        listsCount: 0,
+      },
+      headers: {
+        'User-Agent': 'Mozilla/5.0',
+      },
+      timeout: 8000,
+    });
+
+    const quotes = Array.isArray(response.data?.quotes) ? response.data.quotes : [];
+    const results: AssetSearchResult[] = [];
+    const seen = new Set<string>();
+
+    for (const quote of quotes) {
+      const quoteType = String(quote?.quoteType || '').toUpperCase();
+      const type = SUPPORTED_QUOTE_TYPES.get(quoteType);
+      if (!type) continue;
+
+      let symbol = String(quote?.symbol || '').trim();
+      if (!symbol) continue;
+
+      if (type === AssetType.CRYPTO) {
+        symbol = normalizeCryptoSymbol(symbol);
+      }
+
+      const name = String(quote?.longname || quote?.shortname || quote?.symbol || symbol).trim();
+      const exchange = String(quote?.fullExchangeName || quote?.exchange || quote?.exchDisp || '').trim();
+      const currency = String(quote?.currency || '').trim();
+
+      const key = `${symbol.toUpperCase()}-${type}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      results.push({
+        symbol: symbol.toUpperCase(),
+        name,
+        type,
+        exchange: exchange || undefined,
+        currency: currency || undefined,
+        source: 'yahoo',
+      });
+    }
+
+    if (results.length === 0) return [];
+
+    const existingAssets = await this.prisma.asset.findMany({
+      where: {
+        OR: results.map((result) => ({
+          symbol: result.symbol,
+          type: result.type,
+        })),
+      },
+      select: { id: true, symbol: true, type: true },
+    });
+
+    const existingMap = new Map(
+      existingAssets.map((asset) => [`${asset.symbol}-${asset.type}`, asset.id]),
+    );
+
+    return results.map((result) => ({
+      ...result,
+      assetId: existingMap.get(`${result.symbol}-${result.type}`),
+    }));
   }
 }

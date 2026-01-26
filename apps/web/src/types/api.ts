@@ -430,6 +430,16 @@ export interface Asset {
   prices?: MarketPrice[];
 }
 
+export interface AssetSearchResult {
+  symbol: string;
+  name: string;
+  type: AssetType;
+  exchange?: string;
+  currency?: string;
+  source: string;
+  assetId?: string;
+}
+
 export interface MarketPrice {
   id: string;
   assetId: string;

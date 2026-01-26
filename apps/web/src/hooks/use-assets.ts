@@ -5,6 +5,7 @@ import type {
   CreateAssetDto,
   UpdateAssetDto,
   AssetType,
+  AssetSearchResult,
 } from '@/types/api';
 
 // Query keys
@@ -14,6 +15,7 @@ const assetKeys = {
   list: (filters: { search?: string; type?: string }) => [...assetKeys.lists(), filters] as const,
   details: () => [...assetKeys.all, 'detail'] as const,
   detail: (id: string) => [...assetKeys.details(), id] as const,
+  search: (query: string) => [...assetKeys.all, 'search', query] as const,
 };
 
 // Get all assets
@@ -27,6 +29,17 @@ export function useAssets(filters: { search?: string; type?: AssetType } = {}) {
       const response = await apiClient.get<Asset[]>('/assets', params);
       return response;
     },
+  });
+}
+
+export function useAssetSearch(query: string) {
+  const normalized = query.trim();
+  return useQuery({
+    queryKey: assetKeys.search(normalized),
+    queryFn: async () => {
+      return apiClient.get<AssetSearchResult[]>('/assets/search', { query: normalized });
+    },
+    enabled: normalized.length >= 2,
   });
 }
 
