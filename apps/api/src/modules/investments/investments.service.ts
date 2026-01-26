@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { ExchangeRatesService } from '../exchange-rates/exchange-rates.service';
 import {
   CreateInvestmentOperationDto,
   UpdateInvestmentOperationDto,
@@ -35,7 +36,10 @@ export interface PortfolioSummary {
 
 @Injectable()
 export class InvestmentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly exchangeRatesService: ExchangeRatesService,
+  ) {}
 
   async create(userId: string, dto: CreateInvestmentOperationDto) {
     // Verify asset exists
@@ -300,16 +304,30 @@ export class InvestmentsService {
       }
 
       const averageCost = quantity.gt(0) ? totalCost.div(quantity) : new Decimal(0);
-      const latestPrice = data.asset.prices[0]?.price 
-        ? new Decimal(data.asset.prices[0].price.toString()) 
+      const latestPriceRecord = data.asset.prices[0];
+      const latestPrice = latestPriceRecord?.price
+        ? new Decimal(latestPriceRecord.price.toString())
         : null;
+      const priceCurrency = latestPriceRecord?.currency || data.asset.currency;
+      let effectivePrice: Decimal | null = latestPrice;
 
       let currentValue: Decimal | null = null;
       let unrealizedPnL: Decimal | null = null;
       let unrealizedPnLPercent: Decimal | null = null;
 
       if (latestPrice) {
-        currentValue = quantity.mul(latestPrice);
+        if (priceCurrency !== data.asset.currency) {
+          const converted = await this.exchangeRatesService.convert(
+            latestPrice.toNumber(),
+            priceCurrency,
+            data.asset.currency,
+          );
+          effectivePrice = converted !== null ? new Decimal(converted) : null;
+        }
+      }
+
+      if (effectivePrice) {
+        currentValue = quantity.mul(effectivePrice);
         unrealizedPnL = currentValue.minus(totalCost);
         unrealizedPnLPercent = totalCost.gt(0) 
           ? unrealizedPnL.div(totalCost).mul(100) 
@@ -324,7 +342,7 @@ export class InvestmentsService {
         quantity,
         averageCost,
         totalInvested: totalCost,
-        currentPrice: latestPrice,
+        currentPrice: effectivePrice,
         currentValue,
         unrealizedPnL,
         unrealizedPnLPercent,

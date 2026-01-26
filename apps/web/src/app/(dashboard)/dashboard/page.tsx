@@ -123,13 +123,15 @@ export default function DashboardPage() {
   const { data: recentTransactions, isLoading: recentLoading } = useTransactions({ limit: 5 });
   const { data: chartTransactions, isLoading: chartLoading } = useTransactions({ limit: 500 });
   const [demoMode, setDemoMode] = useState(false);
-  const [onboardingDismissed, setOnboardingDismissed] = useState<boolean | null>(null);
+  const [onboardingDismissed, setOnboardingDismissed] = useState<boolean | null>(() => {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('financeapp.onboardingDismissed') === 'true';
+  });
   const [onboardingReady, setOnboardingReady] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     setDemoMode(localStorage.getItem('financeapp.demoMode') === 'true');
-    setOnboardingDismissed(localStorage.getItem('financeapp.onboardingDismissed') === 'true');
   }, []);
 
   const toggleDemoMode = (value: boolean) => {
