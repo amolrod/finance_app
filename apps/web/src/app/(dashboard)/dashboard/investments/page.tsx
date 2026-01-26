@@ -41,7 +41,7 @@ export default function InvestmentsPage() {
   const [editOperationId, setEditOperationId] = useState<string | null>(null);
   const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null);
   const { toast } = useToast();
-  const { convertAmount, formatAmount, preferredCurrency } = useCurrency();
+  const { convertAmount, formatAmount, convertAndFormat, preferredCurrency } = useCurrency();
   
   const { data: portfolio, isLoading: loadingPortfolio } = usePortfolioSummary();
   const { data: holdings, isLoading: loadingHoldings } = useHoldings();
@@ -251,7 +251,7 @@ export default function InvestmentsPage() {
                 </div>
               </div>
               <p className="text-2xl font-semibold tabular-nums">
-                {loadingPortfolio ? '...' : formatAmount(totalInvested, baseCurrency)}
+                {loadingPortfolio ? '...' : convertAndFormat(totalInvested, baseCurrency)}
               </p>
               <p className="text-[11px] text-muted-foreground mt-0.5">Coste base total</p>
             </CardContent>
@@ -276,7 +276,7 @@ export default function InvestmentsPage() {
                 {loadingPortfolio 
                   ? '...' 
                   : totalCurrentValue !== null 
-                    ? formatAmount(totalCurrentValue, baseCurrency)
+                    ? convertAndFormat(totalCurrentValue, baseCurrency)
                     : 'Sin datos'}
               </p>
               <p className="text-[11px] text-muted-foreground mt-0.5">A precios de mercado</p>
@@ -311,7 +311,7 @@ export default function InvestmentsPage() {
                 {loadingPortfolio 
                   ? '...'
                   : unrealizedPnL !== null 
-                    ? `${unrealizedPnL >= 0 ? '+' : ''}${formatAmount(unrealizedPnL, baseCurrency)}`
+                    ? `${unrealizedPnL >= 0 ? '+' : ''}${convertAndFormat(unrealizedPnL, baseCurrency)}`
                     : 'Sin datos'}
               </p>
               <p className="text-[11px] text-muted-foreground mt-0.5">
@@ -343,7 +343,7 @@ export default function InvestmentsPage() {
               )}>
                 {loadingPortfolio 
                   ? '...'
-                  : `${realizedPnL >= 0 ? '+' : ''}${formatAmount(realizedPnL, baseCurrency)}`}
+                  : `${realizedPnL >= 0 ? '+' : ''}${convertAndFormat(realizedPnL, baseCurrency)}`}
               </p>
               <p className="text-[11px] text-muted-foreground mt-0.5">Ganancias cerradas</p>
             </CardContent>
@@ -392,7 +392,7 @@ export default function InvestmentsPage() {
                           />
                         </div>
                         <span className="text-[13px] text-muted-foreground tabular-nums">
-                          {formatAmount(invested, baseCurrency)}
+                          {convertAndFormat(invested, baseCurrency)}
                         </span>
                         <span className="text-[13px] font-medium tabular-nums w-14 text-right">
                           {percentage.toFixed(1)}%

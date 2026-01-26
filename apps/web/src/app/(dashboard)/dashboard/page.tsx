@@ -124,6 +124,7 @@ export default function DashboardPage() {
   const { data: chartTransactions, isLoading: chartLoading } = useTransactions({ limit: 500 });
   const [demoMode, setDemoMode] = useState(false);
   const [onboardingDismissed, setOnboardingDismissed] = useState<boolean | null>(null);
+  const [onboardingReady, setOnboardingReady] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -248,8 +249,11 @@ export default function DashboardPage() {
   const hasAccounts = (accounts?.length || 0) > 0;
   const hasCategories = (categories?.length || 0) > 0;
   const hasBudgets = (budgets?.length || 0) > 0;
+  const onboardingComplete = hasTransactions && hasAccounts && hasCategories && hasBudgets;
+  const onboardingDataReady =
+    !chartLoading && accounts !== undefined && categories !== undefined && budgets !== undefined;
   const showOnboarding =
-    onboardingDismissed === false && (!hasTransactions || !hasAccounts || !hasCategories);
+    onboardingReady && onboardingDismissed === false && !onboardingComplete;
   const showStatsSkeleton = !demoMode && (summaryLoading || chartLoading);
   const chartIsLoading = chartLoading && !demoMode && !(chartTransactions?.data?.length || 0);
 
@@ -281,6 +285,21 @@ export default function DashboardPage() {
   ];
   const completedSteps = onboardingSteps.filter((step) => step.completed).length;
   const onboardingProgress = Math.round((completedSteps / onboardingSteps.length) * 100);
+
+  useEffect(() => {
+    if (!onboardingDataReady) return;
+    setOnboardingReady(true);
+  }, [onboardingDataReady]);
+
+  useEffect(() => {
+    if (!onboardingDataReady) return;
+    if (onboardingComplete && onboardingDismissed !== true) {
+      setOnboardingDismissed(true);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('financeapp.onboardingDismissed', 'true');
+      }
+    }
+  }, [onboardingComplete, onboardingDataReady, onboardingDismissed]);
 
   const insights = useMemo(() => {
     if (!activeTransactions.length) return [];
