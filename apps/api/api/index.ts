@@ -6,7 +6,7 @@ import { AppModule } from '../src/app.module';
 
 const expressApp = (express as any)();
 
-// Add CORS middleware FIRST - before anything else
+// Add CORS middleware FIRST - before anything else 
 expressApp.use((req: any, res: any, next: any) => {
   const origin = req.headers.origin || 'https://finance-app-web-mu.vercel.app';
   res.setHeader('Access-Control-Allow-Origin', origin);
