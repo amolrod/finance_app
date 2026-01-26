@@ -450,6 +450,24 @@ export interface MarketPrice {
   createdAt: string;
 }
 
+export interface PriceHistoryPoint {
+  date: string;
+  price: number;
+  currency: string;
+}
+
+export interface AssetPriceHistory {
+  assetId: string;
+  symbol: string;
+  currency: string;
+  points: PriceHistoryPoint[];
+}
+
+export interface PriceHistoryResponse {
+  range: string;
+  assets: AssetPriceHistory[];
+}
+
 export interface InvestmentOperation {
   id: string;
   userId: string;
@@ -524,6 +542,50 @@ export interface PortfolioSummary {
   totalRealizedPnL: string;
   holdings: HoldingSummary[];
   byAssetType: Record<string, { invested: string; currentValue: string | null; count: number }>;
+}
+
+export type InvestmentGoalScope = 'PORTFOLIO' | 'ASSET';
+
+export interface InvestmentGoal {
+  id: string;
+  name: string;
+  scope: InvestmentGoalScope;
+  assetId?: string | null;
+  targetAmount: string;
+  currency: string;
+  targetDate?: string | null;
+  alertAt80: boolean;
+  alertAt100: boolean;
+  alert80Sent: boolean;
+  alert100Sent: boolean;
+  achievedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  asset?: Asset | null;
+  currentAmount?: number | null;
+  progressPercent?: number | null;
+}
+
+export interface CreateInvestmentGoalDto {
+  name: string;
+  scope: InvestmentGoalScope;
+  assetId?: string;
+  targetAmount: number;
+  currency?: string;
+  targetDate?: string;
+  alertAt80?: boolean;
+  alertAt100?: boolean;
+}
+
+export interface UpdateInvestmentGoalDto {
+  name?: string;
+  scope?: InvestmentGoalScope;
+  assetId?: string | null;
+  targetAmount?: number;
+  currency?: string;
+  targetDate?: string | null;
+  alertAt80?: boolean;
+  alertAt100?: boolean;
 }
 
 // Import Types

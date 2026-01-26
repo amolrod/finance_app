@@ -20,6 +20,10 @@ import {
   CreateInvestmentOperationDto,
   UpdateInvestmentOperationDto,
   InvestmentOperationQueryDto,
+  CreateInvestmentOperationBatchDto,
+  PriceHistoryQueryDto,
+  CreateInvestmentGoalDto,
+  UpdateInvestmentGoalDto,
 } from './dto';
 
 @ApiTags('Investments')
@@ -39,6 +43,15 @@ export class InvestmentsController {
     @Body() dto: CreateInvestmentOperationDto,
   ) {
     return this.investmentsService.create(req.user.userId, dto);
+  }
+
+  @Post('operations/batch')
+  @ApiOperation({ summary: 'Create multiple investment operations' })
+  createBatch(
+    @Request() req: AuthenticatedRequest,
+    @Body() dto: CreateInvestmentOperationBatchDto,
+  ) {
+    return this.investmentsService.createBatch(req.user.userId, dto.operations);
   }
 
   @Get('operations')
@@ -88,6 +101,52 @@ export class InvestmentsController {
   @ApiOperation({ summary: 'Get portfolio summary' })
   getPortfolio(@Request() req: AuthenticatedRequest) {
     return this.investmentsService.getPortfolioSummary(req.user.userId);
+  }
+
+  @Get('price-history')
+  @ApiOperation({ summary: 'Get price history for assets' })
+  getPriceHistory(
+    @Request() req: AuthenticatedRequest,
+    @Query() query: PriceHistoryQueryDto,
+  ) {
+    const assetIds = query.assetIds
+      ? query.assetIds.split(',').map((id) => id.trim()).filter(Boolean)
+      : undefined;
+    return this.investmentsService.getPriceHistory(req.user.userId, assetIds, query.range);
+  }
+
+  @Get('goals')
+  @ApiOperation({ summary: 'Get investment goals' })
+  getGoals(@Request() req: AuthenticatedRequest) {
+    return this.investmentsService.getGoals(req.user.userId);
+  }
+
+  @Post('goals')
+  @ApiOperation({ summary: 'Create an investment goal' })
+  createGoal(
+    @Request() req: AuthenticatedRequest,
+    @Body() dto: CreateInvestmentGoalDto,
+  ) {
+    return this.investmentsService.createGoal(req.user.userId, dto);
+  }
+
+  @Put('goals/:id')
+  @ApiOperation({ summary: 'Update an investment goal' })
+  updateGoal(
+    @Request() req: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateInvestmentGoalDto,
+  ) {
+    return this.investmentsService.updateGoal(req.user.userId, id, dto);
+  }
+
+  @Delete('goals/:id')
+  @ApiOperation({ summary: 'Delete an investment goal' })
+  removeGoal(
+    @Request() req: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.investmentsService.removeGoal(req.user.userId, id);
   }
 
   @Post('prices/refresh')

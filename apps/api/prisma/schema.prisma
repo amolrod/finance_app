@@ -43,6 +43,7 @@ model User {
   passwordResetTokens PasswordResetToken[]
   auditLogs      AuditLog[]
   recurringTransactions RecurringTransaction[]
+  investmentGoals InvestmentGoal[]
 
   @@index([email])
   @@index([createdAt])
@@ -508,6 +509,38 @@ model MarketPrice {
   @@index([assetId])
   @@index([assetId, fetchedAt])
   @@map("market_prices")
+}
+
+enum InvestmentGoalScope {
+  PORTFOLIO
+  ASSET
+
+  @@map("investment_goal_scope")
+}
+
+model InvestmentGoal {
+  id           String               @id @default(uuid()) @db.Uuid
+  userId       String               @map("user_id") @db.Uuid
+  name         String               @db.VarChar(120)
+  scope        InvestmentGoalScope  @default(PORTFOLIO)
+  assetId      String?              @map("asset_id") @db.Uuid
+  targetAmount Decimal              @map("target_amount") @db.Decimal(18, 2)
+  currency     String               @default("USD") @db.VarChar(3)
+  targetDate   DateTime?            @map("target_date") @db.Timestamptz
+  alertAt80    Boolean              @default(true) @map("alert_at_80")
+  alertAt100   Boolean              @default(true) @map("alert_at_100")
+  alert80Sent  Boolean              @default(false) @map("alert_80_sent")
+  alert100Sent Boolean              @default(false) @map("alert_100_sent")
+  achievedAt   DateTime?            @map("achieved_at") @db.Timestamptz
+  createdAt    DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime             @updatedAt @map("updated_at") @db.Timestamptz
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset Asset? @relation(fields: [assetId], references: [id])
+
+  @@index([userId])
+  @@index([assetId])
+  @@map("investment_goals")
 }
 
 // =====================================================

@@ -7,6 +7,10 @@ import type {
   HoldingSummary,
   PortfolioSummary,
   OperationType,
+  PriceHistoryResponse,
+  InvestmentGoal,
+  CreateInvestmentGoalDto,
+  UpdateInvestmentGoalDto,
 } from '@/types/api';
 
 interface OperationsResponse {
@@ -34,6 +38,14 @@ const investmentKeys = {
   operation: (id: string) => [...investmentKeys.operations(), id] as const,
   holdings: () => [...investmentKeys.all, 'holdings'] as const,
   portfolio: () => [...investmentKeys.all, 'portfolio'] as const,
+  priceHistory: (range: string, assetIds: string[]) => [
+    ...investmentKeys.all,
+    'price-history',
+    range,
+    assetIds.join(','),
+  ] as const,
+  goals: () => [...investmentKeys.all, 'goals'] as const,
+  goal: (id: string) => [...investmentKeys.all, 'goals', id] as const,
 };
 
 // Get all operations
@@ -122,6 +134,73 @@ export function useDeleteInvestmentOperation() {
 
   return useMutation({
     mutationFn: (id: string) => apiClient.delete(`/investments/operations/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: investmentKeys.operations() });
+      queryClient.invalidateQueries({ queryKey: investmentKeys.holdings() });
+      queryClient.invalidateQueries({ queryKey: investmentKeys.portfolio() });
+    },
+  });
+}
+
+export function useInvestmentPriceHistory(assetIds: string[], range: string) {
+  return useQuery({
+    queryKey: investmentKeys.priceHistory(range, assetIds),
+    queryFn: async () => {
+      const params: Record<string, string> = { range };
+      if (assetIds.length > 0) {
+        params.assetIds = assetIds.join(',');
+      }
+      return apiClient.get<PriceHistoryResponse>('/investments/price-history', params);
+    },
+    enabled: assetIds.length > 0,
+  });
+}
+
+export function useInvestmentGoals() {
+  return useQuery({
+    queryKey: investmentKeys.goals(),
+    queryFn: async () => apiClient.get<InvestmentGoal[]>('/investments/goals'),
+  });
+}
+
+export function useCreateInvestmentGoal() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateInvestmentGoalDto) =>
+      apiClient.post<InvestmentGoal>('/investments/goals', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: investmentKeys.goals() });
+    },
+  });
+}
+
+export function useUpdateInvestmentGoal() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateInvestmentGoalDto }) =>
+      apiClient.put<InvestmentGoal>(`/investments/goals/${id}`, data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: investmentKeys.goals() });
+      queryClient.invalidateQueries({ queryKey: investmentKeys.goal(id) });
+    },
+  });
+}
+
+export function useDeleteInvestmentGoal() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => apiClient.delete(`/investments/goals/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: investmentKeys.goals() });
+    },
+  });
+}
+
+export function useCreateInvestmentOperationsBatch() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (operations: CreateInvestmentOperationDto[]) =>
+      apiClient.post<{ created: number }>('/investments/operations/batch', { operations }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: investmentKeys.operations() });
       queryClient.invalidateQueries({ queryKey: investmentKeys.holdings() });

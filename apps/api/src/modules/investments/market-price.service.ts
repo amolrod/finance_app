@@ -17,6 +17,12 @@ interface PriceData {
   marketCap?: number;
 }
 
+interface PriceHistoryPoint {
+  date: string;
+  price: number;
+  currency: string;
+}
+
 // Mapeo de símbolos comunes de cripto a IDs de CoinGecko
 const CRYPTO_ID_MAP: Record<string, string> = {
   'BTC': 'bitcoin',
@@ -56,7 +62,9 @@ const CRYPTO_ID_MAP: Record<string, string> = {
 export class MarketPriceService {
   private readonly logger = new Logger(MarketPriceService.name);
   private priceCache: Map<string, { data: PriceData; timestamp: number }> = new Map();
+  private historyCache: Map<string, { data: PriceHistoryPoint[]; timestamp: number }> = new Map();
   private readonly CACHE_TTL = 60 * 1000; // 1 minuto
+  private readonly HISTORY_CACHE_TTL = 10 * 60 * 1000; // 10 minutos
 
   constructor(
     private readonly prisma: PrismaService,
@@ -504,5 +512,150 @@ export class MarketPriceService {
     }
 
     return results;
+  }
+
+  private resolveHistoryRange(range?: string) {
+    const key = (range || '1Y').toUpperCase();
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const ytdDays = Math.max(
+      1,
+      Math.ceil((now.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000)),
+    );
+
+    switch (key) {
+      case '1W':
+        return { key, yahooRange: '5d', coinGeckoDays: 7 };
+      case '1M':
+        return { key, yahooRange: '1mo', coinGeckoDays: 30 };
+      case '3M':
+        return { key, yahooRange: '3mo', coinGeckoDays: 90 };
+      case '6M':
+        return { key, yahooRange: '6mo', coinGeckoDays: 180 };
+      case '3Y':
+        return { key, yahooRange: '3y', coinGeckoDays: 1095 };
+      case '5Y':
+        return { key, yahooRange: '5y', coinGeckoDays: 1825 };
+      case 'YTD':
+        return { key, yahooRange: 'ytd', coinGeckoDays: ytdDays };
+      case 'ALL':
+        return { key, yahooRange: 'max', coinGeckoDays: 'max' as const };
+      case '1Y':
+      default:
+        return { key: '1Y', yahooRange: '1y', coinGeckoDays: 365 };
+    }
+  }
+
+  private async fetchYahooFinanceHistory(symbol: string, range: string): Promise<PriceHistoryPoint[] | null> {
+    try {
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=${range}`;
+
+      const response = await axios.get(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        },
+        timeout: 10000,
+      });
+
+      const result = response.data?.chart?.result?.[0];
+      if (!result) {
+        this.logger.warn(`Yahoo Finance history: No data for ${symbol}`);
+        return null;
+      }
+
+      const meta = result.meta;
+      const timestamps: number[] = result.timestamp || [];
+      const closes: number[] = result.indicators?.quote?.[0]?.close || [];
+
+      const rawCurrency = meta.currency || 'USD';
+      const isPence = rawCurrency === 'GBp' || rawCurrency === 'GBX';
+      const currency = isPence ? 'GBP' : rawCurrency;
+      const scale = isPence ? 0.01 : 1;
+
+      const points: PriceHistoryPoint[] = [];
+
+      timestamps.forEach((timestamp, index) => {
+        const close = closes[index];
+        if (close === null || close === undefined) return;
+        const date = new Date(timestamp * 1000).toISOString().split('T')[0];
+        const price = Math.round(close * scale * 10000) / 10000;
+        points.push({ date, price, currency });
+      });
+
+      return points;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        this.logger.warn(`Yahoo Finance history error for ${symbol}: ${error.message}`);
+      }
+      return null;
+    }
+  }
+
+  private async fetchCoinGeckoHistory(
+    symbol: string,
+    days: number | 'max',
+  ): Promise<PriceHistoryPoint[] | null> {
+    try {
+      const coinId = CRYPTO_ID_MAP[symbol.toUpperCase()];
+      if (!coinId) {
+        this.logger.debug(`CoinGecko history: Unknown crypto symbol ${symbol}`);
+        return null;
+      }
+
+      const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`;
+      const response = await axios.get(url, { timeout: 10000 });
+      const prices: [number, number][] = response.data?.prices || [];
+      if (!prices.length) {
+        this.logger.warn(`CoinGecko history: No data for ${symbol} (${coinId})`);
+        return null;
+      }
+
+      const dailyMap = new Map<string, number>();
+      prices.forEach(([timestamp, price]) => {
+        const date = new Date(timestamp).toISOString().split('T')[0];
+        dailyMap.set(date, price);
+      });
+
+      const points: PriceHistoryPoint[] = Array.from(dailyMap.entries()).map(([date, price]) => ({
+        date,
+        price: Math.round(price * 1000000) / 1000000,
+        currency: 'USD',
+      }));
+
+      return points.sort((a, b) => a.date.localeCompare(b.date));
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        this.logger.warn(`CoinGecko history error for ${symbol}: ${error.message}`);
+      }
+      return null;
+    }
+  }
+
+  async fetchPriceHistory(symbol: string, type: string, range?: string): Promise<PriceHistoryPoint[]> {
+    const upperSymbol = symbol.toUpperCase();
+    const { key, yahooRange, coinGeckoDays } = this.resolveHistoryRange(range);
+    const cacheKey = `${upperSymbol}-${type}-${key}`;
+
+    const cached = this.historyCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < this.HISTORY_CACHE_TTL) {
+      return cached.data;
+    }
+
+    let history: PriceHistoryPoint[] | null = null;
+
+    if (type === 'CRYPTO') {
+      history = await this.fetchCoinGeckoHistory(upperSymbol, coinGeckoDays);
+    }
+
+    if (!history) {
+      history = await this.fetchYahooFinanceHistory(upperSymbol, yahooRange);
+    }
+
+    const points = history || [];
+    if (points.length > 0) {
+      this.historyCache.set(cacheKey, { data: points, timestamp: Date.now() });
+    }
+
+    return points;
   }
 }
