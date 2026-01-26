@@ -630,8 +630,10 @@ export default function TransactionsPage() {
                 </Button>
               </DialogFooter>
             </form>
-          </DialogContent>
-        </Dialog>
+              </DialogContent>
+            </Dialog>
+          }
+        />
       </motion.div>
 
       {!isLoading && transactions?.data?.length ? (
