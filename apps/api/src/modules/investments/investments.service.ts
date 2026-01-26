@@ -296,15 +296,22 @@ export class InvestmentsService {
         const opQty = new Decimal(op.quantity.toString());
         const opPrice = new Decimal(op.pricePerUnit.toString());
         const opFees = new Decimal(op.fees.toString());
+        const isZeroQty = opQty.lte(0);
 
         switch (op.type) {
           case OperationType.BUY:
+            if (isZeroQty) {
+              continue;
+            }
             lots.push({ quantity: opQty, costPerUnit: opPrice.plus(opFees.div(opQty)) });
             quantity = quantity.plus(opQty);
             totalCost = totalCost.plus(opQty.mul(opPrice)).plus(opFees);
             break;
 
           case OperationType.SELL:
+            if (isZeroQty) {
+              continue;
+            }
             // FIFO: sell from oldest lots first
             let remainingToSell = opQty;
             let costBasis = new Decimal(0);
@@ -333,6 +340,9 @@ export class InvestmentsService {
             break;
 
           case OperationType.SPLIT:
+            if (isZeroQty) {
+              continue;
+            }
             // Adjust quantity and lot sizes
             const splitRatio = opQty;
             quantity = quantity.mul(splitRatio);

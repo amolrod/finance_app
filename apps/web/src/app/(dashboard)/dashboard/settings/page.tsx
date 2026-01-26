@@ -353,6 +353,7 @@ export default function SettingsPage() {
                 <Input
                   id="currentPassword"
                   type="password"
+                  autoComplete="current-password"
                   {...passwordForm.register('currentPassword')}
                 />
                 {passwordForm.formState.errors.currentPassword && (
@@ -367,6 +368,7 @@ export default function SettingsPage() {
                   <Input
                     id="newPassword"
                     type="password"
+                    autoComplete="new-password"
                     {...passwordForm.register('newPassword')}
                   />
                   {passwordForm.formState.errors.newPassword && (
@@ -380,6 +382,7 @@ export default function SettingsPage() {
                   <Input
                     id="confirmPassword"
                     type="password"
+                    autoComplete="new-password"
                     {...passwordForm.register('confirmPassword')}
                   />
                   {passwordForm.formState.errors.confirmPassword && (
@@ -777,6 +780,7 @@ export default function SettingsPage() {
                         <Input
                           id="deletePassword"
                           type="password"
+                          autoComplete="current-password"
                           {...deleteForm.register('password')}
                           placeholder="Introduce tu contraseña"
                         />
