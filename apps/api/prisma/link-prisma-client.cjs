@@ -2,16 +2,54 @@ const fs = require("fs");
 const path = require("path");
 
 const projectRoot = path.resolve(__dirname, "..");
-const prismaDir = path.join(projectRoot, "node_modules", ".prisma");
-const clientDir = path.join(projectRoot, "node_modules", "@prisma", "client");
 
-if (!fs.existsSync(prismaDir)) {
-  console.warn("[prisma] Missing node_modules/.prisma, skipping client link.");
+const findWorkspaceRoot = (startDir) => {
+  let dir = startDir;
+  while (true) {
+    const pkgPath = path.join(dir, "package.json");
+    if (fs.existsSync(pkgPath)) {
+      try {
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
+        if (pkg && pkg.workspaces) {
+          return dir;
+        }
+      } catch (error) {
+        // Ignore parse errors and continue up.
+      }
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) {
+      return startDir;
+    }
+    dir = parent;
+  }
+};
+
+const workspaceRoot = findWorkspaceRoot(projectRoot);
+const prismaDirCandidates = [
+  path.join(projectRoot, "node_modules", ".prisma"),
+  path.join(workspaceRoot, "node_modules", ".prisma"),
+];
+const prismaDir = prismaDirCandidates.find((candidate) =>
+  fs.existsSync(candidate)
+);
+
+if (!prismaDir) {
+  console.warn(
+    `[prisma] Missing node_modules/.prisma, tried: ${prismaDirCandidates.join(
+      ", "
+    )}`
+  );
   process.exit(0);
 }
 
-if (!fs.existsSync(clientDir)) {
-  console.warn("[prisma] Missing node_modules/@prisma/client, skipping client link.");
+let clientDir;
+try {
+  clientDir = path.dirname(
+    require.resolve("@prisma/client/package.json", { paths: [projectRoot] })
+  );
+} catch (error) {
+  console.warn("[prisma] Missing @prisma/client, skipping client link.");
   process.exit(0);
 }
 
@@ -32,9 +70,9 @@ try {
 
 try {
   fs.symlinkSync(prismaDir, linkPath, "junction");
-  console.log("[prisma] Linked @prisma/client/.prisma -> node_modules/.prisma");
+  console.log(`[prisma] Linked @prisma/client/.prisma -> ${prismaDir}`);
 } catch (error) {
   fs.mkdirSync(linkPath, { recursive: true });
   fs.cpSync(prismaDir, linkPath, { recursive: true });
-  console.log("[prisma] Copied node_modules/.prisma into @prisma/client/.prisma");
+  console.log(`[prisma] Copied ${prismaDir} into @prisma/client/.prisma`);
 }
