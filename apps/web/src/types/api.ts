@@ -250,6 +250,11 @@ export interface TransactionListResponse {
   netAmount: string;
 }
 
+export interface BatchDeleteTransactionsResponse {
+  deletedIds: string[];
+  failedIds: string[];
+}
+
 // Tags
 export interface Tag {
   id: string;

@@ -123,7 +123,7 @@ export default function DashboardPage() {
   const { data: recentTransactions, isLoading: recentLoading } = useTransactions({ limit: 5 });
   const { data: chartTransactions, isLoading: chartLoading } = useTransactions({ limit: 500 });
   const [demoMode, setDemoMode] = useState(false);
-  const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+  const [onboardingDismissed, setOnboardingDismissed] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -248,7 +248,8 @@ export default function DashboardPage() {
   const hasAccounts = (accounts?.length || 0) > 0;
   const hasCategories = (categories?.length || 0) > 0;
   const hasBudgets = (budgets?.length || 0) > 0;
-  const showOnboarding = !onboardingDismissed && (!hasTransactions || !hasAccounts || !hasCategories);
+  const showOnboarding =
+    onboardingDismissed === false && (!hasTransactions || !hasAccounts || !hasCategories);
   const showStatsSkeleton = !demoMode && (summaryLoading || chartLoading);
   const chartIsLoading = chartLoading && !demoMode && !(chartTransactions?.data?.length || 0);
 
@@ -392,7 +393,7 @@ export default function DashboardPage() {
           >
             {demoMode ? 'Demo activa' : 'Cargar demo'}
           </Button>
-          {onboardingDismissed && (
+          {onboardingDismissed === true && (
             <Button size="sm" variant="ghost" onClick={restoreOnboarding}>
               Mostrar guia
             </Button>

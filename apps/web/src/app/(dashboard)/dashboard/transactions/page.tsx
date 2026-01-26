@@ -48,7 +48,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import type { TransactionType, TransactionFilters, Transaction } from '@/types/api';
+import type { TransactionType, TransactionFilters, Transaction, BatchDeleteTransactionsResponse } from '@/types/api';
 import { BatchActionsBar, useSelection } from '@/components/ui/batch-actions';
 import { useCurrency } from '@/contexts/currency-context';
 import { COLOR_PALETTE } from '@/lib/color-palettes';
@@ -342,56 +342,38 @@ export default function TransactionsPage() {
   // Batch action handlers - confirmation handled by BatchActionsBar
   const handleBatchDelete = useCallback(async (items: Transaction[]) => {
     if (!items.length) return;
-    const ids = items.map((item) => item.id);
+    const ids = Array.from(new Set(items.map((item) => item.id)));
     setIsBatchDeleting(true);
     setBatchDeleteProgress({ current: 0, total: ids.length, failed: 0 });
-    const previousQueries: { queryKey: readonly unknown[]; data: unknown }[] = [];
-
-    queryClient.getQueriesData({ queryKey: transactionKeys.lists() }).forEach(([queryKey, data]) => {
-      previousQueries.push({ queryKey, data });
-      if (data && typeof data === 'object' && 'data' in data) {
-        const listData = data as { data: Transaction[]; total: number };
-        const nextData = listData.data.filter((t) => !ids.includes(t.id));
-        queryClient.setQueryData(queryKey, {
-          ...listData,
-          data: nextData,
-          total: Math.max(0, listData.total - (listData.data.length - nextData.length)),
-        });
-      }
-    });
 
     try {
-      let failed = 0;
-      for (let i = 0; i < ids.length; i += 1) {
-        try {
-          await apiClient.delete(`/transactions/${ids[i]}`);
-        } catch {
-          failed += 1;
-        }
-        setBatchDeleteProgress({ current: i + 1, total: ids.length, failed });
-      }
-      
-      if (failed > 0) {
+      const response = await apiClient.post<BatchDeleteTransactionsResponse>(
+        '/transactions/batch-delete',
+        { ids },
+      );
+      const deletedCount = response?.deletedIds?.length || 0;
+      const failedCount = response?.failedIds?.length || 0;
+      const processed = Math.min(ids.length, deletedCount + failedCount);
+      setBatchDeleteProgress({ current: processed, total: ids.length, failed: failedCount });
+
+      if (failedCount > 0) {
         toast({
           title: 'Eliminación parcial',
-          description: `Se eliminaron ${ids.length - failed} de ${ids.length} transacciones.`,
+          description: `Se eliminaron ${deletedCount} de ${ids.length} transacciones.`,
           variant: 'destructive',
         });
       } else {
         toast({
           title: 'Transacciones eliminadas',
-          description: `Se han revertido ${ids.length} transacciones.`,
+          description: `Se han revertido ${deletedCount} transacciones.`,
         });
       }
       logAuditEvent({
         action: 'Transacciones eliminadas',
-        detail: `${ids.length} transacciones`,
+        detail: `${deletedCount} transacciones`,
       });
       selection.clearSelection();
     } catch (error) {
-      previousQueries.forEach(({ queryKey, data }) => {
-        queryClient.setQueryData(queryKey, data);
-      });
       toast({
         title: 'Error',
         description: 'No se pudieron eliminar algunas transacciones.',

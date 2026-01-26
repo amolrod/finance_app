@@ -393,6 +393,113 @@ export class TransactionsService {
   }
 
   /**
+   * Batch soft delete transactions with balance reversal
+   */
+  async removeMany(
+    userId: string,
+    transactionIds: string[],
+  ): Promise<{ deletedIds: string[]; failedIds: string[] }> {
+    const uniqueIds = Array.from(new Set(transactionIds.filter(Boolean)));
+    if (uniqueIds.length === 0) {
+      return { deletedIds: [], failedIds: [] };
+    }
+
+    const transactions = await this.prisma.transaction.findMany({
+      where: { id: { in: uniqueIds }, userId, deletedAt: null },
+      select: {
+        id: true,
+        amount: true,
+        type: true,
+        accountId: true,
+        transferToAccountId: true,
+        categoryId: true,
+        occurredAt: true,
+      },
+    });
+
+    const foundIds = new Set(transactions.map((t) => t.id));
+    const failedIds = uniqueIds.filter((id) => !foundIds.has(id));
+
+    if (transactions.length === 0) {
+      return { deletedIds: [], failedIds };
+    }
+
+    const accountDeltas = new Map<string, Decimal>();
+    const budgetUpdates = new Map<string, { categoryId: string; occurredAt: Date }>();
+
+    const addDelta = (accountId: string | null | undefined, delta: Decimal) => {
+      if (!accountId) return;
+      const current = accountDeltas.get(accountId) || new Decimal(0);
+      accountDeltas.set(accountId, current.plus(delta));
+    };
+
+    const periodKey = (categoryId: string, date: Date) =>
+      `${categoryId}-${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
+
+    transactions.forEach((transaction) => {
+      const amount = new Decimal(transaction.amount.toString());
+      switch (transaction.type) {
+        case TransactionType.INCOME:
+          addDelta(transaction.accountId, amount.negated());
+          break;
+        case TransactionType.EXPENSE:
+          addDelta(transaction.accountId, amount);
+          break;
+        case TransactionType.TRANSFER:
+          addDelta(transaction.accountId, amount);
+          if (transaction.transferToAccountId) {
+            addDelta(transaction.transferToAccountId, amount.negated());
+          }
+          break;
+        default:
+          break;
+      }
+
+      if (transaction.type === TransactionType.EXPENSE && transaction.categoryId) {
+        const key = periodKey(transaction.categoryId, transaction.occurredAt);
+        if (!budgetUpdates.has(key)) {
+          budgetUpdates.set(key, {
+            categoryId: transaction.categoryId,
+            occurredAt: transaction.occurredAt,
+          });
+        }
+      }
+    });
+
+    await this.prisma.$transaction(async (tx) => {
+      for (const [accountId, delta] of accountDeltas.entries()) {
+        await tx.account.updateMany({
+          where: { id: accountId },
+          data: { currentBalance: { increment: new Prisma.Decimal(delta.toFixed(2)) } },
+        });
+      }
+
+      await tx.transaction.updateMany({
+        where: { id: { in: transactions.map((t) => t.id) }, userId },
+        data: {
+          deletedAt: new Date(),
+          status: 'REVERSED',
+        },
+      });
+    });
+
+    if (budgetUpdates.size > 0) {
+      await Promise.all(
+        Array.from(budgetUpdates.values()).map((update) =>
+          this.budgetsService.updateSpentAmount(userId, update.categoryId, update.occurredAt),
+        ),
+      );
+    }
+
+    this.logger.log(`Transactions batch deleted: ${transactions.length} for user ${userId}`);
+    if (failedIds.length) {
+      this.logger.warn(`Batch delete skipped ${failedIds.length} missing transactions`);
+    }
+
+    return { deletedIds: transactions.map((t) => t.id), failedIds };
+  }
+
+  /**
    * Export transactions as CSV
    */
   async exportCsv(userId: string, query: TransactionQueryDto): Promise<string> {
@@ -435,48 +542,40 @@ export class TransactionsService {
     transferToAccountId: string | null | undefined,
     amount: Decimal,
   ): Promise<void> {
-    const account = await tx.account.findUnique({ where: { id: accountId } });
-    if (!account) return;
-
-    let newBalance: Decimal;
+    const toPrismaDecimal = (value: Decimal) => new Prisma.Decimal(value.toFixed(2));
 
     switch (type) {
-      case TransactionType.INCOME:
-        newBalance = new Decimal(account.currentBalance.toString()).plus(amount);
-        break;
-      case TransactionType.EXPENSE:
-        newBalance = new Decimal(account.currentBalance.toString()).minus(amount);
-        break;
-      case TransactionType.TRANSFER:
-        // Subtract from source
-        newBalance = new Decimal(account.currentBalance.toString()).minus(amount);
-        await tx.account.update({
+      case TransactionType.INCOME: {
+        await tx.account.updateMany({
           where: { id: accountId },
-          data: { currentBalance: new Prisma.Decimal(newBalance.toFixed(2)) },
+          data: { currentBalance: { increment: toPrismaDecimal(amount) } },
+        });
+        return;
+      }
+      case TransactionType.EXPENSE: {
+        await tx.account.updateMany({
+          where: { id: accountId },
+          data: { currentBalance: { increment: toPrismaDecimal(amount.negated()) } },
+        });
+        return;
+      }
+      case TransactionType.TRANSFER: {
+        await tx.account.updateMany({
+          where: { id: accountId },
+          data: { currentBalance: { increment: toPrismaDecimal(amount.negated()) } },
         });
 
-        // Add to destination
         if (transferToAccountId) {
-          const destAccount = await tx.account.findUnique({
+          await tx.account.updateMany({
             where: { id: transferToAccountId },
+            data: { currentBalance: { increment: toPrismaDecimal(amount) } },
           });
-          if (destAccount) {
-            const destBalance = new Decimal(destAccount.currentBalance.toString()).plus(amount);
-            await tx.account.update({
-              where: { id: transferToAccountId },
-              data: { currentBalance: new Prisma.Decimal(destBalance.toFixed(2)) },
-            });
-          }
         }
         return;
+      }
       default:
         return;
     }
-
-    await tx.account.update({
-      where: { id: accountId },
-      data: { currentBalance: new Prisma.Decimal(newBalance.toFixed(2)) },
-    });
   }
 
   /**

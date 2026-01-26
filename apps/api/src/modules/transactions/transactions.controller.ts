@@ -30,6 +30,7 @@ import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { TransactionQueryDto } from './dto/transaction-query.dto';
 import { TransactionResponseDto, TransactionListResponseDto } from './dto/transaction-response.dto';
+import { BatchDeleteTransactionsDto } from './dto/batch-delete-transactions.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AuthenticatedRequest } from '../auth/interfaces/authenticated-request.interface';
 
@@ -66,6 +67,20 @@ export class TransactionsController {
     @Query() query: TransactionQueryDto,
   ): Promise<TransactionListResponseDto> {
     return this.transactionsService.findAll(req.user.userId, query);
+  }
+
+  @Post('batch-delete')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Batch delete transactions (soft delete with reversal)' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Batch delete results',
+  })
+  async removeMany(
+    @Request() req: AuthenticatedRequest,
+    @Body() dto: BatchDeleteTransactionsDto,
+  ): Promise<{ deletedIds: string[]; failedIds: string[] }> {
+    return this.transactionsService.removeMany(req.user.userId, dto.ids);
   }
 
   @Get('export/csv')
