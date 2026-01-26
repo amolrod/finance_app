@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Plus, DollarSign, PieChart, BarChart3, RefreshCcw, Clock, Briefcase, ChevronRight } from 'lucide-react';
+import { ResponsiveContainer, PieChart as RePieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -141,6 +142,16 @@ export default function InvestmentsPage() {
     });
     return summary;
   }, [holdingsData, baseCurrency, convertAmount, isSingleCurrency]);
+
+  const allocationChartData = useMemo(() => {
+    return Object.entries(byAssetType).map(([type, data]) => ({
+      type,
+      name: assetTypeLabels[type as AssetType] || type,
+      invested: data.invested,
+      currentValue: data.currentValue ?? data.invested,
+      color: assetTypeColors[type as AssetType] || COLOR_PALETTE[3],
+    }));
+  }, [byAssetType]);
 
   const unrealizedPnLPercent = totalInvested > 0 && unrealizedPnL !== null
     ? (unrealizedPnL / totalInvested) * 100
@@ -408,7 +419,7 @@ export default function InvestmentsPage() {
         </motion.div>
       )}
 
-      {/* Tabs: Holdings / Operations - Estilo segmented control Apple */}
+      {/* Tabs: Holdings / Operations / Charts - Estilo segmented control Apple */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -418,6 +429,7 @@ export default function InvestmentsPage() {
           <TabsList className="h-9 p-0.5 bg-background/80 border border-foreground/10 shadow-soft">
             <TabsTrigger value="holdings" className="text-[13px] h-8 px-4">Posiciones</TabsTrigger>
             <TabsTrigger value="operations" className="text-[13px] h-8 px-4">Historial</TabsTrigger>
+            <TabsTrigger value="charts" className="text-[13px] h-8 px-4">Gráficos</TabsTrigger>
           </TabsList>
 
           <TabsContent value="holdings" className="space-y-4">
@@ -426,6 +438,68 @@ export default function InvestmentsPage() {
 
           <TabsContent value="operations" className="space-y-4">
             <OperationsTable onEdit={handleEdit} />
+          </TabsContent>
+
+          <TabsContent value="charts" className="space-y-4">
+            {allocationChartData.length === 0 ? (
+              <Card className="bg-background/80 border-foreground/10 shadow-soft">
+                <CardContent className="flex items-center justify-center h-32">
+                  <p className="text-muted-foreground">No hay datos suficientes para mostrar gráficos.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4 lg:grid-cols-2">
+                <Card className="bg-background/80 border-foreground/10 shadow-soft">
+                  <CardHeader>
+                    <CardTitle className="text-[15px] font-medium">Distribución del Portafolio</CardTitle>
+                    <CardDescription className="text-[13px]">Peso por tipo de activo</CardDescription>
+                  </CardHeader>
+                  <CardContent className="h-[280px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RePieChart>
+                        <Pie
+                          data={allocationChartData}
+                          dataKey="currentValue"
+                          nameKey="name"
+                          innerRadius={55}
+                          outerRadius={95}
+                          paddingAngle={2}
+                        >
+                          {allocationChartData.map((entry) => (
+                            <Cell key={entry.type} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={(value: number) => convertAndFormat(value, baseCurrency)}
+                        />
+                      </RePieChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-background/80 border-foreground/10 shadow-soft">
+                  <CardHeader>
+                    <CardTitle className="text-[15px] font-medium">Invertido vs Valor actual</CardTitle>
+                    <CardDescription className="text-[13px]">Comparativa por tipo</CardDescription>
+                  </CardHeader>
+                  <CardContent className="h-[280px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={allocationChartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                        <YAxis tickFormatter={(value) => convertAndFormat(value, baseCurrency)} width={80} />
+                        <Tooltip
+                          formatter={(value: number) => convertAndFormat(value, baseCurrency)}
+                        />
+                        <Legend />
+                        <Bar dataKey="invested" name="Invertido" fill="hsl(var(--chart-2))" radius={[6, 6, 0, 0]} />
+                        <Bar dataKey="currentValue" name="Valor actual" fill="hsl(var(--chart-1))" radius={[6, 6, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </motion.div>

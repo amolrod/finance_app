@@ -308,17 +308,20 @@ export class InvestmentsService {
       const latestPrice = latestPriceRecord?.price
         ? new Decimal(latestPriceRecord.price.toString())
         : null;
-      const priceCurrency = latestPriceRecord?.currency || data.asset.currency;
-      let effectivePrice: Decimal | null = latestPrice;
+      const priceCurrencyRaw = latestPriceRecord?.currency || data.asset.currency;
+      const isPence = priceCurrencyRaw === 'GBp' || priceCurrencyRaw === 'GBX';
+      const priceCurrency = isPence ? 'GBP' : priceCurrencyRaw;
+      const normalizedPrice = isPence && latestPrice ? latestPrice.div(100) : latestPrice;
+      let effectivePrice: Decimal | null = normalizedPrice;
 
       let currentValue: Decimal | null = null;
       let unrealizedPnL: Decimal | null = null;
       let unrealizedPnLPercent: Decimal | null = null;
 
-      if (latestPrice) {
+      if (normalizedPrice) {
         if (priceCurrency !== data.asset.currency) {
           const converted = await this.exchangeRatesService.convert(
-            latestPrice.toNumber(),
+            normalizedPrice.toNumber(),
             priceCurrency,
             data.asset.currency,
           );

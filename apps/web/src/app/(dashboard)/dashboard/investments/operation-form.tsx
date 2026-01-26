@@ -326,7 +326,7 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[680px] md:max-w-[760px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {editId ? 'Editar Operación' : 'Nueva Operación'}

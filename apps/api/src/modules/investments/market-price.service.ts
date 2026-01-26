@@ -87,20 +87,35 @@ export class MarketPriceService {
       const meta = result.meta;
       const quote = result.indicators?.quote?.[0];
       
-      const currentPrice = meta.regularMarketPrice || meta.previousClose;
-      const previousClose = meta.previousClose || currentPrice;
+      const rawCurrency = meta.currency || 'USD';
+      const isPence = rawCurrency === 'GBp' || rawCurrency === 'GBX';
+      const currency = isPence ? 'GBP' : rawCurrency;
+      const scale = isPence ? 0.01 : 1;
+
+      const rawCurrent = meta.regularMarketPrice || meta.previousClose;
+      if (rawCurrent === undefined || rawCurrent === null) {
+        this.logger.warn(`Yahoo Finance: Missing price for ${symbol}`);
+        return null;
+      }
+
+      const currentPrice = rawCurrent * scale;
+      const previousClose = (meta.previousClose || rawCurrent) * scale;
       const change = currentPrice - previousClose;
       const changePercent = previousClose > 0 ? (change / previousClose) * 100 : 0;
 
       return {
         symbol: symbol.toUpperCase(),
         price: Math.round(currentPrice * 100) / 100,
-        currency: meta.currency || 'USD',
+        currency,
         source: 'yahoo-finance',
         change24h: Math.round(change * 100) / 100,
         changePercent24h: Math.round(changePercent * 100) / 100,
-        high24h: quote?.high?.[0] ? Math.round(quote.high[0] * 100) / 100 : undefined,
-        low24h: quote?.low?.[0] ? Math.round(quote.low[0] * 100) / 100 : undefined,
+        high24h: quote?.high?.[0]
+          ? Math.round(quote.high[0] * scale * 100) / 100
+          : undefined,
+        low24h: quote?.low?.[0]
+          ? Math.round(quote.low[0] * scale * 100) / 100
+          : undefined,
         volume24h: quote?.volume?.[0],
         marketCap: meta.marketCap,
       };
@@ -161,7 +176,12 @@ export class MarketPriceService {
    * Fetch price for a single asset
    * Tries real APIs first, falls back to reference price
    */
-  async fetchPrice(symbol: string, type: string, referencePrice?: number): Promise<PriceData | null> {
+  async fetchPrice(
+    symbol: string,
+    type: string,
+    referencePrice?: number,
+    referenceCurrency?: string,
+  ): Promise<PriceData | null> {
     const upperSymbol = symbol.toUpperCase();
     
     // Check cache first
@@ -194,11 +214,15 @@ export class MarketPriceService {
     // Fallback: use reference price with simulated variation
     if (!priceData && referencePrice && referencePrice > 0) {
       this.logger.debug(`Using reference price for ${upperSymbol}`);
+      const rawCurrency = referenceCurrency || 'USD';
+      const isPence = rawCurrency === 'GBp' || rawCurrency === 'GBX';
+      const currency = isPence ? 'GBP' : rawCurrency;
+      const scale = isPence ? 0.01 : 1;
       const variation = 1 + (Math.random() - 0.5) * 0.02; // ±1%
       priceData = {
         symbol: upperSymbol,
-        price: Math.round(referencePrice * variation * 100) / 100,
-        currency: 'USD',
+        price: Math.round(referencePrice * scale * variation * 100) / 100,
+        currency,
         source: 'reference-estimate',
       };
     }
@@ -288,7 +312,12 @@ export class MarketPriceService {
           if (totalQty > 0) referencePrice = totalValue / totalQty;
         }
 
-        const priceData = await this.fetchPrice(asset.symbol, asset.type, referencePrice);
+        const priceData = await this.fetchPrice(
+          asset.symbol,
+          asset.type,
+          referencePrice,
+          asset.currency,
+        );
         if (priceData) {
           await this.savePrice(asset.id, priceData);
           updated++;
@@ -347,7 +376,12 @@ export class MarketPriceService {
           if (totalQty > 0) referencePrice = totalValue / totalQty;
         }
 
-        const priceData = await this.fetchPrice(asset.symbol, asset.type, referencePrice);
+        const priceData = await this.fetchPrice(
+          asset.symbol,
+          asset.type,
+          referencePrice,
+          asset.currency,
+        );
         
         if (priceData) {
           await this.savePrice(asset.id, priceData);

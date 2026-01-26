@@ -31,6 +31,12 @@ const normalizeCryptoSymbol = (symbol: string) => {
   return upper;
 };
 
+const normalizeCurrency = (currency?: string) => {
+  if (!currency) return undefined;
+  if (currency === 'GBp' || currency === 'GBX') return 'GBP';
+  return currency.toUpperCase();
+};
+
 @Injectable()
 export class AssetsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -193,7 +199,7 @@ export class AssetsService {
 
       const name = String(quote?.longname || quote?.shortname || quote?.symbol || symbol).trim();
       const exchange = String(quote?.fullExchangeName || quote?.exchange || quote?.exchDisp || '').trim();
-      const currency = String(quote?.currency || '').trim();
+      const currency = normalizeCurrency(String(quote?.currency || '').trim()) || undefined;
 
       const key = `${symbol.toUpperCase()}-${type}`;
       if (seen.has(key)) continue;
