@@ -82,8 +82,8 @@ export function FinanceStatCard({
 }: FinanceStatCardProps) {
   const iconColors = {
     default: 'text-muted-foreground bg-secondary',
-    success: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30',
-    danger: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30',
+    success: 'text-success bg-success/10',
+    danger: 'text-destructive bg-destructive/10',
     primary: 'text-primary bg-primary/10',
   };
 
@@ -112,7 +112,7 @@ export function FinanceStatCard({
               <span
                 className={cn(
                   'inline-flex items-center gap-1 text-xs font-medium',
-                  trend.value >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+                  trend.value >= 0 ? 'text-success' : 'text-destructive'
                 )}
               >
                 {trend.value >= 0 ? (
@@ -201,12 +201,12 @@ export function BalanceHeroCard({
           className="mt-6 flex items-center gap-6 text-sm text-zinc-400"
         >
           <span className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            <span className="h-2 w-2 rounded-full bg-success" />
             {accountCount} cuentas
           </span>
           {currencyCount && currencyCount > 1 && (
             <span className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-blue-500" />
+              <span className="h-2 w-2 rounded-full bg-primary/70" />
               {currencyCount} monedas
             </span>
           )}
@@ -234,14 +234,14 @@ export function QuickAction({
 }: QuickActionProps) {
   const colors = {
     default: 'bg-secondary hover:bg-secondary/80 text-foreground',
-    success: 'bg-emerald-50 dark:bg-emerald-950/30 hover:bg-emerald-100 dark:hover:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400',
-    danger: 'bg-red-50 dark:bg-red-950/30 hover:bg-red-100 dark:hover:bg-red-950/50 text-red-700 dark:text-red-400',
+    success: 'bg-success/10 hover:bg-success/15 text-success',
+    danger: 'bg-destructive/10 hover:bg-destructive/15 text-destructive',
   };
 
   const iconColors = {
     default: 'bg-background text-foreground',
-    success: 'bg-emerald-600 text-white',
-    danger: 'bg-red-600 text-white',
+    success: 'bg-success text-success-foreground',
+    danger: 'bg-destructive text-destructive-foreground',
   };
 
   return (
@@ -289,18 +289,18 @@ export function TransactionItem({
 }: TransactionItemProps) {
   const colors = {
     income: {
-      bg: 'bg-emerald-50 dark:bg-emerald-950/30',
-      icon: 'text-emerald-600 dark:text-emerald-400',
-      amount: 'text-emerald-600 dark:text-emerald-400',
+      bg: 'bg-success/10',
+      icon: 'text-success',
+      amount: 'text-success',
     },
     expense: {
-      bg: 'bg-red-50 dark:bg-red-950/30',
-      icon: 'text-red-600 dark:text-red-400',
-      amount: 'text-red-600 dark:text-red-400',
+      bg: 'bg-destructive/10',
+      icon: 'text-destructive',
+      amount: 'text-destructive',
     },
     transfer: {
-      bg: 'bg-blue-50 dark:bg-blue-950/30',
-      icon: 'text-blue-600 dark:text-blue-400',
+      bg: 'bg-secondary/70',
+      icon: 'text-muted-foreground',
       amount: 'text-foreground',
     },
   };

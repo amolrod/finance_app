@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTags, useCreateTag, useDeleteTag } from '@/hooks/use-tags';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { PageHeader } from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -114,22 +115,81 @@ export default function TagsPage() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between"
       >
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary">
-            <Hash className="h-5 w-5 text-foreground/70" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Etiquetas</h1>
-            <p className="text-[13px] text-muted-foreground">
-              Organiza tus transacciones con etiquetas
-            </p>
-          </div>
-        </div>
-        
-        {/* Stats card */}
-        <div className="flex items-center gap-2.5 rounded-lg bg-secondary border border-border/40 px-3 py-2">
+        <PageHeader
+          title="Etiquetas"
+          description="Organiza tus transacciones con etiquetas"
+          icon={<Hash className="h-5 w-5" />}
+          action={
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="h-9 text-[13px]">
+                  <Plus className="mr-1.5 h-4 w-4" />
+                  Nueva Etiqueta
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle className="text-[17px]">Crear Nueva Etiqueta</DialogTitle>
+                  <DialogDescription className="text-[13px]">
+                    Las etiquetas te ayudan a filtrar transacciones
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Nombre</Label>
+                      <Input
+                        id="name"
+                        placeholder="Ej: Vacaciones"
+                        {...register('name')}
+                        error={errors.name?.message}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Color</Label>
+                      <div className="flex gap-2 flex-wrap">
+                        {defaultColors.map((color) => (
+                          <button
+                            key={color}
+                            type="button"
+                            className={cn(
+                              'relative h-8 w-8 rounded-full border border-white/40 shadow-sm transition-all duration-150',
+                              selectedColor === color && 'scale-110 ring-2 ring-foreground/20 ring-offset-2'
+                            )}
+                            style={{ backgroundColor: color }}
+                            onClick={() => setValue('color', color)}
+                          >
+                            {selectedColor === color ? (
+                              <Check className="h-4 w-4 text-white drop-shadow" />
+                            ) : null}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setIsDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit" size="sm" isLoading={createMutation.isPending}>
+                      Crear
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          }
+        />
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.1 }}
+        className="flex flex-wrap gap-2"
+      >
+        <div className="flex items-center gap-2.5 rounded-lg bg-secondary/70 border border-border/40 px-3 py-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-foreground/5">
             <Tags className="h-4 w-4 text-foreground/60" />
           </div>
@@ -140,72 +200,6 @@ export default function TagsPage() {
             <p className="text-[11px] text-muted-foreground">Total etiquetas</p>
           </div>
         </div>
-      </motion.div>
-
-      {/* Action Button */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.1 }}
-      >
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" className="h-9 text-[13px]">
-              <Plus className="mr-1.5 h-4 w-4" />
-              Nueva Etiqueta
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle className="text-[17px]">Crear Nueva Etiqueta</DialogTitle>
-              <DialogDescription className="text-[13px]">
-                Las etiquetas te ayudan a filtrar transacciones
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nombre</Label>
-                  <Input
-                    id="name"
-                    placeholder="Ej: Vacaciones"
-                    {...register('name')}
-                    error={errors.name?.message}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Color</Label>
-                  <div className="flex gap-2 flex-wrap">
-                    {defaultColors.map((color) => (
-                      <button
-                        key={color}
-                        type="button"
-                        className={cn(
-                          'relative h-8 w-8 rounded-full border border-white/40 shadow-sm transition-all duration-150',
-                          selectedColor === color && 'scale-110 ring-2 ring-foreground/20 ring-offset-2'
-                        )}
-                        style={{ backgroundColor: color }}
-                        onClick={() => setValue('color', color)}
-                      >
-                        {selectedColor === color ? (
-                          <Check className="h-4 w-4 text-white drop-shadow" />
-                        ) : null}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="button" variant="ghost" size="sm" onClick={() => setIsDialogOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button type="submit" size="sm" isLoading={createMutation.isPending}>
-                  Crear
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
       </motion.div>
 
       {/* Tags List */}

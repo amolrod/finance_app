@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { PageHeader } from '@/components/ui/empty-state';
 import {
   Dialog,
   DialogContent,
@@ -472,74 +473,71 @@ export default function TransactionsPage() {
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
       >
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Transacciones</h1>
-          <p className="text-muted-foreground mt-1">
-            Registra y consulta todos tus movimientos
-          </p>
-        </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Nueva Transacción
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Nueva Transacción</DialogTitle>
-              <DialogDescription>
-                Registra un ingreso, gasto o transferencia
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <div className="space-y-4 py-4">
-                {/* Type selector */}
-                <div className="flex gap-2">
-                  {(['EXPENSE', 'INCOME', 'TRANSFER'] as TransactionType[]).map((type) => {
-                    const Icon = typeIcons[type];
-                    const isSelected = selectedType === type;
-                    return (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => setValue('type', type)}
-                        className={cn(
-                          'flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border transition-colors',
-                          isSelected
-                            ? 'border-foreground/30 bg-foreground/5 text-foreground'
-                            : 'border-border/60 hover:bg-secondary/50'
-                        )}
-                      >
-                        <Icon className="h-4 w-4" />
-                        <span className="text-[13px] font-medium">{typeLabels[type]}</span>
-                      </button>
-                    );
-                  })}
-                </div>
+        <PageHeader
+          title="Transacciones"
+          description="Registra y consulta todos tus movimientos"
+          action={
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nueva Transacción
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Nueva Transacción</DialogTitle>
+                  <DialogDescription>
+                    Registra un ingreso, gasto o transferencia
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                  <div className="space-y-4 py-4">
+                    {/* Type selector */}
+                    <div className="flex gap-2">
+                      {(['EXPENSE', 'INCOME', 'TRANSFER'] as TransactionType[]).map((type) => {
+                        const Icon = typeIcons[type];
+                        const isSelected = selectedType === type;
+                        return (
+                          <button
+                            key={type}
+                            type="button"
+                            onClick={() => setValue('type', type)}
+                            className={cn(
+                              'flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border transition-colors',
+                              isSelected
+                                ? 'border-foreground/30 bg-foreground/5 text-foreground'
+                                : 'border-border/60 hover:bg-secondary/50'
+                            )}
+                          >
+                            <Icon className="h-4 w-4" />
+                            <span className="text-[13px] font-medium">{typeLabels[type]}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="amount">Monto</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    {...register('amount')}
-                    error={errors.amount?.message}
-                  />
-                </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="amount">Monto</Label>
+                      <Input
+                        id="amount"
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...register('amount')}
+                        error={errors.amount?.message}
+                      />
+                    </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="description">Descripción</Label>
-                  <Input
-                    id="description"
-                    placeholder="Descripción opcional"
-                    {...register('description')}
-                  />
-                </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="description">Descripción</Label>
+                      <Input
+                        id="description"
+                        placeholder="Descripción opcional"
+                        {...register('description')}
+                      />
+                    </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="date">Fecha</Label>
@@ -699,7 +697,7 @@ export default function TransactionsPage() {
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[13px] font-medium text-muted-foreground">Filtros activos:</span>
                 {activeCategoryName && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-background shadow-sm text-sm font-medium">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border/60 bg-secondary/70 text-sm font-medium">
                     <div
                       className="flex h-5 w-5 items-center justify-center rounded-full border bg-background/80"
                       style={{
@@ -715,17 +713,17 @@ export default function TransactionsPage() {
                   </span>
                 )}
                 {filters.startDate && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-background shadow-sm text-sm font-medium">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border/60 bg-secondary/70 text-sm font-medium">
                     Desde: {filters.startDate}
                   </span>
                 )}
                 {filters.endDate && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-background shadow-sm text-sm font-medium">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border/60 bg-secondary/70 text-sm font-medium">
                     Hasta: {filters.endDate}
                   </span>
                 )}
                 {filters.type && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-background shadow-sm text-sm font-medium">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border/60 bg-secondary/70 text-sm font-medium">
                     {typeLabels[filters.type]}
                   </span>
                 )}
@@ -748,7 +746,7 @@ export default function TransactionsPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Buscar transacciones..."
-                  className="pl-9 bg-muted/30"
+                  className="pl-9 bg-secondary/60"
                   onChange={(e) => {
                     setFilters({ ...filters, search: e.target.value });
                     setPage(1);
@@ -769,7 +767,7 @@ export default function TransactionsPage() {
                 setPage(1);
                 selection.clearSelection();
               }}>
-                <SelectTrigger className="w-[140px] bg-muted/30">
+                <SelectTrigger className="w-[140px] bg-secondary/60">
                   <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
                   <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
@@ -806,7 +804,7 @@ export default function TransactionsPage() {
                 setPage(1);
                 selection.clearSelection();
               }}>
-                <SelectTrigger className="w-[160px] bg-muted/30">
+                <SelectTrigger className="w-[160px] bg-secondary/60">
                   <SelectValue placeholder="Cuenta" />
                 </SelectTrigger>
                 <SelectContent>
@@ -821,7 +819,7 @@ export default function TransactionsPage() {
               <div className="flex gap-2 items-center">
                 <Input
                   type="date"
-                  className="w-[150px] bg-muted/30"
+                  className="w-[150px] bg-secondary/60"
                   placeholder="Desde"
                   onChange={(e) => {
                     const newFilters = { ...filters };
@@ -838,7 +836,7 @@ export default function TransactionsPage() {
                 <span className="text-muted-foreground">-</span>
                 <Input
                   type="date"
-                  className="w-[150px] bg-muted/30"
+                  className="w-[150px] bg-secondary/60"
                   placeholder="Hasta"
                   onChange={(e) => {
                     const newFilters = { ...filters };
@@ -868,8 +866,8 @@ export default function TransactionsPage() {
           <CardHeader className="border-b border-border/40">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg border border-slate-400/30 bg-slate-500/10 flex items-center justify-center">
-                  <Receipt className="h-4 w-4 text-slate-600" />
+                <div className="h-9 w-9 rounded-lg border border-foreground/10 bg-foreground/5 flex items-center justify-center">
+                  <Receipt className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <div>
                   <CardTitle className="text-[14px] font-medium">Historial</CardTitle>
@@ -936,7 +934,11 @@ export default function TransactionsPage() {
                   const isReversed = tx.status === 'REVERSED' || tx.status === 'CANCELLED';
                   const isEditing = editingId === tx.id;
                   const isSelected = selection.selectedIds.has(tx.id);
-                  const typeColor = tx.type === 'INCOME' ? '#10b981' : tx.type === 'EXPENSE' ? '#f43f5e' : '#0ea5e9';
+                  const typeColor = tx.type === 'INCOME'
+                    ? COLOR_PALETTE[0]
+                    : tx.type === 'EXPENSE'
+                      ? COLOR_PALETTE[7]
+                      : COLOR_PALETTE[2];
                   const accentColor = tx.category?.color || (tx.category?.name ? getSeedColor(tx.category.name) : typeColor);
 
                   return (
@@ -970,8 +972,7 @@ export default function TransactionsPage() {
                         style={{
                           borderColor: `${accentColor}40`,
                           color: accentColor,
-                          backgroundImage: `linear-gradient(140deg, ${accentColor}10, rgba(255,255,255,0.8))`,
-                          boxShadow: `0 8px 18px -16px ${accentColor}88`,
+                          backgroundColor: `${accentColor}12`,
                         }}
                       >
                         <Icon className="h-4 w-4" />
@@ -1063,7 +1064,7 @@ export default function TransactionsPage() {
                     {/* Amount */}
                     <div className={cn(
                       'text-[13px] font-semibold shrink-0 tabular-nums',
-                      isIncome ? 'text-emerald-600/80 dark:text-emerald-400/80' : ''
+                      isIncome ? 'text-success/80' : ''
                     )}>
                       <ConvertedAmount 
                         amount={tx.amount} 
@@ -1084,7 +1085,7 @@ export default function TransactionsPage() {
                               onClick={saveEditing}
                               disabled={updateMutation.isPending}
                             >
-                              <Check className="h-3.5 w-3.5 text-green-600" />
+                              <Check className="h-3.5 w-3.5 text-success" />
                             </Button>
                             <Button
                               variant="ghost"

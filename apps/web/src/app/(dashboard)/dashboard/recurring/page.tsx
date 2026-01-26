@@ -9,6 +9,7 @@ import { useCategories } from '@/hooks/use-categories';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { PageHeader } from '@/components/ui/empty-state';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -101,55 +102,44 @@ export default function RecurringTransactionsPage() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={springTransition}
-        className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between"
       >
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-foreground/10 bg-foreground/5">
-              <Repeat className="h-5 w-5 text-foreground/70" />
-            </div>
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Transacciones Recurrentes</h1>
-            <p className="text-[13px] text-muted-foreground">
-              Gestiona tus pagos automáticos
-            </p>
-          </div>
-        </div>
-        
-        {/* Stats */}
-        <div className="flex gap-2">
-          <div className="flex items-center gap-2.5 rounded-lg bg-background/80 border border-foreground/10 px-3 py-2 shadow-soft">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md border border-foreground/10 bg-foreground/5">
-              <Play className="h-3.5 w-3.5 text-foreground/70 ml-0.5" />
-            </div>
-            <div>
-              <p className="text-lg font-semibold tabular-nums">{activeCount}</p>
-              <p className="text-[11px] text-muted-foreground">Activas</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2.5 rounded-lg bg-background/80 border border-foreground/10 px-3 py-2 shadow-soft">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md border border-foreground/10 bg-foreground/5">
-              <Pause className="h-3.5 w-3.5 text-foreground/70" />
-            </div>
-            <div>
-              <p className="text-lg font-semibold tabular-nums">{pausedCount}</p>
-              <p className="text-[11px] text-muted-foreground">Pausadas</p>
-            </div>
-          </div>
-        </div>
+        <PageHeader
+          title="Transacciones Recurrentes"
+          description="Gestiona tus pagos automáticos"
+          icon={<Repeat className="h-5 w-5" />}
+          action={
+            <Button size="sm" onClick={() => setShowForm(true)} className="h-9 text-[13px]">
+              <Plus className="mr-1.5 h-4 w-4" />
+              Nueva Recurrente
+            </Button>
+          }
+        />
       </motion.div>
 
-      {/* Action Button */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.1 }}
+        className="flex flex-wrap gap-2"
       >
-        <Button size="sm" onClick={() => setShowForm(true)} className="h-9 text-[13px]">
-          <Plus className="mr-1.5 h-4 w-4" />
-          Nueva Recurrente
-        </Button>
+        <div className="flex items-center gap-2.5 rounded-lg bg-background/80 border border-foreground/10 px-3 py-2 shadow-soft">
+          <div className="flex h-7 w-7 items-center justify-center rounded-md border border-foreground/10 bg-foreground/5">
+            <Play className="h-3.5 w-3.5 text-foreground/70 ml-0.5" />
+          </div>
+          <div>
+            <p className="text-lg font-semibold tabular-nums">{activeCount}</p>
+            <p className="text-[11px] text-muted-foreground">Activas</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2.5 rounded-lg bg-background/80 border border-foreground/10 px-3 py-2 shadow-soft">
+          <div className="flex h-7 w-7 items-center justify-center rounded-md border border-foreground/10 bg-foreground/5">
+            <Pause className="h-3.5 w-3.5 text-foreground/70" />
+          </div>
+          <div>
+            <p className="text-lg font-semibold tabular-nums">{pausedCount}</p>
+            <p className="text-[11px] text-muted-foreground">Pausadas</p>
+          </div>
+        </div>
       </motion.div>
       {(!recurringList || recurringList.length === 0) ? (
         <motion.div
@@ -197,15 +187,10 @@ export default function RecurringTransactionsPage() {
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <div className="relative shrink-0">
                         <div
-                          className="absolute -inset-1 rounded-2xl opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100"
-                          style={{ backgroundColor: accentColor }}
-                        />
-                        <div
                           className="relative flex h-9 w-9 items-center justify-center rounded-xl border bg-background/90"
                           style={{
                             borderColor: `${accentColor}40`,
-                            boxShadow: `0 8px 18px -16px ${accentColor}88`,
-                            backgroundImage: `linear-gradient(140deg, ${accentColor}12, rgba(255,255,255,0.8))`,
+                            backgroundColor: `${accentColor}12`,
                           }}
                         >
                           <span className="text-[9px] font-semibold" style={{ color: accentColor }}>
@@ -238,7 +223,7 @@ export default function RecurringTransactionsPage() {
                     <div className="flex items-center gap-4">
                       <span className={cn(
                         'text-[14px] font-medium tabular-nums',
-                        item.type === 'INCOME' ? 'text-emerald-600/80 dark:text-emerald-400/80' : 'text-foreground'
+                        item.type === 'INCOME' ? 'text-success/80' : 'text-foreground'
                       )}>
                         <ConvertedAmount 
                           amount={item.amount} 

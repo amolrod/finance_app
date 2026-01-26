@@ -16,7 +16,7 @@ describe('Button', () => {
   it('should render with destructive variant', () => {
     render(<Button variant="destructive">Delete</Button>);
     const button = screen.getByRole('button');
-    expect(button).toHaveClass('bg-red-600');
+    expect(button).toHaveClass('bg-destructive');
   });
 
   it('should render with outline variant', () => {
@@ -28,7 +28,7 @@ describe('Button', () => {
   it('should render with success variant', () => {
     render(<Button variant="success">Success</Button>);
     const button = screen.getByRole('button');
-    expect(button).toHaveClass('bg-green-600');
+    expect(button).toHaveClass('bg-success');
   });
 
   it('should be disabled when disabled prop is true', () => {

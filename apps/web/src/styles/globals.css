@@ -17,8 +17,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3%;
     
-    /* Primary - Apple blue */
-    --primary: 211 100% 50%;
+    /* Primary - Deep teal */
+    --primary: 162 58% 38%;
     --primary-foreground: 0 0% 100%;
     
     /* Secondary - Ultra light gray */
@@ -41,33 +41,33 @@
     --warning: 35 90% 50%;
     --warning-foreground: 0 0% 100%;
     
-    /* Borders - Almost invisible */
-    --border: 0 0% 93%;
-    --input: 0 0% 93%;
-    --ring: 211 100% 50%;
+    /* Borders - Soft definition */
+    --border: 0 0% 88%;
+    --input: 0 0% 90%;
+    --ring: 162 58% 45%;
     
     /* Radius */
     --radius: 0.875rem;
     
-    /* Charts - Muted colors */
-    --chart-1: 211 60% 50%;
-    --chart-2: 145 45% 45%;
-    --chart-3: 0 55% 50%;
-    --chart-4: 35 70% 50%;
-    --chart-5: 260 50% 55%;
+    /* Charts - Muted, premium palette */
+    --chart-1: 162 48% 42%;
+    --chart-2: 210 38% 48%;
+    --chart-3: 35 55% 52%;
+    --chart-4: 0 50% 60%;
+    --chart-5: 90 30% 45%;
   }
 
   .dark {
-    /* Dark mode - True black like iOS OLED */
-    --background: 0 0% 0%;
+    /* Dark mode - Soft black */
+    --background: 0 0% 4%;
     --foreground: 0 0% 98%;
-    --card: 0 0% 8%;
+    --card: 0 0% 10%;
     --card-foreground: 0 0% 98%;
-    --popover: 0 0% 8%;
+    --popover: 0 0% 10%;
     --popover-foreground: 0 0% 98%;
     
     /* Primary */
-    --primary: 211 100% 55%;
+    --primary: 162 58% 45%;
     --primary-foreground: 0 0% 100%;
     
     /* Secondary */
@@ -91,9 +91,9 @@
     --warning-foreground: 0 0% 100%;
     
     /* Borders */
-    --border: 0 0% 16%;
-    --input: 0 0% 16%;
-    --ring: 211 100% 55%;
+    --border: 0 0% 20%;
+    --input: 0 0% 22%;
+    --ring: 162 58% 50%;
   }
 }
 
@@ -134,7 +134,7 @@
 
 /* Money display utilities - Neutral, not saturated */
 .money-positive {
-  @apply text-green-600 dark:text-green-500;
+  @apply text-success;
 }
 
 .money-negative {
@@ -164,13 +164,13 @@
 
 /* Subtle shadow utility - Much softer */
 .shadow-soft {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 
-              0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04),
+              0 6px 16px rgba(15, 23, 42, 0.06);
 }
 
 .shadow-soft-lg {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02), 
-              0 4px 16px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12),
+              0 2px 6px rgba(15, 23, 42, 0.08);
 }
 
 /* Apple-style card hover */
@@ -179,7 +179,7 @@
 }
 
 .card-hover:hover {
-  transform: scale(1.01);
+  transform: scale(1.008);
 }
 
 /* Apple spring animation */

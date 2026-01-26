@@ -6,6 +6,7 @@ import { useBudgets, useCreateBudget, useDeleteBudget } from '@/hooks/use-budget
 import { useCategories } from '@/hooks/use-categories';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { PageHeader } from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
@@ -131,86 +132,85 @@ export default function BudgetsPage() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
       >
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Presupuestos</h1>
-          <p className="text-[13px] text-muted-foreground">
-            Establece límites y controla tus gastos
-          </p>
-        </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Nuevo Presupuesto
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Crear Presupuesto</DialogTitle>
-              <DialogDescription>
-                Define un límite de gasto mensual
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="categoryId">Categoría</Label>
-                  <Select onValueChange={(value) => setValue('categoryId', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona una categoría" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories?.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.categoryId && (
-                    <p className="text-sm text-destructive">{errors.categoryId.message}</p>
-                  )}
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="limitAmount">Monto Límite</Label>
-                    <Input
-                      id="limitAmount"
-                      type="number"
-                      step="0.01"
-                      placeholder="500.00"
-                      {...register('limitAmount')}
-                    />
-                    {errors.limitAmount && (
-                      <p className="text-sm text-destructive">{errors.limitAmount.message}</p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="periodMonth">Mes del Período</Label>
-                    <Input
-                      id="periodMonth"
-                      type="month"
-                      {...register('periodMonth')}
-                    />
-                    {errors.periodMonth && (
-                      <p className="text-sm text-destructive">{errors.periodMonth.message}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)}>
-                  Cancelar
+        <PageHeader
+          title="Presupuestos"
+          description="Establece límites y controla tus gastos"
+          action={
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nuevo Presupuesto
                 </Button>
-                <Button type="submit" isLoading={createMutation.isPending}>
-                  Crear
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Crear Presupuesto</DialogTitle>
+                  <DialogDescription>
+                    Define un límite de gasto mensual
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="categoryId">Categoría</Label>
+                      <Select onValueChange={(value) => setValue('categoryId', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona una categoría" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories?.map((category) => (
+                            <SelectItem key={category.id} value={category.id}>
+                              {category.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {errors.categoryId && (
+                        <p className="text-sm text-destructive">{errors.categoryId.message}</p>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="limitAmount">Monto Límite</Label>
+                        <Input
+                          id="limitAmount"
+                          type="number"
+                          step="0.01"
+                          placeholder="500.00"
+                          {...register('limitAmount')}
+                        />
+                        {errors.limitAmount && (
+                          <p className="text-sm text-destructive">{errors.limitAmount.message}</p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="periodMonth">Mes del Período</Label>
+                        <Input
+                          id="periodMonth"
+                          type="month"
+                          {...register('periodMonth')}
+                        />
+                        {errors.periodMonth && (
+                          <p className="text-sm text-destructive">{errors.periodMonth.message}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit" isLoading={createMutation.isPending}>
+                      Crear
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          }
+        />
       </motion.div>
 
       {/* Stats Cards */}
@@ -308,7 +308,11 @@ export default function BudgetsPage() {
               const isWarning = percentage >= 80 && percentage < 100;
               const accentColor = budget.categoryColor || COLOR_PALETTE[index % COLOR_PALETTE.length];
               const statusLabel = isOverBudget ? 'Excedido' : isWarning ? 'Alerta' : 'En orden';
-              const statusDot = isOverBudget ? '#f43f5e' : isWarning ? '#f59e0b' : '#10b981';
+              const statusDotClass = isOverBudget
+                ? 'bg-destructive'
+                : isWarning
+                  ? 'bg-warning'
+                  : 'bg-success';
               
               return (
                 <motion.div
@@ -352,8 +356,8 @@ export default function BudgetsPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-1">
-                          <span className="inline-flex items-center gap-1 rounded-full border border-foreground/10 bg-foreground/5 px-2 py-0.5 text-[10px] font-medium text-foreground/70">
-                            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: statusDot }} />
+                            <span className="inline-flex items-center gap-1 rounded-full border border-foreground/10 bg-foreground/5 px-2 py-0.5 text-[10px] font-medium text-foreground/70">
+                            <span className={cn('h-1.5 w-1.5 rounded-full', statusDotClass)} />
                             {statusLabel}
                           </span>
                           <Button
@@ -382,7 +386,11 @@ export default function BudgetsPage() {
                             value={Math.min(percentage, 100)}
                             indicatorClassName={cn(
                               'transition-all',
-                              isOverBudget ? 'bg-rose-500/50' : isWarning ? 'bg-amber-500/50' : 'bg-emerald-500/50'
+                              isOverBudget
+                                ? 'bg-destructive/40'
+                                : isWarning
+                                  ? 'bg-warning/40'
+                                  : 'bg-success/40'
                             )}
                           />
                           <span className="absolute right-0 -top-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded bg-secondary tabular-nums">
@@ -393,12 +401,12 @@ export default function BudgetsPage() {
                       
                       <div className="flex justify-between items-center pt-2 border-t border-border/40">
                         {remaining.isNegative() ? (
-                          <span className="text-[12px] font-medium flex items-center gap-1">
+                          <span className="text-[12px] font-medium text-destructive/80 flex items-center gap-1">
                             <AlertTriangle className="h-3 w-3" />
                             {formatAmount(remaining.abs().toNumber())} excedido
                           </span>
                         ) : (
-                        <span className="text-[12px] font-medium text-emerald-600/80 dark:text-emerald-400/80 flex items-center gap-1">
+                        <span className="text-[12px] font-medium text-success/80 flex items-center gap-1">
                           <CheckCircle2 className="h-3 w-3" />
                           {formatAmount(parseFloat(budget.remainingAmount))} disponible
                         </span>

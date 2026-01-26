@@ -22,10 +22,10 @@ import { cn, formatRelativeDate } from '@/lib/utils';
 import type { Notification, NotificationType } from '@/types/api';
 
 const typeConfig: Record<NotificationType, { color: string; icon: string }> = {
-  BUDGET_WARNING: { color: 'bg-yellow-500', icon: '⚠️' },
-  BUDGET_EXCEEDED: { color: 'bg-red-500', icon: '🚨' },
-  SYSTEM: { color: 'bg-blue-500', icon: '🔧' },
-  INFO: { color: 'bg-gray-500', icon: 'ℹ️' },
+  BUDGET_WARNING: { color: 'bg-warning', icon: '⚠️' },
+  BUDGET_EXCEEDED: { color: 'bg-destructive', icon: '🚨' },
+  SYSTEM: { color: 'bg-primary/70', icon: '🔧' },
+  INFO: { color: 'bg-foreground/40', icon: 'ℹ️' },
 };
 
 export function NotificationsDropdown() {

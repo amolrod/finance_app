@@ -478,7 +478,7 @@ export default function InvestmentImportPage() {
                         <div key={field.key} className="grid gap-2">
                           <Label className="text-xs font-medium">
                             {field.label}
-                            {field.required && <span className="ml-1 text-rose-500">*</span>}
+                            {field.required && <span className="ml-1 text-destructive">*</span>}
                           </Label>
                           <Select
                             value={mapping[field.key]}
@@ -607,7 +607,7 @@ export default function InvestmentImportPage() {
             {step === 'result' && (
               <div className="space-y-4 text-center">
                 <div className="flex flex-col items-center gap-2">
-                  <CheckCircle2 className="h-10 w-10 text-emerald-500" />
+                  <CheckCircle2 className="h-10 w-10 text-success" />
                   <p className="text-sm font-medium">Importación finalizada</p>
                   <p className="text-xs text-muted-foreground">
                     {importResult?.imported || 0} operaciones importadas · {importResult?.skipped || 0} omitidas

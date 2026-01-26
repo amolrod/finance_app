@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PageHeader } from '@/components/ui/empty-state';
 import {
   Select,
   SelectContent,
@@ -205,37 +206,30 @@ export default function ReportsPage() {
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
       >
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-foreground/10 bg-foreground/5">
-              <BarChart3 className="h-5 w-5 text-foreground/70" />
-            </div>
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Reportes</h1>
-            <p className="text-muted-foreground text-[13px]">
-              Análisis detallado de tus finanzas
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button 
-            onClick={exportToCSV} 
-            disabled={!transactions?.data?.length}
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Exportar CSV
-          </Button>
-          <Button
-            variant="outline"
-            onClick={exportToExcel}
-            disabled={!transactions?.data?.length}
-          >
-            Exportar Excel
-          </Button>
-        </div>
+        <PageHeader
+          title="Reportes"
+          description="Análisis detallado de tus finanzas"
+          icon={<BarChart3 className="h-5 w-5" />}
+          action={
+            <>
+              <Button 
+                onClick={exportToCSV} 
+                disabled={!transactions?.data?.length}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Exportar CSV
+              </Button>
+              <Button
+                variant="outline"
+                onClick={exportToExcel}
+                disabled={!transactions?.data?.length}
+              >
+                Exportar Excel
+              </Button>
+            </>
+          }
+        />
       </motion.div>
 
       {/* Date Filters - Mejorado */}
@@ -330,7 +324,7 @@ export default function ReportsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-semibold tabular-nums text-emerald-600/80 dark:text-emerald-400/80">
+              <div className="text-2xl font-semibold tabular-nums text-success/80">
                 +{formatAmount(summary.income)}
               </div>
               <p className="text-[13px] text-muted-foreground mt-1">
@@ -380,7 +374,7 @@ export default function ReportsPage() {
             <CardContent>
               <div className={cn(
                 "text-2xl font-semibold tabular-nums",
-                summary.balance >= 0 ? 'text-emerald-600/80 dark:text-emerald-400/80' : 'text-foreground'
+                summary.balance >= 0 ? 'text-success/80' : 'text-foreground'
               )}>
                 {summary.balance >= 0 ? '+' : ''}{formatAmount(summary.balance)}
               </div>
@@ -455,7 +449,7 @@ export default function ReportsPage() {
               <div className={cn(
                 "text-xl font-semibold tabular-nums",
                 summary.income > 0 && (summary.balance / summary.income) * 100 >= 20 
-                  ? 'text-emerald-600/80 dark:text-emerald-400/80' 
+                  ? 'text-success/80' 
                   : 'text-foreground'
               )}>
                 {summary.income > 0 
@@ -604,15 +598,15 @@ export default function ReportsPage() {
                           {category.transactionCount}
                         </span>
                       </TableCell>
-                      <TableCell className="text-right text-emerald-600/80 dark:text-emerald-400/80">
+                      <TableCell className="text-right text-success/80">
                         {category.income > 0 ? `+${formatAmount(category.income)}` : '-'}
                       </TableCell>
-                      <TableCell className="text-right text-rose-500/80 dark:text-rose-400/80">
+                      <TableCell className="text-right text-destructive/80">
                         {category.expense > 0 ? `-${formatAmount(category.expense)}` : '-'}
                       </TableCell>
                       <TableCell className={cn(
                         "text-right font-semibold",
-                        balance >= 0 ? 'text-emerald-600/80 dark:text-emerald-400/80' : 'text-rose-500/80 dark:text-rose-400/80'
+                        balance >= 0 ? 'text-success/80' : 'text-destructive/80'
                       )}>
                         {balance >= 0 ? '+' : ''}{formatAmount(balance)}
                       </TableCell>

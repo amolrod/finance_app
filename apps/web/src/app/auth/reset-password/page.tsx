@@ -70,8 +70,8 @@ function ResetPasswordContent() {
       <div className="min-h-screen flex items-center justify-center bg-muted/50 px-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
-              <XCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
+              <XCircle className="h-8 w-8 text-destructive" />
             </div>
             <CardTitle>Enlace inválido</CardTitle>
             <CardDescription>
@@ -108,8 +108,8 @@ function ResetPasswordContent() {
       <div className="min-h-screen flex items-center justify-center bg-muted/50 px-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
-              <XCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
+              <XCircle className="h-8 w-8 text-destructive" />
             </div>
             <CardTitle>Enlace expirado</CardTitle>
             <CardDescription>
@@ -136,8 +136,8 @@ function ResetPasswordContent() {
       <div className="min-h-screen flex items-center justify-center bg-muted/50 px-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
-              <CheckCircle2 className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success/10">
+              <CheckCircle2 className="h-8 w-8 text-success" />
             </div>
             <CardTitle>¡Contraseña actualizada!</CardTitle>
             <CardDescription>

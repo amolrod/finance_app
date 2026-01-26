@@ -30,10 +30,10 @@ const textFont = Sora({
 });
 
 const PAGE_STYLE = {
-  '--accent-a': '#10b981',
-  '--accent-b': '#14b8a6',
-  '--accent-c': '#0ea5e9',
-  '--accent-d': '#f59e0b'
+  '--accent-a': '#2F9D8F',
+  '--accent-b': '#3BA99C',
+  '--accent-c': '#3A86C6',
+  '--accent-d': '#C99D4A'
 } as React.CSSProperties;
 
 const HIGHLIGHTS = [
@@ -265,7 +265,7 @@ export default function LoginPage() {
                     ¿Nuevo en FinanceApp?{' '}
                     <Link
                       href="/auth/register"
-                      className="font-semibold text-emerald-600 transition-colors hover:text-emerald-500"
+                      className="font-semibold text-primary transition-colors hover:text-primary/80"
                     >
                       Crea tu cuenta
                     </Link>
@@ -293,14 +293,14 @@ function LoginPhoneScreen() {
       <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
         <div className="flex items-center justify-between text-[10px] text-white/60">
           <span>Balance total</span>
-          <span className="text-emerald-300">+4.8%</span>
+          <span className="text-success/70">+4.8%</span>
         </div>
         <p className="mt-1 text-[20px] font-semibold tracking-tight">€14,280</p>
         <div className="mt-3 flex h-16 items-end gap-1">
           {LOGIN_BARS.map((bar, index) => (
             <div
               key={`${bar}-${index}`}
-              className="flex-1 rounded-full bg-gradient-to-t from-emerald-500/70 to-emerald-300/40"
+              className="flex-1 rounded-full bg-gradient-to-t from-success/60 to-success/30"
               style={{ height: `${bar}%` }}
             />
           ))}
@@ -327,7 +327,7 @@ function LoginPhoneScreen() {
               <span>72%</span>
             </div>
             <div className="mt-2 h-1.5 rounded-full bg-white/10">
-              <div className="h-full w-[72%] rounded-full bg-emerald-400/60" />
+              <div className="h-full w-[72%] rounded-full bg-success/50" />
             </div>
           </div>
           <div className="rounded-lg bg-white/5 p-2">
@@ -336,7 +336,7 @@ function LoginPhoneScreen() {
               <span>41%</span>
             </div>
             <div className="mt-2 h-1.5 rounded-full bg-white/10">
-              <div className="h-full w-[41%] rounded-full bg-sky-400/60" />
+              <div className="h-full w-[41%] rounded-full bg-primary/40" />
             </div>
           </div>
         </div>

@@ -13,14 +13,15 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCurrency } from '@/contexts/currency-context';
 import type { HoldingSummary, AssetType } from '@/types/api';
+import { COLOR_PALETTE } from '@/lib/color-palettes';
 
 const assetTypeBadges: Record<AssetType, { label: string; className: string; color: string }> = {
-  STOCK: { label: 'Acción', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: '#0ea5e9' },
-  ETF: { label: 'ETF', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: '#10b981' },
-  CRYPTO: { label: 'Cripto', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: '#f97316' },
-  BOND: { label: 'Bono', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: '#6366f1' },
-  MUTUAL_FUND: { label: 'Fondo', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: '#14b8a6' },
-  OTHER: { label: 'Otro', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: '#64748b' },
+  STOCK: { label: 'Acción', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: COLOR_PALETTE[2] },
+  ETF: { label: 'ETF', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: COLOR_PALETTE[0] },
+  CRYPTO: { label: 'Cripto', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: COLOR_PALETTE[8] },
+  BOND: { label: 'Bono', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: COLOR_PALETTE[4] },
+  MUTUAL_FUND: { label: 'Fondo', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: COLOR_PALETTE[1] },
+  OTHER: { label: 'Otro', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: COLOR_PALETTE[14] },
 };
 
 interface HoldingsTableProps {
@@ -103,7 +104,7 @@ export function HoldingsTable({ holdings, loading }: HoldingsTableProps) {
                         style={{
                           borderColor: `${badgeInfo.color}40`,
                           color: badgeInfo.color,
-                          boxShadow: `0 8px 18px -16px ${badgeInfo.color}88`,
+                          backgroundColor: `${badgeInfo.color}12`,
                         }}
                       >
                         <span className="text-[10px] font-semibold">{symbol}</span>
@@ -139,7 +140,7 @@ export function HoldingsTable({ holdings, loading }: HoldingsTableProps) {
                   <TableCell className="text-right">
                     {pnl !== null ? (
                       <div className={`flex items-center justify-end gap-1 ${
-                        pnl >= 0 ? 'text-emerald-600/80 dark:text-emerald-400/80' : 'text-foreground'
+                        pnl >= 0 ? 'text-success/80' : 'text-foreground'
                       }`}>
                         {pnl >= 0 ? (
                           <TrendingUp className="h-4 w-4" />

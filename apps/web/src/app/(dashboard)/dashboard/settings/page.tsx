@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { PageHeader } from '@/components/ui/empty-state';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -223,17 +224,11 @@ export default function SettingsPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       >
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary">
-            <Settings className="h-4 w-4 text-muted-foreground" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Configuración</h1>
-            <p className="text-[13px] text-muted-foreground">
-              Administra tu cuenta y preferencias
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          title="Configuración"
+          description="Administra tu cuenta y preferencias"
+          icon={<Settings className="h-4 w-4" />}
+        />
       </motion.div>
 
       {/* Navigation Pills */}
@@ -745,9 +740,9 @@ export default function SettingsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
         >
-          <Card className="border-red-200 dark:border-red-900/50 bg-background/80 shadow-soft">
+          <Card className="border-destructive/30 bg-background/80 shadow-soft">
             <CardHeader>
-              <CardTitle className="text-red-600 dark:text-red-400 flex items-center gap-2 text-base">
+              <CardTitle className="text-destructive flex items-center gap-2 text-base">
                 Zona de peligro
               </CardTitle>
               <CardDescription>
@@ -755,7 +750,7 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between p-4 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-destructive/10 border border-destructive/20">
                 <div>
                   <p className="font-medium text-sm">Eliminar cuenta</p>
                   <p className="text-[13px] text-muted-foreground">

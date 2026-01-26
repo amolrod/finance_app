@@ -40,11 +40,11 @@ const textFont = Sora({
 });
 
 const PAGE_STYLE = {
-  '--accent-a': '#10b981',
-  '--accent-b': '#14b8a6',
-  '--accent-c': '#f59e0b',
-  '--accent-d': '#22c55e',
-  '--accent-e': '#0ea5e9'
+  '--accent-a': '#2F9D8F',
+  '--accent-b': '#3BA99C',
+  '--accent-c': '#C99D4A',
+  '--accent-d': '#5F9B6B',
+  '--accent-e': '#3A86C6'
 } as React.CSSProperties;
 
 const HERO_STATS = [
@@ -102,7 +102,7 @@ const FEATURE_TILES = [
     title: 'Radar de gastos',
     description: 'Detecta picos y fugas con comparativas mensuales y etiquetas claras.',
     className: 'lg:col-span-4 lg:row-span-2',
-    accent: 'from-emerald-500/20 via-emerald-500/5 to-transparent',
+    accent: 'from-primary/20 via-primary/5 to-transparent',
     highlight: true
   },
   {
@@ -110,35 +110,35 @@ const FEATURE_TILES = [
     title: 'Cuentas sin fricción',
     description: 'Banco, tarjeta, efectivo y cripto en el mismo panel.',
     className: 'lg:col-span-2',
-    accent: 'from-teal-500/15 to-transparent'
+    accent: 'from-success/15 to-transparent'
   },
   {
     icon: BarChart3,
     title: 'Presupuestos vivos',
     description: 'Límites por categoría con progreso en tiempo real.',
     className: 'lg:col-span-2',
-    accent: 'from-amber-500/20 to-transparent'
+    accent: 'from-warning/20 to-transparent'
   },
   {
     icon: TrendingUp,
     title: 'Inversiones claras',
     description: 'Acciones, fondos y cripto con evolución visual.',
     className: 'lg:col-span-3',
-    accent: 'from-sky-500/20 to-transparent'
+    accent: 'from-primary/15 to-transparent'
   },
   {
     icon: Bell,
     title: 'Alertas suaves',
     description: 'Notificaciones cuando importa, sin ruido extra.',
     className: 'lg:col-span-3',
-    accent: 'from-lime-500/20 to-transparent'
+    accent: 'from-foreground/10 to-transparent'
   },
   {
     icon: Globe,
     title: 'Multi-divisa',
     description: 'Registra gastos en distintas monedas sin perder precisión.',
     className: 'lg:col-span-2',
-    accent: 'from-emerald-400/20 to-transparent'
+    accent: 'from-success/10 to-transparent'
   }
 ];
 
@@ -228,7 +228,7 @@ export default function HomePage() {
             <Link href="/auth/register">
               <Button
                 size="sm"
-                className="relative overflow-hidden rounded-full bg-[linear-gradient(135deg,var(--accent-a),var(--accent-b))] px-4 text-[12px] font-semibold text-white shadow-[0_12px_30px_-18px_rgba(16,185,129,0.85)] transition-transform duration-300 hover:-translate-y-0.5 sm:px-5 sm:text-sm"
+                className="relative overflow-hidden rounded-full bg-[linear-gradient(135deg,var(--accent-a),var(--accent-b))] px-4 text-[12px] font-semibold text-white shadow-[0_12px_30px_-18px_rgba(47,157,143,0.7)] transition-transform duration-300 hover:-translate-y-0.5 sm:px-5 sm:text-sm"
               >
                 <span className="relative z-10">Crear cuenta</span>
               </Button>
@@ -242,7 +242,7 @@ export default function HomePage() {
           <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
             <div>
               <div
-                className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.25em] text-emerald-600 motion-safe:animate-[rise_700ms_ease-out_both]"
+                className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.25em] text-primary motion-safe:animate-[rise_700ms_ease-out_both]"
                 style={{ animationDelay: '100ms' }}
               >
                 <Sparkles className="h-4 w-4" aria-hidden="true" />
@@ -274,7 +274,7 @@ export default function HomePage() {
                 <Link href="/auth/register">
                   <Button
                     size="lg"
-                    className="group relative w-full overflow-hidden rounded-full bg-[linear-gradient(135deg,var(--accent-a),var(--accent-b))] px-8 text-base font-semibold text-white shadow-[0_18px_50px_-22px_rgba(16,185,129,0.8)] transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto"
+                    className="group relative w-full overflow-hidden rounded-full bg-[linear-gradient(135deg,var(--accent-a),var(--accent-b))] px-8 text-base font-semibold text-white shadow-[0_18px_50px_-22px_rgba(47,157,143,0.7)] transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto"
                   >
                     <span className="relative z-10">Crear cuenta gratis</span>
                     <ArrowRight className="relative z-10 ml-2 h-4 w-4" />
@@ -308,7 +308,7 @@ export default function HomePage() {
               <div className="mt-8 flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
                 {TRUST_ITEMS.map(({ icon: Icon, label }) => (
                   <div key={label} className="flex items-center gap-2">
-                    <Icon className="h-4 w-4 text-emerald-500" aria-hidden="true" />
+                    <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
                     <span>{label}</span>
                   </div>
                 ))}
@@ -428,7 +428,7 @@ export default function HomePage() {
                 <div className="mt-8 space-y-4">
                   <div className="rounded-3xl border border-foreground/10 bg-background/70 p-6 shadow-soft">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-600">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                         <Shield className="h-6 w-6" aria-hidden="true" />
                       </div>
                       <div>
@@ -478,7 +478,7 @@ export default function HomePage() {
                   <Link href="/auth/register" className="mt-8 block">
                     <Button
                       size="lg"
-                      className="w-full rounded-full bg-[linear-gradient(135deg,var(--accent-a),var(--accent-b))] text-base font-semibold text-white shadow-[0_18px_40px_-22px_rgba(16,185,129,0.8)]"
+                      className="w-full rounded-full bg-[linear-gradient(135deg,var(--accent-a),var(--accent-b))] text-base font-semibold text-white shadow-[0_18px_40px_-22px_rgba(47,157,143,0.7)]"
                     >
                       Crear cuenta gratis
                       <ArrowRight className="ml-2 h-4 w-4" />
@@ -504,7 +504,7 @@ export default function HomePage() {
                 <Link href="/auth/register">
                   <Button
                     size="lg"
-                    className="mt-8 rounded-full bg-[linear-gradient(135deg,var(--accent-a),var(--accent-b))] px-10 text-base font-semibold text-white shadow-[0_18px_40px_-22px_rgba(16,185,129,0.8)]"
+                    className="mt-8 rounded-full bg-[linear-gradient(135deg,var(--accent-a),var(--accent-b))] px-10 text-base font-semibold text-white shadow-[0_18px_40px_-22px_rgba(47,157,143,0.7)]"
                   >
                     Empezar ahora
                     <ArrowRight className="ml-2 h-4 w-4" />
@@ -583,12 +583,12 @@ function HeroVisual() {
               Resumen de hoy
             </p>
             <p className="mt-3 text-3xl font-semibold text-foreground">€12,450.00</p>
-            <p className="mt-2 flex items-center gap-2 text-sm text-emerald-600">
+            <p className="mt-2 flex items-center gap-2 text-sm text-success">
               <TrendingUp className="h-4 w-4" aria-hidden="true" />
               +12.5% este mes
             </p>
           </div>
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-600">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-success/10 text-success">
             <Sparkles className="h-6 w-6" aria-hidden="true" />
           </div>
         </div>
@@ -596,11 +596,11 @@ function HeroVisual() {
         <div className="mt-6 grid grid-cols-3 gap-3">
           <div className="rounded-2xl border border-foreground/10 bg-background/70 p-3">
             <p className="text-xs text-muted-foreground">Ingresos</p>
-            <p className="mt-2 text-lg font-semibold text-emerald-600">+€3,200</p>
+            <p className="mt-2 text-lg font-semibold text-success">+€3,200</p>
           </div>
           <div className="rounded-2xl border border-foreground/10 bg-background/70 p-3">
             <p className="text-xs text-muted-foreground">Gastos</p>
-            <p className="mt-2 text-lg font-semibold text-rose-500">-€1,850</p>
+            <p className="mt-2 text-lg font-semibold text-destructive">-€1,850</p>
           </div>
           <div className="rounded-2xl border border-foreground/10 bg-background/70 p-3">
             <p className="text-xs text-muted-foreground">Ahorro</p>
@@ -613,7 +613,7 @@ function HeroVisual() {
             {DASHBOARD_BARS.map((height, index) => (
               <div
                 key={`hero-bar-${index}`}
-                className="flex-1 rounded-full bg-gradient-to-t from-emerald-600/80 to-emerald-400/70"
+                className="flex-1 rounded-full bg-gradient-to-t from-success/70 to-success/40"
                 style={{ height: `${height}%` }}
               />
             ))}
@@ -628,7 +628,7 @@ function HeroVisual() {
       <div className="absolute -right-2 top-12 w-48 rounded-2xl border border-foreground/10 bg-background/90 p-4 shadow-lg backdrop-blur motion-safe:animate-[float-reverse_9s_ease-in-out_infinite]">
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>Presupuesto</span>
-          <span className="font-semibold text-emerald-600">72%</span>
+          <span className="font-semibold text-success">72%</span>
         </div>
         <div className="mt-4 flex items-center gap-3">
           <div className="relative h-12 w-12 rounded-full bg-[conic-gradient(var(--accent-b)_0deg_260deg,rgba(148,163,184,0.35)_260deg_360deg)] p-[3px]">
@@ -646,7 +646,7 @@ function HeroVisual() {
       <div className="absolute -left-4 bottom-6 w-56 rounded-2xl border border-foreground/10 bg-background/90 p-4 shadow-lg backdrop-blur motion-safe:animate-[float_8s_ease-in-out_infinite]">
         <div className="flex items-center justify-between">
           <p className="text-xs text-muted-foreground">Inversiones</p>
-          <span className="flex items-center gap-1 text-xs font-semibold text-emerald-600">
+          <span className="flex items-center gap-1 text-xs font-semibold text-success">
             <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />
             +5.3%
           </span>
@@ -661,9 +661,9 @@ function HeroVisual() {
             fill="none"
             stroke="currentColor"
             strokeWidth="3"
-            className="text-emerald-500"
+            className="text-success"
           />
-          <circle cx="90" cy="10" r="4" className="fill-emerald-500" />
+          <circle cx="90" cy="10" r="4" className="fill-success" />
         </svg>
       </div>
     </div>
@@ -676,7 +676,7 @@ function FeaturePreview() {
       <div className="rounded-2xl border border-foreground/10 bg-background/70 p-4">
         <p className="text-xs text-muted-foreground">Fuga detectada</p>
         <p className="mt-2 text-xl font-semibold text-foreground">-€124</p>
-        <p className="text-xs text-rose-500">Hoy, 16:30</p>
+        <p className="text-xs text-destructive/80">Hoy, 16:30</p>
       </div>
       <div className="rounded-2xl border border-foreground/10 bg-background/70 p-4">
         <p className="text-xs text-muted-foreground">Categoría más alta</p>
@@ -687,7 +687,7 @@ function FeaturePreview() {
         <div className="rounded-2xl border border-foreground/10 bg-background/70 p-4">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>Tendencia mensual</span>
-            <span className="font-medium text-emerald-600">+8.4%</span>
+            <span className="font-medium text-success">+8.4%</span>
           </div>
           <svg
             viewBox="0 0 200 70"
@@ -696,12 +696,12 @@ function FeaturePreview() {
           >
             <defs>
               <linearGradient id="featureTrendLine" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#10b981" />
-                <stop offset="100%" stopColor="#14b8a6" />
+                <stop offset="0%" stopColor="#2F9D8F" />
+                <stop offset="100%" stopColor="#3BA99C" />
               </linearGradient>
               <linearGradient id="featureTrendFill" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#10b981" stopOpacity="0.35" />
-                <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+                <stop offset="0%" stopColor="#2F9D8F" stopOpacity="0.35" />
+                <stop offset="100%" stopColor="#2F9D8F" stopOpacity="0" />
               </linearGradient>
             </defs>
             <path
@@ -733,15 +733,15 @@ function FeaturePreview() {
             </div>
             <div className="space-y-1 text-[11px] text-muted-foreground">
               <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                <span className="h-2 w-2 rounded-full bg-success" />
                 Comida 32%
               </div>
               <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-amber-500" />
+                <span className="h-2 w-2 rounded-full bg-warning" />
                 Hogar 28%
               </div>
               <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-sky-500" />
+                <span className="h-2 w-2 rounded-full bg-primary/70" />
                 Viajes 18%
               </div>
             </div>
@@ -765,13 +765,13 @@ function HomeMacbookScreen() {
             <p className="text-xs text-white/50">Balance total</p>
             <div className="mt-2 flex items-end gap-2">
               <span className="text-2xl font-semibold">€14,280</span>
-              <span className="text-xs text-emerald-300/80">+4.8%</span>
+              <span className="text-xs text-success/70">+4.8%</span>
             </div>
             <div className="mt-4 flex h-20 items-end gap-1">
               {DASHBOARD_BARS.slice(0, 10).map((height, index) => (
                 <div
                   key={`screen-bar-${index}`}
-                  className="flex-1 rounded-full bg-gradient-to-t from-emerald-500/70 to-emerald-300/40"
+                  className="flex-1 rounded-full bg-gradient-to-t from-success/60 to-success/30"
                   style={{ height: `${height}%` }}
                 />
               ))}
@@ -797,7 +797,7 @@ function HomeMacbookScreen() {
                 <span>72%</span>
               </div>
               <div className="mt-2 h-1.5 rounded-full bg-white/10">
-                <div className="h-full w-[72%] rounded-full bg-emerald-400/60" />
+                <div className="h-full w-[72%] rounded-full bg-success/50" />
               </div>
             </div>
             <div className="mt-3 rounded-lg bg-white/5 p-3">
@@ -806,7 +806,7 @@ function HomeMacbookScreen() {
                 <span>41%</span>
               </div>
               <div className="mt-2 h-1.5 rounded-full bg-white/10">
-                <div className="h-full w-[41%] rounded-full bg-blue-400/50" />
+                <div className="h-full w-[41%] rounded-full bg-primary/40" />
               </div>
             </div>
           </div>
@@ -889,8 +889,8 @@ function ProcessCard({
 function PricingItem({ children }: { children: React.ReactNode }) {
   return (
     <li className="flex items-center gap-3">
-      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/15">
-        <Check className="h-3 w-3 text-emerald-600" />
+      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-success/10">
+        <Check className="h-3 w-3 text-success" />
       </div>
       <span className="text-sm text-foreground">{children}</span>
     </li>

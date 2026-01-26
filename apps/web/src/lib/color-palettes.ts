@@ -1,20 +1,20 @@
 export const COLOR_PALETTE = [
-  '#10b981', // emerald
-  '#14b8a6', // teal
-  '#0ea5e9', // sky
-  '#3b82f6', // blue
-  '#6366f1', // indigo
-  '#8b5cf6', // violet
-  '#ec4899', // pink
-  '#f43f5e', // rose
-  '#f97316', // orange
-  '#f59e0b', // amber
-  '#eab308', // yellow
-  '#84cc16', // lime
-  '#22c55e', // green
-  '#0f766e', // teal-700
-  '#1d4ed8', // blue-700
-  '#9333ea', // purple-600
-  '#be123c', // rose-700
-  '#c2410c', // orange-700
+  '#2F9D8F', // muted emerald
+  '#3BA99C', // soft teal
+  '#3A86C6', // calm sky
+  '#5470C6', // soft blue
+  '#6B5CA5', // muted indigo
+  '#8A63B8', // gentle violet
+  '#C56C9A', // muted pink
+  '#C2646A', // soft rose
+  '#C47A4C', // warm orange
+  '#C99D4A', // muted amber
+  '#B3A148', // mellow yellow
+  '#8CB357', // soft lime
+  '#5F9B6B', // muted green
+  '#1F6B6A', // deep teal
+  '#2E4C8A', // deep blue
+  '#6B3E8A', // muted purple
+  '#8E3B4B', // deep rose
+  '#8C4A2D', // deep orange
 ];

@@ -74,9 +74,9 @@ export function ThemeToggle() {
       aria-label="Cambiar tema"
     >
       {resolvedTheme === 'dark' ? (
-        <Sun className="h-4 w-4 text-yellow-500" />
+        <Sun className="h-4 w-4 text-warning" />
       ) : (
-        <Moon className="h-4 w-4 text-slate-700" />
+        <Moon className="h-4 w-4 text-muted-foreground" />
       )}
       <span className="sr-only">Cambiar tema</span>
     </Button>

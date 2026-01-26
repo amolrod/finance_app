@@ -30,10 +30,10 @@ const textFont = Sora({
 });
 
 const PAGE_STYLE = {
-  '--accent-a': '#10b981',
-  '--accent-b': '#14b8a6',
-  '--accent-c': '#0ea5e9',
-  '--accent-d': '#f59e0b'
+  '--accent-a': '#2F9D8F',
+  '--accent-b': '#3BA99C',
+  '--accent-c': '#3A86C6',
+  '--accent-d': '#C99D4A'
 } as React.CSSProperties;
 
 const REGISTER_STEPS = [
@@ -101,12 +101,12 @@ export default function RegisterPage() {
   const strengthLabel = ['Débil', 'Aceptable', 'Sólida', 'Fuerte', 'Excelente'][passwordScore] ?? 'Débil';
   const strengthTone =
     passwordScore <= 1
-      ? 'bg-rose-500'
+      ? 'bg-destructive'
       : passwordScore === 2
-      ? 'bg-amber-500'
+      ? 'bg-warning'
       : passwordScore === 3
-      ? 'bg-lime-500'
-      : 'bg-emerald-500';
+      ? 'bg-primary/60'
+      : 'bg-success';
 
   const onSubmit = async (data: RegisterForm) => {
     try {
@@ -305,7 +305,7 @@ export default function RegisterPage() {
                           <div
                             key={check.label}
                             className={`flex items-center gap-1.5 transition-colors ${
-                              check.valid ? 'text-emerald-600' : 'text-muted-foreground'
+                              check.valid ? 'text-success' : 'text-muted-foreground'
                             }`}
                           >
                             <span className="flex h-4 w-4 items-center justify-center rounded-full border border-foreground/10">
@@ -372,7 +372,7 @@ export default function RegisterPage() {
                     ¿Ya tienes cuenta?{' '}
                     <Link
                       href="/auth/login"
-                      className="font-semibold text-emerald-600 transition-colors hover:text-emerald-500"
+                      className="font-semibold text-primary transition-colors hover:text-primary/80"
                     >
                       Inicia sesión
                     </Link>
@@ -441,7 +441,7 @@ function RegisterPhoneScreen() {
               <span>50%</span>
             </div>
             <div className="mt-1 h-1.5 w-full rounded-full bg-white/10">
-              <div className="h-1.5 w-1/2 rounded-full bg-emerald-400/60" />
+              <div className="h-1.5 w-1/2 rounded-full bg-success/50" />
             </div>
           </div>
           <div>
@@ -450,7 +450,7 @@ function RegisterPhoneScreen() {
               <span>30%</span>
             </div>
             <div className="mt-1 h-1.5 w-full rounded-full bg-white/10">
-              <div className="h-1.5 w-[30%] rounded-full bg-sky-400/60" />
+              <div className="h-1.5 w-[30%] rounded-full bg-primary/40" />
             </div>
           </div>
           <div>

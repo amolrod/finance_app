@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCategories, useCreateCategory, useDeleteCategory } from '@/hooks/use-categories';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { PageHeader } from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -214,151 +215,146 @@ export default function CategoriesPage() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between"
       >
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Categorías</h1>
-          <p className="text-[13px] text-muted-foreground mt-1">
-            Organiza tus ingresos y gastos
-          </p>
-        </div>
-        
-        {/* Stats cards */}
-        <div className="flex gap-2">
-          <div className="flex items-center gap-2.5 rounded-lg bg-secondary border border-border/40 px-3 py-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-foreground/5">
-              <TrendingDown className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <div>
-              <p className="text-lg font-semibold tabular-nums">
-                {categories?.filter(c => c.type === 'EXPENSE').length || 0}
-              </p>
-              <p className="text-[11px] text-muted-foreground">Gastos</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2.5 rounded-lg bg-secondary border border-border/40 px-3 py-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-foreground/5">
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <div>
-              <p className="text-lg font-semibold tabular-nums">
-                {categories?.filter(c => c.type === 'INCOME').length || 0}
-              </p>
-              <p className="text-[11px] text-muted-foreground">Ingresos</p>
-            </div>
-          </div>
-        </div>
+        <PageHeader
+          title="Categorías"
+          description="Organiza tus ingresos y gastos"
+          action={
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nueva Categoría
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Crear Nueva Categoría</DialogTitle>
+                  <DialogDescription>
+                    Añade una categoría para organizar tus transacciones
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Nombre</Label>
+                      <Input
+                        id="name"
+                        placeholder="Ej: Restaurantes"
+                        {...register('name')}
+                        error={errors.name?.message}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Tipo</Label>
+                      <div className="flex gap-2">
+                        {(['EXPENSE', 'INCOME'] as CategoryType[]).map((type) => (
+                          <button
+                            key={type}
+                            type="button"
+                            onClick={() => setValue('type', type)}
+                            className={cn(
+                              'flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border transition-colors',
+                              selectedType === type
+                                ? 'border-foreground/30 bg-foreground/5 text-foreground'
+                                : 'border-border/60 hover:bg-secondary/50'
+                            )}
+                          >
+                            {type === 'INCOME' ? (
+                              <TrendingUp className="h-4 w-4" />
+                            ) : (
+                              <TrendingDown className="h-4 w-4" />
+                            )}
+                            <span className="text-[13px] font-medium">
+                              {type === 'INCOME' ? 'Ingreso' : 'Gasto'}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Categoría Padre (opcional)</Label>
+                      <Select onValueChange={(value) => setValue('parentId', value === 'none' ? undefined : value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sin categoría padre" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Sin categoría padre</SelectItem>
+                          {categories
+                            ?.filter((cat) => cat.type === selectedType && !cat.parentId)
+                            .map((cat) => (
+                              <SelectItem key={cat.id} value={cat.id}>
+                                {cat.name}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Color</Label>
+                      <div className="flex gap-2 flex-wrap">
+                        {defaultColors.map((color) => (
+                          <button
+                            key={color}
+                            type="button"
+                            className={cn(
+                              'relative h-8 w-8 rounded-full border border-white/40 shadow-sm transition-all duration-150',
+                              selectedColor === color && 'scale-110 ring-2 ring-foreground/20 ring-offset-2'
+                            )}
+                            style={{ backgroundColor: color }}
+                            onClick={() => setValue('color', color)}
+                          >
+                            {selectedColor === color ? (
+                              <Check className="h-4 w-4 text-white drop-shadow" />
+                            ) : null}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit" isLoading={createMutation.isPending}>
+                      Crear
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          }
+        />
       </motion.div>
 
-      {/* Action Button */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.1 }}
+        className="flex flex-wrap gap-2"
       >
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Nueva Categoría
-            </Button>
-          </DialogTrigger>
-        <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Crear Nueva Categoría</DialogTitle>
-              <DialogDescription>
-                Añade una categoría para organizar tus transacciones
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nombre</Label>
-                  <Input
-                    id="name"
-                    placeholder="Ej: Restaurantes"
-                    {...register('name')}
-                    error={errors.name?.message}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Tipo</Label>
-                  <div className="flex gap-2">
-                    {(['EXPENSE', 'INCOME'] as CategoryType[]).map((type) => (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => setValue('type', type)}
-                        className={cn(
-                          'flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border transition-colors',
-                          selectedType === type
-                            ? 'border-foreground/30 bg-foreground/5 text-foreground'
-                            : 'border-border/60 hover:bg-secondary/50'
-                        )}
-                      >
-                        {type === 'INCOME' ? (
-                          <TrendingUp className="h-4 w-4" />
-                        ) : (
-                          <TrendingDown className="h-4 w-4" />
-                        )}
-                        <span className="text-[13px] font-medium">
-                          {type === 'INCOME' ? 'Ingreso' : 'Gasto'}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Categoría Padre (opcional)</Label>
-                  <Select onValueChange={(value) => setValue('parentId', value === 'none' ? undefined : value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sin categoría padre" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Sin categoría padre</SelectItem>
-                      {categories
-                        ?.filter((cat) => cat.type === selectedType && !cat.parentId)
-                        .map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Color</Label>
-                  <div className="flex gap-2 flex-wrap">
-                    {defaultColors.map((color) => (
-                      <button
-                        key={color}
-                        type="button"
-                        className={cn(
-                          'relative h-8 w-8 rounded-full border border-white/40 shadow-sm transition-all duration-150',
-                          selectedColor === color && 'scale-110 ring-2 ring-foreground/20 ring-offset-2'
-                        )}
-                        style={{ backgroundColor: color }}
-                        onClick={() => setValue('color', color)}
-                      >
-                        {selectedColor === color ? (
-                          <Check className="h-4 w-4 text-white drop-shadow" />
-                        ) : null}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button type="submit" isLoading={createMutation.isPending}>
-                  Crear
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center gap-2.5 rounded-lg bg-secondary/70 border border-border/40 px-3 py-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-foreground/5">
+            <TrendingDown className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <div>
+            <p className="text-lg font-semibold tabular-nums">
+              {categories?.filter(c => c.type === 'EXPENSE').length || 0}
+            </p>
+            <p className="text-[11px] text-muted-foreground">Gastos</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2.5 rounded-lg bg-secondary/70 border border-border/40 px-3 py-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-foreground/5">
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <div>
+            <p className="text-lg font-semibold tabular-nums">
+              {categories?.filter(c => c.type === 'INCOME').length || 0}
+            </p>
+            <p className="text-[11px] text-muted-foreground">Ingresos</p>
+          </div>
+        </div>
       </motion.div>
 
       <motion.div

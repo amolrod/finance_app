@@ -27,14 +27,14 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <div className={cn(
-      'flex flex-col items-center justify-center py-16 px-4',
+      'flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/60 bg-background/60 px-6 py-14 text-center',
       className
     )}>
-      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted mb-6">
-        <Icon className="h-10 w-10 text-muted-foreground" />
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary/80 mb-5">
+        <Icon className="h-7 w-7 text-muted-foreground" />
       </div>
-      <h3 className="text-xl font-semibold text-center mb-2">{title}</h3>
-      <p className="text-muted-foreground text-center max-w-sm mb-6">
+      <h3 className="text-lg font-semibold mb-1">{title}</h3>
+      <p className="text-[13px] text-muted-foreground max-w-sm mb-6">
         {description}
       </p>
       {action && (
@@ -111,21 +111,33 @@ export function StatsSkeleton({ count = 4 }: { count?: number }) {
 // Page header component
 interface PageHeaderProps {
   title: string;
-  description?: string;
+  description?: ReactNode;
   action?: ReactNode;
+  icon?: ReactNode;
   className?: string;
 }
 
-export function PageHeader({ title, description, action, className }: PageHeaderProps) {
+export function PageHeader({ title, description, action, icon, className }: PageHeaderProps) {
   return (
-    <div className={cn('flex items-start justify-between gap-4', className)}>
-      <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
-        {description && (
-          <p className="text-muted-foreground">{description}</p>
-        )}
+    <div className={cn('flex flex-col gap-3 md:flex-row md:items-end md:justify-between', className)}>
+      <div className="flex items-start gap-3">
+        {icon ? (
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/60 bg-secondary/70 text-muted-foreground">
+            {icon}
+          </div>
+        ) : null}
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+          {description ? (
+            typeof description === 'string' ? (
+              <p className="text-[13px] text-muted-foreground">{description}</p>
+            ) : (
+              <div className="text-[13px] text-muted-foreground">{description}</div>
+            )
+          ) : null}
+        </div>
       </div>
-      {action}
+      {action ? <div className="flex flex-wrap items-center gap-2">{action}</div> : null}
     </div>
   );
 }

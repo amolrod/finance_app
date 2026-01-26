@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Switch } from '@/components/ui/switch';
+import { PageHeader } from '@/components/ui/empty-state';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -504,47 +505,44 @@ export default function InvestmentsPage() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between"
       >
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-foreground/10 bg-foreground/5">
-              <Briefcase className="h-5 w-5 text-foreground/70" />
-            </div>
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Inversiones</h1>
-            <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
+        <PageHeader
+          title="Inversiones"
+          description={
+            <div className="flex items-center gap-2">
               <span>Gestiona tu portafolio</span>
-              {lastUpdateTime && (
+              {lastUpdateTime ? (
                 <span className="flex items-center gap-1 text-[11px] text-muted-foreground/70">
                   <Clock className="h-3 w-3" />
                   {formatLastUpdate(lastUpdateTime)}
-                  {isAutoRefreshing && <RefreshCcw className="h-3 w-3 animate-spin" />}
+                  {isAutoRefreshing ? <RefreshCcw className="h-3 w-3 animate-spin" /> : null}
                 </span>
-              )}
+              ) : null}
             </div>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={handleRefreshPrices}
-            disabled={refreshPricesMutation.isPending || isAutoRefreshing}
-            className="h-9 text-[13px]"
-          >
-            <RefreshCcw className={cn("h-4 w-4 mr-1.5", (refreshPricesMutation.isPending || isAutoRefreshing) && "animate-spin")} />
-            Actualizar
-          </Button>
-          <Button asChild variant="outline" size="sm" className="h-9 text-[13px]">
-            <Link href="/dashboard/investments/import">Importar CSV</Link>
-          </Button>
-          <Button size="sm" onClick={() => setShowOperationForm(true)} className="h-9 text-[13px]">
-            <Plus className="h-4 w-4 mr-1.5" />
-            Nueva Operación
-          </Button>
-        </div>
+          }
+          icon={<Briefcase className="h-5 w-5" />}
+          action={
+            <>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={handleRefreshPrices}
+                disabled={refreshPricesMutation.isPending || isAutoRefreshing}
+                className="h-9 text-[13px]"
+              >
+                <RefreshCcw className={cn("h-4 w-4 mr-1.5", (refreshPricesMutation.isPending || isAutoRefreshing) && "animate-spin")} />
+                Actualizar
+              </Button>
+              <Button asChild variant="outline" size="sm" className="h-9 text-[13px]">
+                <Link href="/dashboard/investments/import">Importar CSV</Link>
+              </Button>
+              <Button size="sm" onClick={() => setShowOperationForm(true)} className="h-9 text-[13px]">
+                <Plus className="h-4 w-4 mr-1.5" />
+                Nueva Operación
+              </Button>
+            </>
+          }
+        />
       </motion.div>
 
       {/* Summary Cards - Estilo Apple Cards */}
@@ -618,7 +616,7 @@ export default function InvestmentsPage() {
               <p className={cn(
                 "text-2xl font-semibold tabular-nums",
                 unrealizedPnL !== null && unrealizedPnL >= 0 
-                  ? "text-emerald-600/80 dark:text-emerald-400/80" 
+                  ? "text-success/80" 
                   : "text-foreground"
               )}>
                 {loadingPortfolio 
@@ -652,7 +650,7 @@ export default function InvestmentsPage() {
               </div>
               <p className={cn(
                 "text-2xl font-semibold tabular-nums",
-                realizedPnL >= 0 ? "text-emerald-600/80 dark:text-emerald-400/80" : "text-foreground"
+                realizedPnL >= 0 ? "text-success/80" : "text-foreground"
               )}>
                 {loadingPortfolio 
                   ? '...'
@@ -1110,7 +1108,7 @@ export default function InvestmentsPage() {
                               <p
                                 className={cn(
                                   'font-medium',
-                                  performanceSummary.change >= 0 ? 'text-emerald-500' : 'text-rose-500'
+                                  performanceSummary.change >= 0 ? 'text-success' : 'text-destructive'
                                 )}
                               >
                                 {performanceSummary.change >= 0 ? '+' : ''}

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { useAccounts, useCreateAccount, useDeleteAccount, useAccountSummary } from '@/hooks/use-accounts';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { PageHeader } from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -146,120 +147,119 @@ export default function AccountsPage() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
       >
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Mis Cuentas</h1>
-          <p className="text-[13px] text-muted-foreground">
-            Gestiona tus activos financieros
-          </p>
-        </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Nueva Cuenta
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Crear Nueva Cuenta</DialogTitle>
-              <DialogDescription>
-                Añade una nueva cuenta para rastrear tus finanzas
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nombre</Label>
-                  <Input
-                    id="name"
-                    placeholder="Mi cuenta principal"
-                    {...register('name')}
-                    error={errors.name?.message}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="type">Tipo de Cuenta</Label>
-                  <Select
-                    onValueChange={(value) => setValue('type', value as AccountType)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona un tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(accountTypeLabels).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.type && (
-                    <p className="text-sm text-destructive">{errors.type.message}</p>
-                  )}
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="balance">Balance Inicial</Label>
-                    <Input
-                      id="balance"
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
-                      {...register('balance')}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="currency">Moneda</Label>
-                    <Select
-                      defaultValue="EUR"
-                      onValueChange={(value) => setValue('currency', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="EUR">EUR (€)</SelectItem>
-                        <SelectItem value="USD">USD ($)</SelectItem>
-                        <SelectItem value="GBP">GBP (£)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Color</Label>
-                  <div className="flex gap-2 flex-wrap">
-                    {defaultColors.map((color) => (
-                      <button
-                        key={color}
-                        type="button"
-                        className={cn(
-                          'relative h-8 w-8 rounded-full border border-white/40 shadow-sm transition-all duration-150',
-                          selectedColor === color && 'scale-110 ring-2 ring-foreground/20 ring-offset-2'
-                        )}
-                        style={{ backgroundColor: color }}
-                        onClick={() => setValue('color', color)}
+        <PageHeader
+          title="Mis Cuentas"
+          description="Gestiona tus activos financieros"
+          action={
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nueva Cuenta
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Crear Nueva Cuenta</DialogTitle>
+                  <DialogDescription>
+                    Añade una nueva cuenta para rastrear tus finanzas
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Nombre</Label>
+                      <Input
+                        id="name"
+                        placeholder="Mi cuenta principal"
+                        {...register('name')}
+                        error={errors.name?.message}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="type">Tipo de Cuenta</Label>
+                      <Select
+                        onValueChange={(value) => setValue('type', value as AccountType)}
                       >
-                        {selectedColor === color ? (
-                          <Check className="h-4 w-4 text-white drop-shadow" />
-                        ) : null}
-                      </button>
-                    ))}
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona un tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(accountTypeLabels).map(([value, label]) => (
+                            <SelectItem key={value} value={value}>
+                              {label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {errors.type && (
+                        <p className="text-sm text-destructive">{errors.type.message}</p>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="balance">Balance Inicial</Label>
+                        <Input
+                          id="balance"
+                          type="number"
+                          step="0.01"
+                          placeholder="0.00"
+                          {...register('balance')}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="currency">Moneda</Label>
+                        <Select
+                          defaultValue="EUR"
+                          onValueChange={(value) => setValue('currency', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="EUR">EUR (€)</SelectItem>
+                            <SelectItem value="USD">USD ($)</SelectItem>
+                            <SelectItem value="GBP">GBP (£)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Color</Label>
+                      <div className="flex gap-2 flex-wrap">
+                        {defaultColors.map((color) => (
+                          <button
+                            key={color}
+                            type="button"
+                            className={cn(
+                              'relative h-8 w-8 rounded-full border border-white/40 shadow-sm transition-all duration-150',
+                              selectedColor === color && 'scale-110 ring-2 ring-foreground/20 ring-offset-2'
+                            )}
+                            style={{ backgroundColor: color }}
+                            onClick={() => setValue('color', color)}
+                          >
+                            {selectedColor === color ? (
+                              <Check className="h-4 w-4 text-white drop-shadow" />
+                            ) : null}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button type="submit" isLoading={createMutation.isPending}>
-                  Crear
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+                  <DialogFooter>
+                    <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit" isLoading={createMutation.isPending}>
+                      Crear
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          }
+        />
       </motion.div>
 
       {/* Hero Balance Card */}

@@ -44,7 +44,7 @@ export function StatCard({
     <Card 
       className={cn(
         'transition-all duration-200',
-        onClick && 'cursor-pointer hover:shadow-md hover:border-primary/50',
+        onClick && 'cursor-pointer hover:shadow-md hover:border-foreground/30',
         className
       )}
       onClick={onClick}

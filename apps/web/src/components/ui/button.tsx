@@ -5,23 +5,23 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center whitespace-nowrap text-[13px] font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/20 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]',
+  'inline-flex items-center justify-center whitespace-nowrap text-[13px] font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/25 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]',
   {
     variants: {
       variant: {
-        default: 'bg-foreground text-background hover:bg-foreground/90',
+        default: 'bg-foreground text-background shadow-sm hover:bg-foreground/90 hover:shadow-md',
         destructive:
-          'bg-red-600 text-white hover:bg-red-700',
+          'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 hover:shadow-md',
         outline:
-          'border border-border bg-background hover:bg-foreground/5',
+          'border border-border/70 bg-background hover:bg-foreground/5 hover:border-foreground/20',
         secondary:
-          'bg-foreground/5 text-foreground hover:bg-foreground/10',
-        ghost: 'hover:bg-foreground/5',
+          'bg-secondary/80 text-foreground hover:bg-secondary',
+        ghost: 'text-muted-foreground hover:text-foreground hover:bg-foreground/5',
         link: 'text-foreground underline-offset-4 hover:underline',
-        success: 'bg-green-600 text-white hover:bg-green-700',
+        success: 'bg-success text-success-foreground shadow-sm hover:bg-success/90 hover:shadow-md',
       },
       size: {
-        default: 'h-9 px-4 py-2 rounded-lg',
+        default: 'h-10 px-4 py-2 rounded-lg',
         sm: 'h-8 rounded-lg px-3 text-[12px]',
         lg: 'h-11 rounded-xl px-6',
         icon: 'h-9 w-9 rounded-lg',

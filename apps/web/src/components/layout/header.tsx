@@ -131,7 +131,7 @@ export function Header() {
             <DropdownMenuSeparator className="my-1.5" />
             <DropdownMenuItem
               onClick={handleLogout}
-              className="py-2 px-2 cursor-pointer rounded-md text-red-500 focus:text-red-500 focus:bg-red-500/10"
+              className="py-2 px-2 cursor-pointer rounded-md text-destructive focus:text-destructive focus:bg-destructive/10"
             >
               <LogOut className="mr-2.5 h-4 w-4" />
               <span className="text-sm">Cerrar sesión</span>

@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { PageHeader } from '@/components/ui/empty-state';
 import {
   Select,
   SelectContent,
@@ -620,8 +621,8 @@ export default function ImportPage() {
 
   // Get confidence color
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 0.8) return 'text-green-600';
-    if (confidence >= 0.5) return 'text-yellow-600';
+    if (confidence >= 0.8) return 'text-success';
+    if (confidence >= 0.5) return 'text-warning';
     return 'text-gray-400';
   };
 
@@ -639,17 +640,11 @@ export default function ImportPage() {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-foreground/10 bg-foreground/5">
-            <Download className="h-5 w-5 text-foreground/70" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Importar Transacciones</h1>
-            <p className="text-muted-foreground text-[13px]">
-              Importa transacciones desde extractos bancarios en formato CSV
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          title="Importar Transacciones"
+          description="Importa transacciones desde extractos bancarios en formato CSV"
+          icon={<Download className="h-5 w-5" />}
+        />
       </motion.div>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -909,7 +904,7 @@ export default function ImportPage() {
                 <div
                   className={cn(
                     'text-xl font-semibold tabular-nums',
-                    selectedIncome - selectedExpenses >= 0 ? 'text-emerald-600' : 'text-red-600'
+                    selectedIncome - selectedExpenses >= 0 ? 'text-success' : 'text-destructive'
                   )}
                 >
                   {formatCurrency(selectedIncome - selectedExpenses, preview.detectedCurrency)}
@@ -925,7 +920,7 @@ export default function ImportPage() {
           {/* Info Banner */}
           {preview.duplicatesFound > 0 && (
             <div className="flex items-center gap-2 p-4 rounded-xl border border-foreground/10 bg-foreground/5">
-              <AlertTriangle className="h-5 w-5 text-amber-500/80" />
+              <AlertTriangle className="h-5 w-5 text-warning/80" />
               <span className="text-sm text-muted-foreground">
                 Se encontraron {preview.duplicatesFound} transacciones que ya existen en el sistema.
                 Están desmarcadas por defecto.
@@ -1032,7 +1027,7 @@ export default function ImportPage() {
                           className={cn(
                             tx.isDuplicate && 'opacity-50 bg-muted/30',
                             !selections[tx.hash]?.selected && 'opacity-60',
-                            needsReview && 'border-l-2 border-amber-400/40'
+                            needsReview && 'border-l-2 border-warning/40'
                           )}
                         >
                         <TableCell>
@@ -1051,12 +1046,12 @@ export default function ImportPage() {
                         <TableCell>
                           {tx.type === 'INCOME' ? (
                         <div className="inline-flex items-center gap-1 rounded-full border border-foreground/10 bg-foreground/5 px-2 py-0.5 text-[11px] font-medium text-foreground/70">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500/70" />
+                          <span className="h-1.5 w-1.5 rounded-full bg-success/70" />
                           Ingreso
                         </div>
                           ) : (
                             <div className="inline-flex items-center gap-1 rounded-full border border-foreground/10 bg-foreground/5 px-2 py-0.5 text-[11px] font-medium text-foreground/70">
-                              <span className="h-1.5 w-1.5 rounded-full bg-rose-500/70" />
+                              <span className="h-1.5 w-1.5 rounded-full bg-destructive/70" />
                               Gasto
                             </div>
                           )}
@@ -1064,7 +1059,7 @@ export default function ImportPage() {
                         <TableCell
                           className={cn(
                             'text-right font-medium whitespace-nowrap',
-                            tx.type === 'INCOME' ? 'text-green-600' : 'text-red-600'
+                            tx.type === 'INCOME' ? 'text-success' : 'text-destructive'
                           )}
                         >
                           {tx.type === 'INCOME' ? '+' : '-'}
@@ -1134,7 +1129,7 @@ export default function ImportPage() {
                               Duplicado
                             </Badge>
                           ) : selections[tx.hash]?.selected ? (
-                            <Badge variant="default" className="gap-1 bg-green-600">
+                            <Badge variant="default" className="gap-1 bg-success">
                               <CheckCircle2 className="h-3 w-3" />
                               Incluir
                             </Badge>
@@ -1192,8 +1187,8 @@ export default function ImportPage() {
       {step === 'result' && importResult && (
         <Card className="max-w-lg mx-auto bg-background/80 border-foreground/10 shadow-soft">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-              <CheckCircle2 className="h-8 w-8 text-green-600" />
+            <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-success/15 dark:bg-success/20 flex items-center justify-center">
+              <CheckCircle2 className="h-8 w-8 text-success" />
             </div>
             <CardTitle>¡Importación Completada!</CardTitle>
             <CardDescription>Las transacciones se han añadido correctamente</CardDescription>
@@ -1201,7 +1196,7 @@ export default function ImportPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
-                <div className="text-3xl font-bold text-green-600">{importResult.imported}</div>
+                <div className="text-3xl font-bold text-success">{importResult.imported}</div>
                 <div className="text-sm text-muted-foreground">Importadas</div>
               </div>
               <div>
@@ -1209,7 +1204,7 @@ export default function ImportPage() {
                 <div className="text-sm text-muted-foreground">Omitidas</div>
               </div>
               <div>
-                <div className="text-3xl font-bold text-yellow-600">{importResult.duplicates}</div>
+                <div className="text-3xl font-bold text-warning">{importResult.duplicates}</div>
                 <div className="text-sm text-muted-foreground">Duplicados</div>
               </div>
             </div>

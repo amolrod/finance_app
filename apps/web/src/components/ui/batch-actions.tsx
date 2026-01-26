@@ -71,12 +71,12 @@ export function BatchActionsBar<T extends SelectionItem>({
     <div className={cn(
       'fixed bottom-6 left-1/2 -translate-x-1/2 z-50',
       'flex items-center gap-4 px-5 py-3.5 rounded-2xl',
-      'bg-background/95 text-foreground border border-foreground/10 shadow-soft-lg backdrop-blur-xl',
+      'bg-background/95 text-foreground border border-border/60 shadow-soft-lg backdrop-blur-xl',
       'animate-in slide-in-from-bottom-8 zoom-in-95 duration-300',
       className
     )}>
       <div className="flex items-center gap-2.5 text-sm font-semibold">
-        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-foreground/10 text-foreground">
+        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-foreground/8 text-foreground/80">
           <CheckSquare className="h-4 w-4" />
         </div>
         <span>{selectedItems.length} seleccionado{selectedItems.length !== 1 ? 's' : ''}</span>

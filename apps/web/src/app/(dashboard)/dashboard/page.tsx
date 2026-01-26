@@ -20,6 +20,7 @@ import Decimal from 'decimal.js';
 import Link from 'next/link';
 import { InteractiveExpenseChart, InteractiveMonthlyChart } from '@/components/charts';
 import type { Transaction } from '@/types/api';
+import { COLOR_PALETTE } from '@/lib/color-palettes';
 
 const DEMO_ACCOUNT = {
   id: 'demo-account',
@@ -28,12 +29,12 @@ const DEMO_ACCOUNT = {
 };
 
 const DEMO_CATEGORIES = [
-  { id: 'demo-food', name: 'Comida', color: '#10b981' },
-  { id: 'demo-home', name: 'Hogar', color: '#f59e0b' },
-  { id: 'demo-transport', name: 'Transporte', color: '#0ea5e9' },
-  { id: 'demo-sub', name: 'Suscripciones', color: '#6366f1' },
-  { id: 'demo-leisure', name: 'Ocio', color: '#f97316' },
-  { id: 'demo-income', name: 'Ingresos', color: '#22c55e' },
+  { id: 'demo-food', name: 'Comida', color: COLOR_PALETTE[0] },
+  { id: 'demo-home', name: 'Hogar', color: COLOR_PALETTE[9] },
+  { id: 'demo-transport', name: 'Transporte', color: COLOR_PALETTE[2] },
+  { id: 'demo-sub', name: 'Suscripciones', color: COLOR_PALETTE[4] },
+  { id: 'demo-leisure', name: 'Ocio', color: COLOR_PALETTE[8] },
+  { id: 'demo-income', name: 'Ingresos', color: COLOR_PALETTE[12] },
 ];
 
 const DEMO_TRANSACTIONS: Transaction[] = [
@@ -92,7 +93,7 @@ const DEMO_ACCOUNTS = [
     initialBalance: '5200',
     currentBalance: '14280',
     icon: null,
-    color: '#10b981',
+    color: COLOR_PALETTE[0],
     isArchived: false,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -105,7 +106,7 @@ const DEMO_ACCOUNTS = [
     initialBalance: '1200',
     currentBalance: '3200',
     icon: null,
-    color: '#0ea5e9',
+    color: COLOR_PALETTE[2],
     isArchived: false,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -473,7 +474,7 @@ export default function DashboardPage() {
                     >
                       <span className="mt-0.5">
                         {step.completed ? (
-                          <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                          <CheckCircle2 className="h-4 w-4 text-success" />
                         ) : (
                           <Circle className="h-4 w-4 text-muted-foreground" />
                         )}
@@ -518,9 +519,9 @@ export default function DashboardPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05, type: 'spring', stiffness: 300, damping: 30 }}
       >
-        <Card className="relative overflow-hidden border border-emerald-500/20 bg-[linear-gradient(135deg,#0b1220,#0f172a)] text-white shadow-[0_35px_90px_-60px_rgba(14,165,233,0.65)]">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.35)_0%,transparent_55%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,rgba(14,165,233,0.3)_0%,transparent_60%)]" />
+        <Card className="relative overflow-hidden border border-foreground/10 bg-[linear-gradient(135deg,#0f1116,#121824)] text-white shadow-[0_30px_80px_-60px_rgba(47,157,143,0.45)]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(47,157,143,0.22)_0%,transparent_55%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,rgba(58,134,198,0.2)_0%,transparent_60%)]" />
           <CardContent className="relative p-8">
             <p className="text-[13px] text-white/70 font-medium tracking-wide">Balance Total</p>
             <div className="mt-3 flex items-baseline gap-3">
@@ -559,7 +560,7 @@ export default function DashboardPage() {
                 <div className="flex items-start justify-between">
                   <div className="space-y-2">
                     <p className="text-[13px] text-muted-foreground">Ingresos</p>
-                    <p className="text-2xl font-semibold tracking-tight text-green-600 dark:text-green-500">
+                    <p className="text-2xl font-semibold tracking-tight text-success">
                       +{formatAmount(monthlyTotals.totalIncome)}
                     </p>
                   </div>
@@ -704,7 +705,7 @@ export default function DashboardPage() {
                           <p className="text-[12px] text-muted-foreground truncate">{tx.account?.name}</p>
                         </div>
                         <span className={cn('text-[13px] font-medium tabular-nums',
-                          isIncome ? 'text-green-600 dark:text-green-500' : '')}>
+                          isIncome ? 'text-success' : '')}>
                           {isIncome ? '+' : isExpense ? '-' : ''}{formatCurrency(tx.amount, tx.currency).replace(tx.currency, '').trim()}
                         </span>
                       </motion.div>

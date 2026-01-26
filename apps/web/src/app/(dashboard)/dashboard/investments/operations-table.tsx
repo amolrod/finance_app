@@ -27,13 +27,14 @@ import { useInvestmentOperations, useDeleteInvestmentOperation } from '@/hooks/u
 import { formatDate } from '@/lib/utils';
 import { useCurrency } from '@/contexts/currency-context';
 import type { OperationType } from '@/types/api';
+import { COLOR_PALETTE } from '@/lib/color-palettes';
 
 const operationTypeLabels: Record<OperationType, { label: string; className: string; color: string }> = {
-  BUY: { label: 'Compra', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: '#f43f5e' },
-  SELL: { label: 'Venta', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: '#10b981' },
-  DIVIDEND: { label: 'Dividendo', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: '#0ea5e9' },
-  FEE: { label: 'Comisión', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: '#f59e0b' },
-  SPLIT: { label: 'Split', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: '#6366f1' },
+  BUY: { label: 'Compra', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: COLOR_PALETTE[7] },
+  SELL: { label: 'Venta', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: COLOR_PALETTE[0] },
+  DIVIDEND: { label: 'Dividendo', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: COLOR_PALETTE[2] },
+  FEE: { label: 'Comisión', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: COLOR_PALETTE[9] },
+  SPLIT: { label: 'Split', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: COLOR_PALETTE[4] },
 };
 
 interface OperationsTableProps {
@@ -152,7 +153,7 @@ export function OperationsTable({ onEdit }: OperationsTableProps) {
                       {convertAndFormat(price, op.currency)}
                     </TableCell>
                     <TableCell className={`text-right font-mono ${
-                      op.type === 'BUY' || op.type === 'FEE' ? 'text-foreground' : 'text-emerald-600/80 dark:text-emerald-400/80'
+                      op.type === 'BUY' || op.type === 'FEE' ? 'text-foreground' : 'text-success/80'
                     }`}>
                       {op.type === 'BUY' || op.type === 'FEE' ? '-' : '+'}
                       {convertAndFormat(Math.abs(total), op.currency)}
