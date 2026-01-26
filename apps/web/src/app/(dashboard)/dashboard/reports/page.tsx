@@ -505,7 +505,7 @@ export default function ReportsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-xl font-semibold tabular-nums text-violet-600 dark:text-violet-400">
+              <div className="text-xl font-semibold tabular-nums text-primary">
                 {categoryBreakdown.length}
               </div>
               <p className="text-[13px] text-muted-foreground">
@@ -527,8 +527,8 @@ export default function ReportsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10">
-                    <BarChart3 className="h-4 w-4 text-indigo-600" />
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                    <BarChart3 className="h-4 w-4 text-primary" />
                   </div>
                   Desglose por Categoría
                 </CardTitle>

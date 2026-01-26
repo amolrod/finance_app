@@ -17,9 +17,9 @@ export function Logo({ className = 'h-10 w-10' }: LogoProps) {
     >
       <defs>
         <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#0ea5e9" />
-          <stop offset="45%" stopColor="#14b8a6" />
-          <stop offset="100%" stopColor="#22c55e" />
+          <stop offset="0%" stopColor="hsl(var(--primary))" />
+          <stop offset="50%" stopColor="hsl(var(--chart-2))" />
+          <stop offset="100%" stopColor="hsl(var(--chart-1))" />
         </linearGradient>
         <radialGradient
           id="logoGlow"
@@ -77,7 +77,7 @@ export function LogoText({
     <div className={`flex items-center gap-3 ${className}`}>
       <Logo className={logoClassName} />
       <span
-        className={`inline-flex items-center font-semibold tracking-tight text-transparent bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 bg-clip-text ${textClassName}`}
+        className={`inline-flex items-center font-semibold tracking-tight text-transparent bg-gradient-to-r from-foreground/90 via-primary/80 to-primary bg-clip-text ${textClassName}`}
       >
         FinanceApp
       </span>
