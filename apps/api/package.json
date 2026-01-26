@@ -5,7 +5,7 @@
   "description": "Personal Finance API - NestJS Backend",
   "main": "dist/main.js",
   "scripts": {
-    "postinstall": "bunx prisma generate --schema=./prisma/schema.prisma",
+    "postinstall": "bun run db:generate",
     "build": "bun run db:generate && tsc -p tsconfig.build.json",
     "build:nest": "nest build",
     "dev": "nest start --watch",
@@ -20,7 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist coverage",
-    "db:generate": "bunx prisma generate --schema=./prisma/schema.prisma",
+    "db:generate": "bunx prisma generate --schema=./prisma/schema.prisma && node ./prisma/link-prisma-client.cjs",
     "db:migrate": "bunx prisma migrate dev --schema=./prisma/schema.prisma",
     "db:migrate:prod": "bunx prisma migrate deploy --schema=./prisma/schema.prisma",
     "db:seed": "ts-node prisma/seed.ts",
