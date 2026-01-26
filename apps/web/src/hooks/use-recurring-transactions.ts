@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
+import { useAuthStore } from '@/stores/auth-store';
 import type {
   RecurringTransaction,
   CreateRecurringTransactionDto,
@@ -17,16 +18,21 @@ export const recurringKeys = {
 
 // Get all recurring transactions
 export function useRecurringTransactions(filters?: RecurringTransactionFilters) {
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+
   return useQuery({
     queryKey: recurringKeys.list(filters),
     queryFn: async () => {
       return apiClient.get<RecurringTransaction[]>('/recurring-transactions', filters);
     },
+    enabled: isAuthenticated,
   });
 }
 
 // Get upcoming transactions preview
 export function useUpcomingTransactions(days: number = 30) {
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+
   return useQuery({
     queryKey: recurringKeys.upcoming(days),
     queryFn: async () => {
@@ -35,17 +41,20 @@ export function useUpcomingTransactions(days: number = 30) {
         { days }
       );
     },
+    enabled: isAuthenticated,
   });
 }
 
 // Get single recurring transaction
 export function useRecurringTransaction(id: string) {
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+
   return useQuery({
     queryKey: recurringKeys.detail(id),
     queryFn: async () => {
       return apiClient.get<RecurringTransaction>(`/recurring-transactions/${id}`);
     },
-    enabled: !!id,
+    enabled: isAuthenticated && !!id,
   });
 }
 

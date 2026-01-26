@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
+import { useAuthStore } from '@/stores/auth-store';
 
 export interface SearchResult {
   id: string;
@@ -18,6 +19,8 @@ export interface GlobalSearchResponse {
 }
 
 export function useGlobalSearch(query: string, enabled = true) {
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+
   return useQuery<GlobalSearchResponse>({
     queryKey: ['global-search', query],
     queryFn: async () => {
@@ -27,7 +30,7 @@ export function useGlobalSearch(query: string, enabled = true) {
       });
       return response;
     },
-    enabled: enabled && query.length >= 2,
+    enabled: isAuthenticated && enabled && query.length >= 2,
     staleTime: 1000 * 30, // 30 seconds
     gcTime: 1000 * 60, // 1 minute
   });

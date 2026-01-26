@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
+import { useAuthStore } from '@/stores/auth-store';
 import type {
   Tag,
   CreateTagDto,
@@ -15,22 +16,27 @@ export const tagKeys = {
 
 // Get all tags
 export function useTags() {
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+
   return useQuery({
     queryKey: tagKeys.list(),
     queryFn: async () => {
       return apiClient.get<Tag[]>('/tags');
     },
+    enabled: isAuthenticated,
   });
 }
 
 // Get single tag
 export function useTag(id: string) {
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+
   return useQuery({
     queryKey: tagKeys.detail(id),
     queryFn: async () => {
       return apiClient.get<Tag>(`/tags/${id}`);
     },
-    enabled: !!id,
+    enabled: isAuthenticated && !!id,
   });
 }
 

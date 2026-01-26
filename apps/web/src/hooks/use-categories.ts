@@ -17,7 +17,7 @@ export const categoryKeys = {
 
 // Get all categories
 export function useCategories(type?: CategoryType) {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
   
   return useQuery({
     queryKey: categoryKeys.list(type),
@@ -32,7 +32,7 @@ export function useCategories(type?: CategoryType) {
 
 // Get single category
 export function useCategory(id: string) {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
   
   return useQuery({
     queryKey: categoryKeys.detail(id),

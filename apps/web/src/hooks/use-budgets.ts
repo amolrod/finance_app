@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
+import { useAuthStore } from '@/stores/auth-store';
 import type {
   Budget,
   CreateBudgetDto,
@@ -16,35 +17,43 @@ export const budgetKeys = {
 
 // Get all budgets for a period
 export function useBudgets(periodMonth?: string) {
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+
   return useQuery({
     queryKey: budgetKeys.list(periodMonth),
     queryFn: async () => {
       const params = periodMonth ? { periodMonth } : undefined;
       return apiClient.get<Budget[]>('/budgets', params);
     },
+    enabled: isAuthenticated,
     placeholderData: (previousData) => previousData,
   });
 }
 
 // Get single budget
 export function useBudget(id: string) {
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+
   return useQuery({
     queryKey: budgetKeys.detail(id),
     queryFn: async () => {
       return apiClient.get<Budget>(`/budgets/${id}`);
     },
-    enabled: !!id,
+    enabled: isAuthenticated && !!id,
   });
 }
 
 // Get budget status (current month budget summary)
 export function useBudgetStatus() {
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+
   return useQuery({
     queryKey: budgetKeys.status(),
     queryFn: async () => {
       return apiClient.get<Budget[]>('/budgets/status');
     },
-    refetchInterval: 60 * 1000, // Refresh every minute
+    enabled: isAuthenticated,
+    refetchInterval: isAuthenticated ? 60 * 1000 : false, // Refresh every minute
     placeholderData: (previousData) => previousData,
   });
 }

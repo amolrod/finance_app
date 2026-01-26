@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
+import { useAuthStore } from '@/stores/auth-store';
 
 // Types
 export interface ExchangeRate {
@@ -34,6 +35,8 @@ export const exchangeRateKeys = {
 
 // Hook para obtener monedas soportadas
 export function useSupportedCurrencies() {
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+
   return useQuery({
     queryKey: exchangeRateKeys.currencies(),
     queryFn: async () => {
@@ -42,12 +45,15 @@ export function useSupportedCurrencies() {
       );
       return result.data?.currencies ?? [];
     },
+    enabled: isAuthenticated,
     staleTime: 24 * 60 * 60 * 1000, // 24 hours
   });
 }
 
 // Hook para obtener tipo de cambio entre dos monedas
 export function useExchangeRate(from: string, to: string, enabled: boolean = true) {
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+
   return useQuery({
     queryKey: exchangeRateKeys.rate(from, to),
     queryFn: async () => {
@@ -57,13 +63,15 @@ export function useExchangeRate(from: string, to: string, enabled: boolean = tru
       );
       return result.data;
     },
-    enabled: enabled && !!from && !!to && from !== to,
+    enabled: isAuthenticated && enabled && !!from && !!to && from !== to,
     staleTime: 60 * 60 * 1000, // 1 hour
   });
 }
 
 // Hook para obtener todos los tipos de cambio de una moneda base
 export function useAllExchangeRates(baseCurrency: string = 'USD') {
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+
   return useQuery({
     queryKey: exchangeRateKeys.allRates(baseCurrency),
     queryFn: async () => {
@@ -73,12 +81,15 @@ export function useAllExchangeRates(baseCurrency: string = 'USD') {
       );
       return result.data;
     },
+    enabled: isAuthenticated,
     staleTime: 60 * 60 * 1000, // 1 hour
   });
 }
 
 // Hook para obtener historial de tipos de cambio
 export function useExchangeRateHistory(from: string, to: string, days: number = 30) {
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+
   return useQuery({
     queryKey: exchangeRateKeys.history(from, to, days),
     queryFn: async () => {
@@ -92,7 +103,7 @@ export function useExchangeRateHistory(from: string, to: string, days: number = 
       }>('/exchange-rates/history', { from, to, days: days.toString() });
       return result.data;
     },
-    enabled: !!from && !!to && from !== to,
+    enabled: isAuthenticated && !!from && !!to && from !== to,
     staleTime: 60 * 60 * 1000, // 1 hour
   });
 }

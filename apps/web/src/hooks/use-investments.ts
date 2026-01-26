@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
+import { useAuthStore } from '@/stores/auth-store';
 import type {
   InvestmentOperation,
   CreateInvestmentOperationDto,
@@ -50,6 +51,8 @@ const investmentKeys = {
 
 // Get all operations
 export function useInvestmentOperations(filters: OperationFilters = {}) {
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+
   return useQuery({
     queryKey: investmentKeys.operationsList(filters),
     queryFn: async () => {
@@ -63,37 +66,46 @@ export function useInvestmentOperations(filters: OperationFilters = {}) {
       
       return apiClient.get<OperationsResponse>('/investments/operations', params);
     },
+    enabled: isAuthenticated,
   });
 }
 
 // Get single operation
 export function useInvestmentOperation(id: string) {
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+
   return useQuery({
     queryKey: investmentKeys.operation(id),
     queryFn: async () => {
       return apiClient.get<InvestmentOperation>(`/investments/operations/${id}`);
     },
-    enabled: !!id,
+    enabled: isAuthenticated && !!id,
   });
 }
 
 // Get holdings
 export function useHoldings() {
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+
   return useQuery({
     queryKey: investmentKeys.holdings(),
     queryFn: async () => {
       return apiClient.get<HoldingSummary[]>('/investments/holdings');
     },
+    enabled: isAuthenticated,
   });
 }
 
 // Get portfolio summary
 export function usePortfolioSummary() {
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+
   return useQuery({
     queryKey: investmentKeys.portfolio(),
     queryFn: async () => {
       return apiClient.get<PortfolioSummary>('/investments/portfolio');
     },
+    enabled: isAuthenticated,
   });
 }
 
@@ -143,6 +155,8 @@ export function useDeleteInvestmentOperation() {
 }
 
 export function useInvestmentPriceHistory(assetIds: string[], range: string) {
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+
   return useQuery({
     queryKey: investmentKeys.priceHistory(range, assetIds),
     queryFn: async () => {
@@ -152,14 +166,17 @@ export function useInvestmentPriceHistory(assetIds: string[], range: string) {
       }
       return apiClient.get<PriceHistoryResponse>('/investments/price-history', params);
     },
-    enabled: assetIds.length > 0,
+    enabled: isAuthenticated && assetIds.length > 0,
   });
 }
 
 export function useInvestmentGoals() {
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+
   return useQuery({
     queryKey: investmentKeys.goals(),
     queryFn: async () => apiClient.get<InvestmentGoal[]>('/investments/goals'),
+    enabled: isAuthenticated,
   });
 }
 
@@ -225,6 +242,7 @@ export function useRefreshPrices() {
 // Auto-refresh prices every 5 minutes
 export function useAutoRefreshPrices(enabled: boolean = true) {
   const queryClient = useQueryClient();
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
 
   return useQuery({
     queryKey: [...investmentKeys.all, 'auto-refresh'],
@@ -235,8 +253,8 @@ export function useAutoRefreshPrices(enabled: boolean = true) {
       queryClient.invalidateQueries({ queryKey: investmentKeys.portfolio() });
       return { ...result, lastUpdated: new Date().toISOString() };
     },
-    enabled,
-    refetchInterval: 5 * 60 * 1000, // 5 minutos
+    enabled: enabled && isAuthenticated,
+    refetchInterval: enabled && isAuthenticated ? 5 * 60 * 1000 : false, // 5 minutos
     refetchIntervalInBackground: false, // Solo cuando la pestaña está activa
     staleTime: 4 * 60 * 1000, // Considerar stale después de 4 minutos
   });

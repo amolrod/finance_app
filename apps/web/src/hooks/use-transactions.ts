@@ -21,7 +21,7 @@ export const transactionKeys = {
 
 // Get transactions with pagination
 export function useTransactions(filters?: TransactionFilters) {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
   
   return useQuery({
     queryKey: transactionKeys.list(filters),
@@ -35,7 +35,7 @@ export function useTransactions(filters?: TransactionFilters) {
 
 // Infinite scroll transactions
 export function useInfiniteTransactions(filters?: Omit<TransactionFilters, 'page'>) {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
   
   return useInfiniteQuery({
     queryKey: transactionKeys.infinite(filters),
@@ -59,7 +59,7 @@ export function useInfiniteTransactions(filters?: Omit<TransactionFilters, 'page
 
 // Get single transaction
 export function useTransaction(id: string) {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
   
   return useQuery({
     queryKey: transactionKeys.detail(id),

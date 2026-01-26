@@ -53,6 +53,14 @@ export class InvestmentsService {
     private readonly marketPriceService: MarketPriceService,
   ) {}
 
+  private isMissingGoalsTable(error: unknown) {
+    return (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2021' &&
+      error.message.includes('investment_goals')
+    );
+  }
+
   async create(userId: string, dto: CreateInvestmentOperationDto) {
     // Verify asset exists
     const asset = await this.prisma.asset.findUnique({
@@ -553,10 +561,19 @@ export class InvestmentsService {
   }
 
   async getGoals(userId: string) {
-    const goals = await this.prisma.investmentGoal.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
-    });
+    let goals;
+
+    try {
+      goals = await this.prisma.investmentGoal.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+      });
+    } catch (error) {
+      if (this.isMissingGoalsTable(error)) {
+        return [];
+      }
+      throw error;
+    }
 
     if (goals.length === 0) {
       return [];
@@ -763,9 +780,18 @@ export class InvestmentsService {
   }
 
   private async evaluateGoals(userId: string, holdings: HoldingSummary[]) {
-    const goals = await this.prisma.investmentGoal.findMany({
-      where: { userId },
-    });
+    let goals;
+
+    try {
+      goals = await this.prisma.investmentGoal.findMany({
+        where: { userId },
+      });
+    } catch (error) {
+      if (this.isMissingGoalsTable(error)) {
+        return;
+      }
+      throw error;
+    }
 
     if (goals.length === 0) return;
 

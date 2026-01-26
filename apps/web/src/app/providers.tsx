@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { AxiosError } from 'axios';
 import { ThemeProvider } from 'next-themes';
 import { useState, type ReactNode } from 'react';
 import { CurrencyProvider } from '@/contexts/currency-context';
@@ -20,7 +21,15 @@ export function Providers({ children }: ProvidersProps) {
             gcTime: 30 * 60 * 1000, // 30 minutes - mantener en caché
             refetchOnWindowFocus: false,
             refetchOnMount: false, // No refetch si datos están frescos
-            retry: 1,
+            retry: (failureCount, error) => {
+              const status = error instanceof AxiosError
+                ? error.response?.status
+                : (error as { status?: number } | undefined)?.status;
+              if (status === 401 || status === 403) {
+                return false;
+              }
+              return failureCount < 1;
+            },
           },
         },
       })

@@ -67,7 +67,7 @@ export function useLogout() {
 
 // Get current profile
 export function useProfile() {
-  const { isAuthenticated } = useAuthStore();
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
 
   return useQuery({
     queryKey: authKeys.profile(),

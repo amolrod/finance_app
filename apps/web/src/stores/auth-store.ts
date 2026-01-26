@@ -22,6 +22,7 @@ interface AuthActions {
   setUser: (user: User) => void;
   updateUser: (updates: Partial<User>) => void;
   setTokens: (accessToken: string, refreshToken: string) => void;
+  setAuthenticated: (isAuthenticated: boolean) => void;
   login: (user: User, accessToken: string, refreshToken: string) => void;
   logout: () => void;
   setLoading: (loading: boolean) => void;
@@ -47,7 +48,13 @@ export const useAuthStore = create<AuthStore>()(
       })),
       
       setTokens: (accessToken, refreshToken) =>
-        set({ accessToken, refreshToken }),
+        set({
+          accessToken,
+          refreshToken,
+          isAuthenticated: !!accessToken && !!refreshToken,
+        }),
+
+      setAuthenticated: (isAuthenticated) => set({ isAuthenticated }),
       
       login: (user, accessToken, refreshToken) =>
         set({
@@ -76,9 +83,20 @@ export const useAuthStore = create<AuthStore>()(
         user: state.user,
         accessToken: state.accessToken,
         refreshToken: state.refreshToken,
-        isAuthenticated: state.isAuthenticated,
       }),
-      onRehydrateStorage: () => (state) => {
+      onRehydrateStorage: () => (state, error) => {
+        if (error) {
+          state?.logout();
+          return;
+        }
+
+        const hasTokens = !!state?.accessToken && !!state?.refreshToken;
+        if (!hasTokens) {
+          state?.logout();
+          return;
+        }
+
+        state?.setAuthenticated(true);
         state?.setLoading(false);
       },
     }

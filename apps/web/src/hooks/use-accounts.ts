@@ -19,7 +19,7 @@ export const accountKeys = {
 
 // Get all accounts
 export function useAccounts(includeArchived = false) {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
   
   return useQuery({
     queryKey: accountKeys.list({ includeArchived }),
@@ -35,7 +35,7 @@ export function useAccounts(includeArchived = false) {
 
 // Get single account
 export function useAccount(id: string) {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
   
   return useQuery({
     queryKey: accountKeys.detail(id),
@@ -48,7 +48,7 @@ export function useAccount(id: string) {
 
 // Get account summary
 export function useAccountSummary(targetCurrency?: string) {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
   
   return useQuery({
     queryKey: [...accountKeys.summary(), targetCurrency],

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
+import { useAuthStore } from '@/stores/auth-store';
 import type {
   Asset,
   CreateAssetDto,
@@ -20,6 +21,8 @@ const assetKeys = {
 
 // Get all assets
 export function useAssets(filters: { search?: string; type?: AssetType } = {}) {
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+
   return useQuery({
     queryKey: assetKeys.list(filters),
     queryFn: async () => {
@@ -29,28 +32,32 @@ export function useAssets(filters: { search?: string; type?: AssetType } = {}) {
       const response = await apiClient.get<Asset[]>('/assets', params);
       return response;
     },
+    enabled: isAuthenticated,
   });
 }
 
 export function useAssetSearch(query: string) {
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
   const normalized = query.trim();
   return useQuery({
     queryKey: assetKeys.search(normalized),
     queryFn: async () => {
       return apiClient.get<AssetSearchResult[]>('/assets/search', { query: normalized });
     },
-    enabled: normalized.length >= 2,
+    enabled: isAuthenticated && normalized.length >= 2,
   });
 }
 
 // Get single asset
 export function useAsset(id: string) {
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+
   return useQuery({
     queryKey: assetKeys.detail(id),
     queryFn: async () => {
       return apiClient.get<Asset>(`/assets/${id}`);
     },
-    enabled: !!id,
+    enabled: isAuthenticated && !!id,
   });
 }
 
