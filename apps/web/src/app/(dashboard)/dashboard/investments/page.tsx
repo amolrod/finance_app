@@ -3,12 +3,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Plus, DollarSign, PieChart, BarChart3, RefreshCcw, Clock, Briefcase, ChevronRight } from 'lucide-react';
-import { ResponsiveContainer, PieChart as RePieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
+import { ResponsiveContainer, PieChart as RePieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, AreaChart, Area } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { usePortfolioSummary, useHoldings, useRefreshPrices, useAutoRefreshPrices } from '@/hooks/use-investments';
+import { usePortfolioSummary, useHoldings, useRefreshPrices, useAutoRefreshPrices, useInvestmentOperations } from '@/hooks/use-investments';
 import { useAssets } from '@/hooks/use-assets';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -48,6 +48,7 @@ export default function InvestmentsPage() {
   const { data: holdings, isLoading: loadingHoldings } = useHoldings();
   const { data: assets } = useAssets();
   const refreshPricesMutation = useRefreshPrices();
+  const { data: chartOperationsData, isLoading: chartOperationsLoading } = useInvestmentOperations({ page: 1, limit: 1000 });
   
   // Auto-refresh precios cada 5 minutos
   const { data: autoRefreshData, isFetching: isAutoRefreshing } = useAutoRefreshPrices(holdings && holdings.length > 0);
@@ -152,6 +153,90 @@ export default function InvestmentsPage() {
       color: assetTypeColors[type as AssetType] || COLOR_PALETTE[3],
     }));
   }, [byAssetType]);
+
+  const investmentTrendData = useMemo(() => {
+    const operations = chartOperationsData?.data || [];
+    if (!operations.length) return [];
+
+    const sorted = [...operations].sort(
+      (a, b) => new Date(a.occurredAt).getTime() - new Date(b.occurredAt).getTime()
+    );
+
+    const lotsByAsset = new Map<string, { quantity: number; costPerUnit: number }[]>();
+    let totalInvested = 0;
+    let realizedPnL = 0;
+    const points = new Map<string, { date: string; invested: number; realized: number }>();
+
+    const toNumber = (value: string | number | null | undefined) => {
+      if (value === null || value === undefined) return 0;
+      const parsed = typeof value === 'number' ? value : Number(value);
+      return Number.isNaN(parsed) ? 0 : parsed;
+    };
+
+    const convertValue = (amount: number, currency: string) =>
+      convertAmount(amount, currency) ?? amount;
+
+    sorted.forEach((op) => {
+      const assetId = op.assetId;
+      const lots = lotsByAsset.get(assetId) || [];
+      const qty = toNumber(op.quantity);
+      const price = toNumber(op.pricePerUnit);
+      const fees = toNumber(op.fees);
+      const currency = op.currency || baseCurrency;
+      const priceConverted = convertValue(price, currency);
+      const feesConverted = convertValue(fees, currency);
+      const dateKey = op.occurredAt.split('T')[0];
+
+      if (op.type === 'BUY') {
+        const costTotal = qty * priceConverted + feesConverted;
+        const costPerUnit = qty > 0 ? costTotal / qty : 0;
+        lots.push({ quantity: qty, costPerUnit });
+        totalInvested += costTotal;
+      } else if (op.type === 'SELL') {
+        let remaining = qty;
+        let costBasis = 0;
+        while (remaining > 0 && lots.length > 0) {
+          const lot = lots[0];
+          const sellFromLot = Math.min(remaining, lot.quantity);
+          costBasis += sellFromLot * lot.costPerUnit;
+          lot.quantity -= sellFromLot;
+          remaining -= sellFromLot;
+          if (lot.quantity <= 0) {
+            lots.shift();
+          }
+        }
+        const proceeds = qty * priceConverted - feesConverted;
+        realizedPnL += proceeds - costBasis;
+        totalInvested -= costBasis;
+      } else if (op.type === 'DIVIDEND') {
+        const amount = convertValue(toNumber(op.totalAmount || op.pricePerUnit), currency);
+        realizedPnL += amount;
+      } else if (op.type === 'FEE') {
+        const amount = convertValue(toNumber(op.totalAmount || fees), currency);
+        totalInvested += amount;
+      } else if (op.type === 'SPLIT') {
+        const ratio = qty || 0;
+        if (ratio > 0) {
+          lots.forEach((lot) => {
+            lot.quantity *= ratio;
+            lot.costPerUnit = lot.costPerUnit / ratio;
+          });
+        }
+      }
+
+      lotsByAsset.set(assetId, lots);
+
+      points.set(dateKey, {
+        date: dateKey,
+        invested: totalInvested,
+        realized: realizedPnL,
+      });
+    });
+
+    return Array.from(points.values()).sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+  }, [chartOperationsData?.data, convertAmount, baseCurrency]);
 
   const unrealizedPnLPercent = totalInvested > 0 && unrealizedPnL !== null
     ? (unrealizedPnL / totalInvested) * 100
@@ -448,57 +533,129 @@ export default function InvestmentsPage() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid gap-4 lg:grid-cols-2">
-                <Card className="bg-background/80 border-foreground/10 shadow-soft">
-                  <CardHeader>
-                    <CardTitle className="text-[15px] font-medium">Distribución del Portafolio</CardTitle>
-                    <CardDescription className="text-[13px]">Peso por tipo de activo</CardDescription>
-                  </CardHeader>
-                  <CardContent className="h-[280px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RePieChart>
-                        <Pie
-                          data={allocationChartData}
-                          dataKey="currentValue"
-                          nameKey="name"
-                          innerRadius={55}
-                          outerRadius={95}
-                          paddingAngle={2}
-                        >
-                          {allocationChartData.map((entry) => (
-                            <Cell key={entry.type} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          formatter={(value: number) => convertAndFormat(value, baseCurrency)}
-                        />
-                      </RePieChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
+              <>
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <Card className="bg-background/80 border-foreground/10 shadow-soft">
+                    <CardHeader>
+                      <CardTitle className="text-[15px] font-medium">Distribución del Portafolio</CardTitle>
+                      <CardDescription className="text-[13px]">Peso por tipo de activo</CardDescription>
+                    </CardHeader>
+                    <CardContent className="h-[280px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RePieChart>
+                          <Pie
+                            data={allocationChartData}
+                            dataKey="currentValue"
+                            nameKey="name"
+                            innerRadius={55}
+                            outerRadius={95}
+                            paddingAngle={2}
+                          >
+                            {allocationChartData.map((entry) => (
+                              <Cell key={entry.type} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip
+                            formatter={(value: number) => convertAndFormat(value, baseCurrency)}
+                          />
+                        </RePieChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-background/80 border-foreground/10 shadow-soft">
+                    <CardHeader>
+                      <CardTitle className="text-[15px] font-medium">Invertido vs Valor actual</CardTitle>
+                      <CardDescription className="text-[13px]">Comparativa por tipo</CardDescription>
+                    </CardHeader>
+                    <CardContent className="h-[280px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={allocationChartData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                          <YAxis tickFormatter={(value) => convertAndFormat(value, baseCurrency)} width={80} />
+                          <Tooltip
+                            formatter={(value: number) => convertAndFormat(value, baseCurrency)}
+                          />
+                          <Legend />
+                          <Bar dataKey="invested" name="Invertido" fill="hsl(var(--chart-2))" radius={[6, 6, 0, 0]} />
+                          <Bar dataKey="currentValue" name="Valor actual" fill="hsl(var(--chart-1))" radius={[6, 6, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                </div>
 
                 <Card className="bg-background/80 border-foreground/10 shadow-soft">
                   <CardHeader>
-                    <CardTitle className="text-[15px] font-medium">Invertido vs Valor actual</CardTitle>
-                    <CardDescription className="text-[13px]">Comparativa por tipo</CardDescription>
+                    <CardTitle className="text-[15px] font-medium">Evolución de la inversión</CardTitle>
+                    <CardDescription className="text-[13px]">
+                      Capital invertido y P&L realizado según tus operaciones
+                    </CardDescription>
                   </CardHeader>
-                  <CardContent className="h-[280px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={allocationChartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                        <YAxis tickFormatter={(value) => convertAndFormat(value, baseCurrency)} width={80} />
-                        <Tooltip
-                          formatter={(value: number) => convertAndFormat(value, baseCurrency)}
-                        />
-                        <Legend />
-                        <Bar dataKey="invested" name="Invertido" fill="hsl(var(--chart-2))" radius={[6, 6, 0, 0]} />
-                        <Bar dataKey="currentValue" name="Valor actual" fill="hsl(var(--chart-1))" radius={[6, 6, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
+                  <CardContent className="h-[320px]">
+                    {chartOperationsLoading ? (
+                      <div className="flex h-full items-center justify-center text-muted-foreground">
+                        Cargando datos de inversión...
+                      </div>
+                    ) : investmentTrendData.length === 0 ? (
+                      <div className="flex h-full items-center justify-center text-muted-foreground">
+                        Aún no hay operaciones suficientes para mostrar la evolución.
+                      </div>
+                    ) : (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={investmentTrendData} margin={{ left: 10, right: 20, top: 10, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="investedFill" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.35} />
+                              <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
+                            </linearGradient>
+                            <linearGradient id="realizedFill" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.35} />
+                              <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis
+                            dataKey="date"
+                            tick={{ fontSize: 12 }}
+                            tickFormatter={(value) =>
+                              new Date(value).toLocaleDateString('es-ES', { month: 'short', day: '2-digit' })
+                            }
+                          />
+                          <YAxis
+                            tickFormatter={(value) => convertAndFormat(value, baseCurrency)}
+                            width={80}
+                          />
+                          <Tooltip
+                            formatter={(value: number) => convertAndFormat(value, baseCurrency)}
+                            labelFormatter={(label) =>
+                              new Date(label).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
+                            }
+                          />
+                          <Legend />
+                          <Area
+                            type="monotone"
+                            dataKey="invested"
+                            name="Capital invertido"
+                            stroke="hsl(var(--chart-1))"
+                            fill="url(#investedFill)"
+                            strokeWidth={2}
+                          />
+                          <Area
+                            type="monotone"
+                            dataKey="realized"
+                            name="P&L realizado"
+                            stroke="hsl(var(--chart-2))"
+                            fill="url(#realizedFill)"
+                            strokeWidth={2}
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    )}
                   </CardContent>
                 </Card>
-              </div>
+              </>
             )}
           </TabsContent>
         </Tabs>
