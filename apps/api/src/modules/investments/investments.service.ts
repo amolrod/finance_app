@@ -259,23 +259,37 @@ export class InvestmentsService {
     // Get all operations grouped by asset
     const operations = await this.prisma.investmentOperation.findMany({
       where: { userId, deletedAt: null },
-      include: { asset: { include: { prices: { take: 1, orderBy: { fetchedAt: 'desc' } } } } },
       orderBy: { occurredAt: 'asc' },
     });
 
+    if (operations.length === 0) {
+      return [];
+    }
+
+    const assetIds = Array.from(new Set(operations.map((op) => op.assetId)));
+    const assets = await this.prisma.asset.findMany({
+      where: { id: { in: assetIds } },
+      include: { prices: { take: 1, orderBy: { fetchedAt: 'desc' } } },
+    });
+    const assetMap = new Map(assets.map((asset) => [asset.id, asset]));
+
     // Group operations by asset
     const holdingsMap = new Map<string, {
-      asset: typeof operations[0]['asset'];
+      asset: (typeof assets)[number];
       operations: typeof operations;
     }>();
 
     for (const op of operations) {
+      const asset = assetMap.get(op.assetId);
+      if (!asset) {
+        continue;
+      }
       const existing = holdingsMap.get(op.assetId);
       if (existing) {
         existing.operations.push(op);
       } else {
         holdingsMap.set(op.assetId, {
-          asset: op.asset,
+          asset,
           operations: [op],
         });
       }
@@ -382,7 +396,8 @@ export class InvestmentsService {
       const latestPrice = latestPriceRecord?.price
         ? new Decimal(latestPriceRecord.price.toString())
         : null;
-      const priceCurrencyRaw = latestPriceRecord?.currency || data.asset.currency;
+      const assetCurrency = data.asset.currency || 'USD';
+      const priceCurrencyRaw = latestPriceRecord?.currency || assetCurrency;
       const isPence = priceCurrencyRaw === 'GBp' || priceCurrencyRaw === 'GBX';
       const priceCurrency = isPence ? 'GBP' : priceCurrencyRaw;
       const normalizedPrice = isPence && latestPrice ? latestPrice.div(100) : latestPrice;
@@ -393,11 +408,11 @@ export class InvestmentsService {
       let unrealizedPnLPercent: Decimal | null = null;
 
       if (normalizedPrice) {
-        if (priceCurrency !== data.asset.currency) {
+        if (priceCurrency !== assetCurrency) {
           const converted = await this.exchangeRatesService.convert(
             normalizedPrice.toNumber(),
             priceCurrency,
-            data.asset.currency,
+            assetCurrency,
           );
           effectivePrice = converted !== null ? new Decimal(converted) : null;
         }
@@ -424,7 +439,7 @@ export class InvestmentsService {
         unrealizedPnL,
         unrealizedPnLPercent,
         realizedPnL,
-        currency: data.asset.currency,
+        currency: assetCurrency,
       });
     }
 
@@ -540,7 +555,6 @@ export class InvestmentsService {
   async getGoals(userId: string) {
     const goals = await this.prisma.investmentGoal.findMany({
       where: { userId },
-      include: { asset: true },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -548,8 +562,22 @@ export class InvestmentsService {
       return [];
     }
 
+    const goalAssetIds = Array.from(
+      new Set(goals.map((goal) => goal.assetId).filter((id): id is string => !!id)),
+    );
+    const goalAssets = goalAssetIds.length
+      ? await this.prisma.asset.findMany({
+          where: { id: { in: goalAssetIds } },
+        })
+      : [];
+    const goalAssetMap = new Map(goalAssets.map((asset) => [asset.id, asset]));
+    const goalsWithAssets = goals.map((goal) => ({
+      ...goal,
+      asset: goal.assetId ? goalAssetMap.get(goal.assetId) ?? null : null,
+    }));
+
     const holdings = await this.getHoldings(userId);
-    const progress = await this.calculateGoalsProgress(goals, holdings);
+    const progress = await this.calculateGoalsProgress(goalsWithAssets, holdings);
     return progress;
   }
 
@@ -668,7 +696,8 @@ export class InvestmentsService {
     });
 
     const rateCache = new Map<string, Decimal | null>();
-    const convertAmount = async (amount: Decimal, from: string, to: string) => {
+    const convertAmount = async (amount: Decimal, from?: string | null, to?: string | null) => {
+      if (!from || !to) return null;
       if (from === to) return amount;
       const key = `${from}-${to}`;
       if (rateCache.has(key)) {
@@ -690,12 +719,15 @@ export class InvestmentsService {
     for (const goal of goals) {
       let current: Decimal | null = null;
 
+      const goalCurrency = goal.currency || 'USD';
+
       if (goal.scope === 'PORTFOLIO') {
         let total = new Decimal(0);
         let hasMissing = false;
         for (const holding of holdings) {
           const value = holding.currentValue ? new Decimal(holding.currentValue) : new Decimal(holding.totalInvested);
-          const converted = await convertAmount(value, holding.currency, goal.currency);
+          const holdingCurrency = holding.currency || goalCurrency;
+          const converted = await convertAmount(value, holdingCurrency, goalCurrency);
           if (!converted) {
             hasMissing = true;
             break;
@@ -706,12 +738,18 @@ export class InvestmentsService {
       } else if (goal.assetId) {
         const holding = holdingMap.get(goal.assetId);
         if (holding) {
-          const converted = await convertAmount(holding.value, holding.currency, goal.currency);
+          const holdingCurrency = holding.currency || goalCurrency;
+          const converted = await convertAmount(holding.value, holdingCurrency, goalCurrency);
           current = converted ?? null;
         }
       }
 
-      const target = new Decimal(goal.targetAmount);
+      let target = new Decimal(0);
+      try {
+        target = new Decimal(goal.targetAmount ?? 0);
+      } catch {
+        target = new Decimal(0);
+      }
       const progress = current && target.gt(0) ? current.div(target).mul(100) : null;
 
       result.push({
