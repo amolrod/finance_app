@@ -52,3 +52,6 @@ apps/api/prisma/*.db-journal
 
 # OS
 Thumbs.db
+
+# Docs (local)
+docs/linkedin-expertise-pack.md

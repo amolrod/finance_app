@@ -104,7 +104,7 @@ export default function ImportPage() {
 
   const { toast } = useToast();
   const { data: accountsData } = useAccounts();
-  const { data: categoriesData } = useCategories();
+  const { data: categoriesData, refetch: refetchCategories } = useCategories();
   const { data: historyTransactions } = useTransactions({ limit: 300 });
   const previewMutation = usePreviewImport();
   const confirmMutation = useConfirmImport();
@@ -162,6 +162,11 @@ export default function ImportPage() {
           : learnedCategoryId
           ? 'history'
           : undefined;
+
+        if (!categoryId && tx.suggestedCategory?.categoryId) {
+          categoryId = tx.suggestedCategory.categoryId;
+          source = 'auto';
+        }
 
         if (!categoryId && tx.suggestedCategory?.categoryName) {
           const key = normalizeCategoryKey(tx.suggestedCategory.categoryName);
@@ -280,10 +285,12 @@ export default function ImportPage() {
           setSuggestionSources((prev) => ({ ...prev, ...newSources }));
         }
       }
-      toast({
-        title: 'Categorias creadas',
-        description: `Se crearon ${pending.length} categorias nuevas para la importacion.`,
-      });
+      if (createdCategories.length) {
+        toast({
+          title: 'Categorias creadas',
+          description: `Se crearon ${createdCategories.length} categorias nuevas para la importacion.`,
+        });
+      }
     })()
       .finally(() => setIsAutoCreating(false));
   }, [preview, selections, categoryNameMap, createCategoryMutation, toast, isAutoCreating]);
@@ -310,6 +317,7 @@ export default function ImportPage() {
         });
 
         setPreview(result);
+        refetchCategories().catch(() => undefined);
 
         // Initialize selections
         const initialSelections: TransactionSelection = {};
@@ -330,6 +338,11 @@ export default function ImportPage() {
             categoryId = learnedCategoryId;
             initialSources[tx.hash] = 'history';
           }
+          if (!categoryId && tx.suggestedCategory?.categoryId) {
+            categoryId = tx.suggestedCategory.categoryId;
+            initialSources[tx.hash] = 'auto';
+          }
+
           if (!categoryId && tx.suggestedCategory?.categoryName) {
             const key = normalizeCategoryKey(tx.suggestedCategory.categoryName);
             const match = key ? categoryNameMap.get(key) : undefined;
@@ -369,7 +382,7 @@ export default function ImportPage() {
         });
       }
     },
-    [selectedAccountId, previewMutation, toast, categoryRules, learnedCategoryMap, categoryNameMap]
+    [selectedAccountId, previewMutation, toast, categoryRules, learnedCategoryMap, categoryNameMap, refetchCategories]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({

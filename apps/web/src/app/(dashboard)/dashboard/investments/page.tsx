@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Plus, DollarSign, PieChart, BarChart3, RefreshCcw, Clock, Briefcase, ChevronRight, Target, Trash2 } from 'lucide-react';
@@ -70,6 +70,8 @@ export default function InvestmentsPage() {
   const [editOperationId, setEditOperationId] = useState<string | null>(null);
   const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null);
   const [performanceRange, setPerformanceRange] = useState<'1M' | '3M' | '6M' | '1Y' | 'YTD' | 'ALL'>('6M');
+  const [activeTab, setActiveTab] = useState<'holdings' | 'operations' | 'charts'>('holdings');
+  const [selectedAssetType, setSelectedAssetType] = useState<AssetType | null>(null);
   const [goalDialogOpen, setGoalDialogOpen] = useState(false);
   const [goalForm, setGoalForm] = useState({
     name: '',
@@ -83,6 +85,7 @@ export default function InvestmentsPage() {
   });
   const { toast } = useToast();
   const { convertAmount, formatAmount, convertAndFormat, preferredCurrency, rates } = useCurrency();
+  const holdingsRef = useRef<HTMLDivElement | null>(null);
   
   const { data: portfolio, isLoading: loadingPortfolio } = usePortfolioSummary();
   const { data: holdings, isLoading: loadingHoldings } = useHoldings();
@@ -110,6 +113,13 @@ export default function InvestmentsPage() {
   }, [goalForm.currency, preferredCurrency]);
 
   const holdingsData = holdings || portfolio?.holdings || [];
+  const filteredHoldings = useMemo(() => {
+    if (!selectedAssetType) return holdingsData;
+    return holdingsData.filter((holding) => holding.type === selectedAssetType);
+  }, [holdingsData, selectedAssetType]);
+  const selectedAssetTypeLabel = selectedAssetType
+    ? assetTypeLabels[selectedAssetType] || selectedAssetType
+    : null;
   const performanceAssetIds = useMemo(() => {
     return Array.from(new Set(holdingsData.map((holding) => holding.assetId)));
   }, [holdingsData]);
@@ -191,6 +201,18 @@ export default function InvestmentsPage() {
   const totalCurrentValue = portfolioTotals.totalCurrentValue;
   const unrealizedPnL = portfolioTotals.totalUnrealizedPnL;
   const realizedPnL = portfolioTotals.totalRealizedPnL;
+
+  const handleAssetTypeClick = (type: AssetType) => {
+    setSelectedAssetType((prev) => (prev === type ? null : type));
+    setActiveTab('holdings');
+    requestAnimationFrame(() => {
+      holdingsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
+  const clearAssetTypeFilter = () => {
+    setSelectedAssetType(null);
+  };
 
   const byAssetType = useMemo(() => {
     if (!holdingsData.length) return {};
@@ -680,11 +702,19 @@ export default function InvestmentsPage() {
                   const invested = data.invested;
                   const percentage = totalInvested > 0 ? (invested / totalInvested) * 100 : 0;
                   const accentColor = assetTypeColors[type as AssetType] || COLOR_PALETTE[3];
+                  const isActive = selectedAssetType === type;
                   
                   return (
-                    <div 
+                    <button
+                      type="button"
                       key={type} 
-                      className="flex items-center justify-between px-4 py-3 hover:bg-foreground/[0.02] transition-colors"
+                      onClick={() => handleAssetTypeClick(type as AssetType)}
+                      aria-pressed={isActive}
+                      className={cn(
+                        "flex w-full items-center justify-between px-4 py-3 text-left transition-colors",
+                        "hover:bg-foreground/[0.02]",
+                        isActive && "bg-foreground/[0.03]"
+                      )}
                     >
                       <div className="flex items-center gap-3">
                         <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: accentColor }} />
@@ -708,9 +738,14 @@ export default function InvestmentsPage() {
                         <span className="text-[13px] font-medium tabular-nums w-14 text-right">
                           {percentage.toFixed(1)}%
                         </span>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
+                        <ChevronRight
+                          className={cn(
+                            "h-4 w-4",
+                            isActive ? "text-foreground/70" : "text-muted-foreground/50"
+                          )}
+                        />
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -980,7 +1015,7 @@ export default function InvestmentsPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.3 }}
       >
-        <Tabs defaultValue="holdings" className="space-y-4">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} className="space-y-4">
           <TabsList className="h-9 p-0.5 bg-background/80 border border-foreground/10 shadow-soft">
             <TabsTrigger value="holdings" className="text-[13px] h-8 px-4">Posiciones</TabsTrigger>
             <TabsTrigger value="operations" className="text-[13px] h-8 px-4">Historial</TabsTrigger>
@@ -988,7 +1023,38 @@ export default function InvestmentsPage() {
           </TabsList>
 
           <TabsContent value="holdings" className="space-y-4">
-            <HoldingsTable holdings={holdings || []} loading={loadingHoldings} />
+            <div ref={holdingsRef} className="space-y-3">
+              {selectedAssetTypeLabel && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="secondary" className="text-[11px]">
+                    Filtro: {selectedAssetTypeLabel}
+                  </Badge>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-[11px]"
+                    onClick={clearAssetTypeFilter}
+                  >
+                    Ver todo
+                  </Button>
+                </div>
+              )}
+              <HoldingsTable
+                holdings={filteredHoldings}
+                loading={loadingHoldings}
+                emptyState={
+                  selectedAssetTypeLabel
+                    ? {
+                        title: 'Posiciones',
+                        description: 'Tu cartera de inversiones actual',
+                        message: `No hay posiciones en ${selectedAssetTypeLabel.toLowerCase()}`,
+                        subMessage: 'Prueba con otro tipo o limpia el filtro.',
+                      }
+                    : undefined
+                }
+              />
+            </div>
           </TabsContent>
 
           <TabsContent value="operations" className="space-y-4">

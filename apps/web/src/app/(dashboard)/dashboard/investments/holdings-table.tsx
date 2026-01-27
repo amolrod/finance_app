@@ -27,9 +27,15 @@ const assetTypeBadges: Record<AssetType, { label: string; className: string; col
 interface HoldingsTableProps {
   holdings: HoldingSummary[];
   loading: boolean;
+  emptyState?: {
+    title?: string;
+    description?: string;
+    message?: string;
+    subMessage?: string;
+  };
 }
 
-export function HoldingsTable({ holdings, loading }: HoldingsTableProps) {
+export function HoldingsTable({ holdings, loading, emptyState }: HoldingsTableProps) {
   const { convertAndFormat } = useCurrency();
 
   if (loading) {
@@ -43,18 +49,23 @@ export function HoldingsTable({ holdings, loading }: HoldingsTableProps) {
   }
 
   if (holdings.length === 0) {
+    const title = emptyState?.title ?? 'Posiciones';
+    const description = emptyState?.description ?? 'Tu cartera de inversiones actual';
+    const message = emptyState?.message ?? 'No tienes posiciones abiertas';
+    const subMessage = emptyState?.subMessage ?? 'Registra tu primera compra para comenzar';
+
     return (
       <Card className="bg-background/80 border-foreground/10 shadow-soft">
         <CardHeader>
-          <CardTitle>Posiciones</CardTitle>
-          <CardDescription>Tu cartera de inversiones actual</CardDescription>
+          <CardTitle>{title}</CardTitle>
+          <CardDescription>{description}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center h-32 text-center">
           <p className="text-muted-foreground">
-            No tienes posiciones abiertas
+            {message}
           </p>
           <p className="text-sm text-muted-foreground">
-            Registra tu primera compra para comenzar
+            {subMessage}
           </p>
         </CardContent>
       </Card>
