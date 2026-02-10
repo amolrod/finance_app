@@ -72,6 +72,7 @@ const formSchema = z.object({
   pricePerUnit: z.preprocess(parseLocaleNumber, z.number().min(0, 'El precio debe ser positivo o cero')),
   fees: z.preprocess(parseLocaleNumber, z.number().min(0)).optional(),
   currency: z.string().min(1, 'Selecciona una moneda'),
+  platform: z.string().optional(),
   occurredAt: z.string().min(1, 'Selecciona una fecha'),
   notes: z.string().optional(),
 });
@@ -157,6 +158,7 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
       pricePerUnit: undefined as unknown as number,
       fees: undefined as unknown as number,
       currency: preferredCurrency || 'USD',
+      platform: '',
       occurredAt: new Date().toISOString().split('T')[0],
       notes: '',
     },
@@ -173,6 +175,7 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
         pricePerUnit: parseFloat(existingData.pricePerUnit),
         fees: parseFloat(existingData.fees),
         currency: existingData.currency,
+        platform: existingData.platform || '',
         occurredAt: existingData.occurredAt.split('T')[0],
         notes: existingData.notes || '',
       });
@@ -254,6 +257,7 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
       const payload = {
         ...values,
         fees: values.fees || 0,
+        platform: values.platform || undefined,
         notes: values.notes || undefined,
       };
 
@@ -666,6 +670,24 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
                 )}
               />
             </div>
+
+            {/* Platform / Broker */}
+            <FormField
+              control={form.control}
+              name="platform"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Plataforma / Broker (opcional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ej: MyInvestor, Trade Republic, DeGiro..."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             {/* Total Display */}
             <div className="p-3 bg-muted rounded-md">

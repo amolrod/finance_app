@@ -481,6 +481,7 @@ model InvestmentOperation {
   totalAmount Decimal       @map("total_amount") @db.Decimal(18, 2)
   fees        Decimal       @default(0) @db.Decimal(18, 2)
   currency    String        @default("USD") @db.VarChar(3)
+  platform    String?       @db.VarChar(100) // broker/app: MyInvestor, TradeRepublic, DeGiro, etc.
   occurredAt  DateTime      @map("occurred_at") @db.Timestamptz
   notes       String?       @db.Text
   createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz

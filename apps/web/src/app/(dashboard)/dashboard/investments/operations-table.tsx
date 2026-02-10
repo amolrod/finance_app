@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   Table,
@@ -44,7 +44,7 @@ interface OperationsTableProps {
 export function OperationsTable({ onEdit }: OperationsTableProps) {
   const [page, setPage] = useState(1);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const limit = 10;
+  const limit = 20;
   const { convertAndFormat } = useCurrency();
 
   const { data, isLoading } = useInvestmentOperations({ page, limit });
@@ -52,6 +52,14 @@ export function OperationsTable({ onEdit }: OperationsTableProps) {
 
   const operations = data?.data || [];
   const totalPages = data?.totalPages || 1;
+  const total = data?.total || 0;
+
+  // Auto-reset page if it exceeds totalPages (e.g. after deleting the last item on the last page)
+  useEffect(() => {
+    if (data && page > totalPages && totalPages > 0) {
+      setPage(totalPages);
+    }
+  }, [data, page, totalPages]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -106,6 +114,7 @@ export function OperationsTable({ onEdit }: OperationsTableProps) {
                 <TableHead className="text-right">Precio</TableHead>
                 <TableHead className="text-right">Total</TableHead>
                 <TableHead className="text-right">Comisión</TableHead>
+                <TableHead>Plataforma</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
@@ -161,6 +170,15 @@ export function OperationsTable({ onEdit }: OperationsTableProps) {
                     <TableCell className="text-right font-mono text-muted-foreground">
                       {fees > 0 ? convertAndFormat(fees, op.currency) : '-'}
                     </TableCell>
+                    <TableCell>
+                      {op.platform ? (
+                        <Badge variant="outline" className="border-foreground/10 text-foreground/60 bg-foreground/5 text-xs font-normal">
+                          {op.platform}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
                         <Button
@@ -187,26 +205,31 @@ export function OperationsTable({ onEdit }: OperationsTableProps) {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                disabled={page === 1}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <span className="text-sm text-muted-foreground">
-                Página {page} de {totalPages}
+            <div className="flex items-center justify-between mt-4">
+              <span className="text-xs text-muted-foreground">
+                {total} operaciones en total
               </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Página {page} de {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>

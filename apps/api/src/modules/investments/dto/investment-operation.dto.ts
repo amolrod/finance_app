@@ -41,6 +41,12 @@ export class CreateInvestmentOperationDto {
   @IsDateString()
   occurredAt: string;
 
+  @ApiPropertyOptional({ description: 'Platform/broker', example: 'MyInvestor' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  platform?: string;
+
   @ApiPropertyOptional({ description: 'Notes' })
   @IsOptional()
   @IsString()
@@ -48,6 +54,10 @@ export class CreateInvestmentOperationDto {
 }
 
 export class UpdateInvestmentOperationDto {
+  @ApiPropertyOptional({ description: 'Asset ID' })
+  @IsOptional()
+  @IsString()
+  assetId?: string;
   @ApiPropertyOptional({ enum: OperationType })
   @IsOptional()
   @IsEnum(OperationType)
@@ -73,6 +83,18 @@ export class UpdateInvestmentOperationDto {
   @Min(0)
   @Type(() => Number)
   fees?: number;
+
+  @ApiPropertyOptional({ description: 'Currency code', example: 'USD' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(3)
+  currency?: string;
+
+  @ApiPropertyOptional({ description: 'Platform/broker', example: 'MyInvestor' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  platform?: string;
 
   @ApiPropertyOptional({ description: 'Date of operation' })
   @IsOptional()

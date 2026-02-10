@@ -96,6 +96,7 @@ export class InvestmentsService {
         totalAmount: totalAmount.toNumber(),
         fees: dto.fees || 0,
         currency: dto.currency || asset.currency,
+        platform: dto.platform || null,
         occurredAt: new Date(dto.occurredAt),
         notes: dto.notes,
       },
@@ -145,6 +146,7 @@ export class InvestmentsService {
         totalAmount: totalAmount.toNumber(),
         fees: dto.fees || 0,
         currency: dto.currency || asset.currency,
+        platform: dto.platform || null,
         occurredAt: new Date(dto.occurredAt),
         notes: dto.notes,
       };
@@ -223,28 +225,44 @@ export class InvestmentsService {
   async update(userId: string, id: string, dto: UpdateInvestmentOperationDto) {
     const operation = await this.findOne(userId, id);
 
-    // Recalculate total if quantity or price changed
-    let totalAmount = operation.totalAmount;
-    if (dto.quantity !== undefined || dto.pricePerUnit !== undefined) {
-      const quantity = new Decimal(dto.quantity ?? operation.quantity.toString());
-      const pricePerUnit = new Decimal(dto.pricePerUnit ?? operation.pricePerUnit.toString());
-      const fees = new Decimal(dto.fees ?? operation.fees.toString());
-      const type = dto.type ?? operation.type;
-
-      totalAmount = quantity.mul(pricePerUnit);
-      if (type === OperationType.BUY) {
-        totalAmount = totalAmount.plus(fees);
-      } else if (type === OperationType.SELL) {
-        totalAmount = totalAmount.minus(fees);
+    // If assetId is being changed, verify the new asset exists
+    if (dto.assetId && dto.assetId !== operation.assetId) {
+      const asset = await this.prisma.asset.findUnique({
+        where: { id: dto.assetId },
+      });
+      if (!asset) {
+        throw new NotFoundException(`Asset with ID ${dto.assetId} not found`);
       }
+    }
+
+    // Recalculate total if quantity or price changed
+    const quantity = new Decimal(dto.quantity ?? operation.quantity.toString());
+    const pricePerUnit = new Decimal(dto.pricePerUnit ?? operation.pricePerUnit.toString());
+    const fees = new Decimal(dto.fees ?? operation.fees.toString());
+    const type = dto.type ?? operation.type;
+
+    let totalAmount = quantity.mul(pricePerUnit);
+    if (type === OperationType.BUY) {
+      totalAmount = totalAmount.plus(fees);
+    } else if (type === OperationType.SELL) {
+      totalAmount = totalAmount.minus(fees);
+    } else if (type === OperationType.DIVIDEND) {
+      totalAmount = pricePerUnit;
     }
 
     return this.prisma.investmentOperation.update({
       where: { id },
       data: {
-        ...dto,
+        assetId: dto.assetId,
+        type: dto.type,
+        quantity: dto.quantity,
+        pricePerUnit: dto.pricePerUnit,
         totalAmount: totalAmount.toNumber(),
+        fees: dto.fees,
+        currency: dto.currency,
+        platform: dto.platform !== undefined ? (dto.platform || null) : undefined,
         occurredAt: dto.occurredAt ? new Date(dto.occurredAt) : undefined,
+        notes: dto.notes !== undefined ? dto.notes : undefined,
       },
       include: { asset: true },
     });
