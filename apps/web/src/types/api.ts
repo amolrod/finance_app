@@ -478,12 +478,14 @@ export interface InvestmentOperation {
   totalAmount: string;
   fees: string;
   currency: string;
+  accountId?: string | null;
   platform?: string | null;
   occurredAt: string;
   notes?: string | null;
   createdAt: string;
   updatedAt: string;
   asset?: Asset;
+  account?: { id: string; name: string; type: AccountType; color?: string | null; icon?: string | null } | null;
 }
 
 export interface CreateAssetDto {
@@ -507,6 +509,7 @@ export interface CreateInvestmentOperationDto {
   pricePerUnit: number;
   fees?: number;
   currency?: string;
+  accountId?: string;
   platform?: string;
   occurredAt: string;
   notes?: string;
@@ -519,6 +522,7 @@ export interface UpdateInvestmentOperationDto {
   pricePerUnit?: number;
   fees?: number;
   currency?: string;
+  accountId?: string | null;
   platform?: string;
   occurredAt?: string;
   notes?: string;

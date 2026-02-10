@@ -114,7 +114,7 @@ export function OperationsTable({ onEdit }: OperationsTableProps) {
                 <TableHead className="text-right">Precio</TableHead>
                 <TableHead className="text-right">Total</TableHead>
                 <TableHead className="text-right">Comisión</TableHead>
-                <TableHead>Plataforma</TableHead>
+                <TableHead>Cuenta</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
@@ -171,10 +171,16 @@ export function OperationsTable({ onEdit }: OperationsTableProps) {
                       {fees > 0 ? convertAndFormat(fees, op.currency) : '-'}
                     </TableCell>
                     <TableCell>
-                      {op.platform ? (
-                        <Badge variant="outline" className="border-foreground/10 text-foreground/60 bg-foreground/5 text-xs font-normal">
-                          {op.platform}
-                        </Badge>
+                      {op.account ? (
+                        <div className="flex items-center gap-1.5">
+                          {op.account.color && (
+                            <span
+                              className="inline-block h-2.5 w-2.5 rounded-full flex-shrink-0"
+                              style={{ backgroundColor: op.account.color }}
+                            />
+                          )}
+                          <span className="text-sm truncate max-w-[120px]">{op.account.name}</span>
+                        </div>
                       ) : (
                         <span className="text-muted-foreground">-</span>
                       )}

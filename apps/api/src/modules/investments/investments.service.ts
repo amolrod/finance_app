@@ -96,12 +96,14 @@ export class InvestmentsService {
         totalAmount: totalAmount.toNumber(),
         fees: dto.fees || 0,
         currency: dto.currency || asset.currency,
+        accountId: dto.accountId || null,
         platform: dto.platform || null,
         occurredAt: new Date(dto.occurredAt),
         notes: dto.notes,
       },
       include: {
         asset: true,
+        account: true,
       },
     });
   }
@@ -146,6 +148,7 @@ export class InvestmentsService {
         totalAmount: totalAmount.toNumber(),
         fees: dto.fees || 0,
         currency: dto.currency || asset.currency,
+        accountId: dto.accountId || null,
         platform: dto.platform || null,
         occurredAt: new Date(dto.occurredAt),
         notes: dto.notes,
@@ -173,6 +176,10 @@ export class InvestmentsService {
       where.assetId = query.assetId;
     }
 
+    if (query.accountId) {
+      where.accountId = query.accountId;
+    }
+
     if (query.type) {
       where.type = query.type;
     }
@@ -195,6 +202,7 @@ export class InvestmentsService {
         orderBy: { occurredAt: 'desc' },
         include: {
           asset: true,
+          account: true,
         },
       }),
       this.prisma.investmentOperation.count({ where }),
@@ -212,7 +220,7 @@ export class InvestmentsService {
   async findOne(userId: string, id: string) {
     const operation = await this.prisma.investmentOperation.findFirst({
       where: { id, userId, deletedAt: null },
-      include: { asset: true },
+      include: { asset: true, account: true },
     });
 
     if (!operation) {
@@ -260,11 +268,12 @@ export class InvestmentsService {
         totalAmount: totalAmount.toNumber(),
         fees: dto.fees,
         currency: dto.currency,
+        accountId: dto.accountId !== undefined ? (dto.accountId || null) : undefined,
         platform: dto.platform !== undefined ? (dto.platform || null) : undefined,
         occurredAt: dto.occurredAt ? new Date(dto.occurredAt) : undefined,
         notes: dto.notes !== undefined ? dto.notes : undefined,
       },
-      include: { asset: true },
+      include: { asset: true, account: true },
     });
   }
 

@@ -53,6 +53,7 @@ import {
   useInvestmentOperation,
 } from '@/hooks/use-investments';
 import { useCreateAsset, useUpdateAsset, useAssetSearch } from '@/hooks/use-assets';
+import { useAccounts } from '@/hooks/use-accounts';
 import type { Asset, OperationType, AssetType, AssetSearchResult } from '@/types/api';
 
 const parseLocaleNumber = (value: unknown) => {
@@ -72,6 +73,7 @@ const formSchema = z.object({
   pricePerUnit: z.preprocess(parseLocaleNumber, z.number().min(0, 'El precio debe ser positivo o cero')),
   fees: z.preprocess(parseLocaleNumber, z.number().min(0)).optional(),
   currency: z.string().min(1, 'Selecciona una moneda'),
+  accountId: z.string().optional(),
   platform: z.string().optional(),
   occurredAt: z.string().min(1, 'Selecciona una fecha'),
   notes: z.string().optional(),
@@ -142,6 +144,9 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
     return base;
   }, [preferredCurrency]);
   
+  const { data: accountsData } = useAccounts();
+  const accounts = useMemo(() => accountsData?.data || [], [accountsData]);
+
   const { data: existingData } = useInvestmentOperation(editId || '');
   const createMutation = useCreateInvestmentOperation();
   const updateMutation = useUpdateInvestmentOperation();
@@ -158,6 +163,7 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
       pricePerUnit: undefined as unknown as number,
       fees: undefined as unknown as number,
       currency: preferredCurrency || 'USD',
+      accountId: '',
       platform: '',
       occurredAt: new Date().toISOString().split('T')[0],
       notes: '',
@@ -175,6 +181,7 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
         pricePerUnit: parseFloat(existingData.pricePerUnit),
         fees: parseFloat(existingData.fees),
         currency: existingData.currency,
+        accountId: existingData.accountId || '',
         platform: existingData.platform || '',
         occurredAt: existingData.occurredAt.split('T')[0],
         notes: existingData.notes || '',
@@ -257,6 +264,7 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
       const payload = {
         ...values,
         fees: values.fees || 0,
+        accountId: values.accountId || undefined,
         platform: values.platform || undefined,
         notes: values.notes || undefined,
       };
@@ -671,19 +679,40 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
               />
             </div>
 
-            {/* Platform / Broker */}
+            {/* Cuenta asociada */}
             <FormField
               control={form.control}
-              name="platform"
+              name="accountId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Plataforma / Broker (opcional)</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Ej: MyInvestor, Trade Republic, DeGiro..."
-                      {...field}
-                    />
-                  </FormControl>
+                  <FormLabel>Cuenta asociada (opcional)</FormLabel>
+                  <Select
+                    onValueChange={(v) => field.onChange(v === '__none__' ? '' : v)}
+                    value={field.value || '__none__'}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sin cuenta asociada" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="__none__">Sin cuenta asociada</SelectItem>
+                      {accounts.map((acc) => (
+                        <SelectItem key={acc.id} value={acc.id}>
+                          <div className="flex items-center gap-2">
+                            {acc.color && (
+                              <span
+                                className="inline-block h-2.5 w-2.5 rounded-full"
+                                style={{ backgroundColor: acc.color }}
+                              />
+                            )}
+                            <span>{acc.name}</span>
+                            <span className="text-muted-foreground text-xs">({acc.type})</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

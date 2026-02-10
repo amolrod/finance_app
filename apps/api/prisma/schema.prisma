@@ -117,10 +117,11 @@ model Account {
   deletedAt      DateTime?   @map("deleted_at") @db.Timestamptz
 
   // Relations
-  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions        Transaction[] @relation("AccountTransactions")
-  transfersTo         Transaction[] @relation("TransferToAccount")
+  user                  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions          Transaction[]           @relation("AccountTransactions")
+  transfersTo           Transaction[]           @relation("TransferToAccount")
   recurringTransactions RecurringTransaction[]
+  investmentOperations  InvestmentOperation[]
 
   @@index([userId])
   @@index([userId, type])
@@ -481,7 +482,8 @@ model InvestmentOperation {
   totalAmount Decimal       @map("total_amount") @db.Decimal(18, 2)
   fees        Decimal       @default(0) @db.Decimal(18, 2)
   currency    String        @default("USD") @db.VarChar(3)
-  platform    String?       @db.VarChar(100) // broker/app: MyInvestor, TradeRepublic, DeGiro, etc.
+  accountId   String?       @map("account_id") @db.Uuid
+  platform    String?       @db.VarChar(100) // legacy, use accountId instead
   occurredAt  DateTime      @map("occurred_at") @db.Timestamptz
   notes       String?       @db.Text
   createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz
@@ -489,10 +491,12 @@ model InvestmentOperation {
   deletedAt   DateTime?     @map("deleted_at") @db.Timestamptz
 
   // Relations
-  asset Asset @relation(fields: [assetId], references: [id])
+  asset   Asset    @relation(fields: [assetId], references: [id])
+  account Account? @relation(fields: [accountId], references: [id])
 
   @@index([userId])
   @@index([userId, assetId])
+  @@index([userId, accountId])
   @@index([occurredAt])
   @@map("investment_operations")
 }

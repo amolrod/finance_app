@@ -41,7 +41,12 @@ export class CreateInvestmentOperationDto {
   @IsDateString()
   occurredAt: string;
 
-  @ApiPropertyOptional({ description: 'Platform/broker', example: 'MyInvestor' })
+  @ApiPropertyOptional({ description: 'Account ID (broker/investment account)' })
+  @IsOptional()
+  @IsString()
+  accountId?: string;
+
+  @ApiPropertyOptional({ description: 'Platform/broker (legacy, prefer accountId)', example: 'MyInvestor' })
   @IsOptional()
   @IsString()
   @MaxLength(100)
@@ -90,7 +95,12 @@ export class UpdateInvestmentOperationDto {
   @MaxLength(3)
   currency?: string;
 
-  @ApiPropertyOptional({ description: 'Platform/broker', example: 'MyInvestor' })
+  @ApiPropertyOptional({ description: 'Account ID (broker/investment account)' })
+  @IsOptional()
+  @IsString()
+  accountId?: string | null;
+
+  @ApiPropertyOptional({ description: 'Platform/broker (legacy, prefer accountId)', example: 'MyInvestor' })
   @IsOptional()
   @IsString()
   @MaxLength(100)
@@ -112,6 +122,11 @@ export class InvestmentOperationQueryDto {
   @IsOptional()
   @IsString()
   assetId?: string;
+
+  @ApiPropertyOptional({ description: 'Filter by account ID' })
+  @IsOptional()
+  @IsString()
+  accountId?: string;
 
   @ApiPropertyOptional({ enum: OperationType })
   @IsOptional()
