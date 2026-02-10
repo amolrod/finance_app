@@ -305,10 +305,12 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
         toast({ title: 'Operación registrada', description: 'La operación ha sido registrada' });
       }
       onClose();
-    } catch {
+    } catch (err: any) {
+      const detail = err?.response?.data?.message;
+      const msg = Array.isArray(detail) ? detail.join(', ') : (detail || 'No se pudo guardar la operación');
       toast({
         title: 'Error',
-        description: 'No se pudo guardar la operación',
+        description: msg,
         variant: 'destructive',
       });
     }
