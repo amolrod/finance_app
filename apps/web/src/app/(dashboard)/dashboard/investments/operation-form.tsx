@@ -145,7 +145,15 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
   }, [preferredCurrency]);
   
   const { data: accountsData } = useAccounts();
-  const accounts = useMemo(() => accountsData?.data || [], [accountsData]);
+  const accounts = useMemo(() => {
+    // useAccounts returns Account[] directly (hook already extracts .data from the API response)
+    if (Array.isArray(accountsData)) return accountsData;
+    // Fallback: if the response is paginated { data: Account[] }
+    if (accountsData && typeof accountsData === 'object' && 'data' in accountsData) {
+      return (accountsData as { data: typeof accountsData }).data || [];
+    }
+    return [];
+  }, [accountsData]);
 
   const { data: existingData } = useInvestmentOperation(editId || '');
   const createMutation = useCreateInvestmentOperation();
@@ -261,19 +269,39 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
         }
       }
 
-      const payload = {
-        ...values,
-        fees: values.fees || 0,
-        accountId: values.accountId || undefined,
-        platform: values.platform || undefined,
-        notes: values.notes || undefined,
-      };
-
       if (editId) {
-        await updateMutation.mutateAsync({ id: editId, data: payload });
+        // Update: send only changed/relevant fields; send null to clear optional fields
+        const updatePayload: Record<string, unknown> = {
+          assetId: values.assetId,
+          type: values.type,
+          quantity: values.quantity,
+          pricePerUnit: values.pricePerUnit,
+          fees: values.fees || 0,
+          currency: values.currency,
+          occurredAt: values.occurredAt,
+          accountId: values.accountId || null,
+        };
+        if (values.platform) updatePayload.platform = values.platform;
+        if (values.notes) updatePayload.notes = values.notes;
+
+        await updateMutation.mutateAsync({ id: editId, data: updatePayload as any });
         toast({ title: 'Operación actualizada', description: 'La operación ha sido actualizada' });
       } else {
-        await createMutation.mutateAsync(payload);
+        // Create: only include optional fields if they have a value
+        const createPayload: Record<string, unknown> = {
+          assetId: values.assetId,
+          type: values.type,
+          quantity: values.quantity,
+          pricePerUnit: values.pricePerUnit,
+          fees: values.fees || 0,
+          currency: values.currency,
+          occurredAt: values.occurredAt,
+        };
+        if (values.accountId) createPayload.accountId = values.accountId;
+        if (values.platform) createPayload.platform = values.platform;
+        if (values.notes) createPayload.notes = values.notes;
+
+        await createMutation.mutateAsync(createPayload as any);
         toast({ title: 'Operación registrada', description: 'La operación ha sido registrada' });
       }
       onClose();
