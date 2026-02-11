@@ -147,14 +147,13 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
   const { data: accountsRaw } = useAccounts();
   const accounts = useMemo(() => {
     if (!accountsRaw) return [];
-    // If it's already an array (queryFn returns response.data which is Account[])
-    if (Array.isArray(accountsRaw)) return accountsRaw;
-    // If it's the full paginated response { data: Account[] }
-    if (typeof accountsRaw === 'object' && accountsRaw !== null && 'data' in accountsRaw) {
-      const inner = (accountsRaw as any).data;
-      if (Array.isArray(inner)) return inner;
-    }
-    return [];
+    // useAccounts queryFn does `return response.data` where response is AccountListResponse
+    // So accountsRaw should be Account[] (the .data property of the paginated response)
+    // But handle both cases defensively
+    const list = Array.isArray(accountsRaw)
+      ? accountsRaw
+      : (accountsRaw as any)?.data ?? (accountsRaw as any) ?? [];
+    return Array.isArray(list) ? list : [];
   }, [accountsRaw]);
 
   const { data: existingData } = useInvestmentOperation(editId || '');
@@ -731,16 +730,15 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
                       <SelectItem value="__none__">Sin cuenta asociada</SelectItem>
                       {accounts.map((acc) => (
                         <SelectItem key={acc.id} value={acc.id}>
-                          <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center gap-2">
                             {acc.color && (
                               <span
-                                className="inline-block h-2.5 w-2.5 rounded-full"
+                                className="inline-block h-2.5 w-2.5 rounded-full flex-shrink-0"
                                 style={{ backgroundColor: acc.color }}
                               />
                             )}
                             <span>{acc.name}</span>
-                            <span className="text-muted-foreground text-xs">({acc.type})</span>
-                          </div>
+                          </span>
                         </SelectItem>
                       ))}
                     </SelectContent>
