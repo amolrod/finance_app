@@ -144,16 +144,18 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
     return base;
   }, [preferredCurrency]);
   
-  const { data: accountsData } = useAccounts();
+  const { data: accountsRaw } = useAccounts();
   const accounts = useMemo(() => {
-    // useAccounts returns Account[] directly (hook already extracts .data from the API response)
-    if (Array.isArray(accountsData)) return accountsData;
-    // Fallback: if the response is paginated { data: Account[] }
-    if (accountsData && typeof accountsData === 'object' && 'data' in accountsData) {
-      return (accountsData as { data: typeof accountsData }).data || [];
+    if (!accountsRaw) return [];
+    // If it's already an array (queryFn returns response.data which is Account[])
+    if (Array.isArray(accountsRaw)) return accountsRaw;
+    // If it's the full paginated response { data: Account[] }
+    if (typeof accountsRaw === 'object' && accountsRaw !== null && 'data' in accountsRaw) {
+      const inner = (accountsRaw as any).data;
+      if (Array.isArray(inner)) return inner;
     }
     return [];
-  }, [accountsData]);
+  }, [accountsRaw]);
 
   const { data: existingData } = useInvestmentOperation(editId || '');
   const createMutation = useCreateInvestmentOperation();
