@@ -32,53 +32,15 @@ export class TransactionsService {
    * Create a new transaction
    */
   async create(userId: string, dto: CreateTransactionDto): Promise<TransactionResponseDto> {
-    // Validate account ownership
-    const account = await this.prisma.account.findFirst({
-      where: { id: dto.accountId, userId, deletedAt: null },
-    });
-
-    if (!account) {
-      throw new NotFoundException('Account not found');
-    }
-
-    // Validate category if provided
-    if (dto.categoryId) {
-      const category = await this.prisma.category.findFirst({
-        where: { id: dto.categoryId, userId, deletedAt: null },
-      });
-
-      if (!category) {
-        throw new NotFoundException('Category not found');
-      }
-
-      // Validate category type matches transaction type
-      if (dto.type === TransactionType.EXPENSE && category.type !== 'EXPENSE') {
-        throw new BadRequestException('Category type must match transaction type');
-      }
-      if (dto.type === TransactionType.INCOME && category.type !== 'INCOME') {
-        throw new BadRequestException('Category type must match transaction type');
-      }
-    }
-
-    // Validate transfer account if transfer type
-    let transferToAccount = null;
-    if (dto.type === TransactionType.TRANSFER) {
-      if (!dto.transferToAccountId) {
-        throw new BadRequestException('Transfer requires destination account');
-      }
-
-      transferToAccount = await this.prisma.account.findFirst({
-        where: { id: dto.transferToAccountId, userId, deletedAt: null },
-      });
-
-      if (!transferToAccount) {
-        throw new NotFoundException('Destination account not found');
-      }
-
-      if (dto.transferToAccountId === dto.accountId) {
-        throw new BadRequestException('Cannot transfer to the same account');
-      }
-    }
+    const account = await this.validateAccountOwnership(userId, dto.accountId);
+    await this.validateCategoryOwnership(userId, dto.categoryId, dto.type);
+    const transferToAccountId = await this.validateTransferDestination(
+      userId,
+      dto.type,
+      dto.accountId,
+      dto.transferToAccountId,
+    );
+    const tagIds = await this.validateTagOwnership(userId, dto.tagIds);
 
     // Parse amount using Decimal for precision
     const amount = new Decimal(dto.amount);
@@ -91,7 +53,7 @@ export class TransactionsService {
           userId,
           accountId: dto.accountId,
           categoryId: dto.categoryId,
-          transferToAccountId: dto.transferToAccountId,
+          transferToAccountId,
           type: dto.type,
           amount: new Prisma.Decimal(amount.toFixed(2)),
           currency: dto.currency || account.currency,
@@ -112,14 +74,14 @@ export class TransactionsService {
         tx,
         dto.type,
         dto.accountId,
-        dto.transferToAccountId,
+        transferToAccountId,
         amount,
       );
 
       // Handle tags
-      if (dto.tagIds && dto.tagIds.length > 0) {
+      if (tagIds.length > 0) {
         await tx.transactionTag.createMany({
-          data: dto.tagIds.map((tagId) => ({
+          data: tagIds.map((tagId) => ({
             transactionId: transaction.id,
             tagId,
           })),
@@ -278,7 +240,10 @@ export class TransactionsService {
   ): Promise<TransactionResponseDto> {
     const existing = await this.prisma.transaction.findFirst({
       where: { id: transactionId, userId, deletedAt: null },
-      include: { account: true },
+      include: {
+        account: true,
+        tags: { select: { tagId: true } },
+      },
     });
 
     if (!existing) {
@@ -292,9 +257,16 @@ export class TransactionsService {
       dto.accountId !== undefined ||
       dto.transferToAccountId !== undefined;
 
+    const validatedTagIds =
+      dto.tagIds !== undefined ? await this.validateTagOwnership(userId, dto.tagIds) : undefined;
+
     if (significantChange) {
       // Create reversal and new transaction
-      return this.updateWithReversal(userId, existing, dto);
+      return this.updateWithReversal(userId, existing, dto, validatedTagIds);
+    }
+
+    if (dto.categoryId !== undefined) {
+      await this.validateCategoryOwnership(userId, dto.categoryId, existing.type);
     }
 
     // For minor changes (description, category, notes, tags), direct update
@@ -315,14 +287,14 @@ export class TransactionsService {
     });
 
     // Update tags if provided
-    if (dto.tagIds !== undefined) {
+    if (validatedTagIds !== undefined) {
       await this.prisma.transactionTag.deleteMany({
         where: { transactionId },
       });
 
-      if (dto.tagIds.length > 0) {
+      if (validatedTagIds.length > 0) {
         await this.prisma.transactionTag.createMany({
-          data: dto.tagIds.map((tagId) => ({
+          data: validatedTagIds.map((tagId) => ({
             transactionId,
             tagId,
           })),
@@ -578,17 +550,128 @@ export class TransactionsService {
     }
   }
 
+  private async validateAccountOwnership(
+    userId: string,
+    accountId: string,
+    message = 'Account not found',
+  ) {
+    const account = await this.prisma.account.findFirst({
+      where: { id: accountId, userId, deletedAt: null },
+    });
+
+    if (!account) {
+      throw new NotFoundException(message);
+    }
+
+    return account;
+  }
+
+  private async validateCategoryOwnership(
+    userId: string,
+    categoryId: string | null | undefined,
+    type: TransactionType,
+  ): Promise<void> {
+    if (!categoryId) {
+      return;
+    }
+
+    const category = await this.prisma.category.findFirst({
+      where: { id: categoryId, userId, deletedAt: null },
+    });
+
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+
+    if (type === TransactionType.EXPENSE && category.type !== 'EXPENSE') {
+      throw new BadRequestException('Category type must match transaction type');
+    }
+    if (type === TransactionType.INCOME && category.type !== 'INCOME') {
+      throw new BadRequestException('Category type must match transaction type');
+    }
+  }
+
+  private async validateTransferDestination(
+    userId: string,
+    type: TransactionType,
+    accountId: string,
+    transferToAccountId: string | null | undefined,
+  ): Promise<string | null> {
+    if (type !== TransactionType.TRANSFER) {
+      if (transferToAccountId) {
+        throw new BadRequestException('Destination account is only valid for transfers');
+      }
+      return null;
+    }
+
+    if (!transferToAccountId) {
+      throw new BadRequestException('Transfer requires destination account');
+    }
+
+    if (transferToAccountId === accountId) {
+      throw new BadRequestException('Cannot transfer to the same account');
+    }
+
+    await this.validateAccountOwnership(userId, transferToAccountId, 'Destination account not found');
+    return transferToAccountId;
+  }
+
+  private async validateTagOwnership(userId: string, tagIds?: string[]): Promise<string[]> {
+    if (!tagIds?.length) {
+      return [];
+    }
+
+    const uniqueTagIds = Array.from(new Set(tagIds));
+    const tags = await this.prisma.tag.findMany({
+      where: {
+        id: { in: uniqueTagIds },
+        userId,
+        deletedAt: null,
+      },
+      select: { id: true },
+    });
+
+    if (tags.length !== uniqueTagIds.length) {
+      throw new NotFoundException('Tag not found');
+    }
+
+    return uniqueTagIds;
+  }
+
   /**
    * Update transaction with reversal pattern
    */
   private async updateWithReversal(
     userId: string,
-    existing: Transaction & { account: { currency: string } },
+    existing: Transaction & { account: { currency: string }; tags?: { tagId: string }[] },
     dto: UpdateTransactionDto,
+    validatedTagIds?: string[],
   ): Promise<TransactionResponseDto> {
+    const oldAmount = new Decimal(existing.amount.toString());
+    const newAmount = dto.amount !== undefined ? new Decimal(dto.amount) : oldAmount;
+    const newType = dto.type ?? existing.type;
+    const newAccountId = dto.accountId ?? existing.accountId;
+    const requestedTransferTo =
+      newType === TransactionType.TRANSFER
+        ? dto.transferToAccountId !== undefined
+          ? dto.transferToAccountId
+          : existing.transferToAccountId
+        : dto.transferToAccountId;
+    const newTransferTo = await this.validateTransferDestination(
+      userId,
+      newType,
+      newAccountId,
+      requestedTransferTo,
+    );
+    await this.validateAccountOwnership(userId, newAccountId);
+
+    const newCategoryId = dto.categoryId !== undefined ? dto.categoryId : existing.categoryId;
+    await this.validateCategoryOwnership(userId, newCategoryId, newType);
+
+    const tagIds = validatedTagIds ?? existing.tags?.map((tag) => tag.tagId) ?? [];
+
     return this.prisma.$transaction(async (tx) => {
       // 1. Reverse old transaction balances
-      const oldAmount = new Decimal(existing.amount.toString());
       await this.updateAccountBalances(
         tx,
         existing.type,
@@ -604,16 +687,11 @@ export class TransactionsService {
       });
 
       // 3. Create new transaction
-      const newAmount = dto.amount ? new Decimal(dto.amount) : oldAmount;
-      const newType = dto.type || existing.type;
-      const newAccountId = dto.accountId || existing.accountId;
-      const newTransferTo = dto.transferToAccountId ?? existing.transferToAccountId;
-
       const newTransaction = await tx.transaction.create({
         data: {
           userId,
           accountId: newAccountId,
-          categoryId: dto.categoryId ?? existing.categoryId,
+          categoryId: newCategoryId,
           transferToAccountId: newTransferTo,
           type: newType,
           amount: new Prisma.Decimal(newAmount.toFixed(2)),
@@ -634,13 +712,33 @@ export class TransactionsService {
       // 4. Apply new transaction balances
       await this.updateAccountBalances(tx, newType, newAccountId, newTransferTo, newAmount);
 
-      // 5. Link old transaction to new
+      // 5. Copy or replace tags
+      if (tagIds.length > 0) {
+        await tx.transactionTag.createMany({
+          data: tagIds.map((tagId) => ({
+            transactionId: newTransaction.id,
+            tagId,
+          })),
+        });
+      }
+
+      // 6. Link old transaction to new
       await tx.transaction.update({
         where: { id: existing.id },
         data: { reversedById: newTransaction.id },
       });
 
-      return this.mapToResponse(newTransaction);
+      const hydrated = await tx.transaction.findUnique({
+        where: { id: newTransaction.id },
+        include: {
+          account: true,
+          category: true,
+          transferToAccount: true,
+          tags: { include: { tag: true } },
+        },
+      });
+
+      return this.mapToResponse(hydrated!);
     });
   }
 

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
+import { API_V1_URL } from '@/lib/api-client';
 import { useAuthStore } from '@/stores/auth-store';
 import type {
   BankFormat,
@@ -9,8 +10,6 @@ import type {
 } from '@/types/api';
 import { transactionKeys } from './use-transactions';
 import { accountKeys } from './use-accounts';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export const importKeys = {
   all: ['import'] as const,
@@ -25,7 +24,7 @@ export function useImportFormats() {
   return useQuery({
     queryKey: importKeys.formats(),
     queryFn: async () => {
-      const response = await axios.get<BankFormat[]>(`${API_URL}/api/v1/import/formats`, {
+      const response = await axios.get<BankFormat[]>(`${API_V1_URL}/import/formats`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -53,7 +52,7 @@ export function usePreviewImport() {
       formData.append('accountId', accountId);
 
       const response = await axios.post<ImportPreview>(
-        `${API_URL}/api/v1/import/preview`,
+        `${API_V1_URL}/import/preview`,
         formData,
         {
           headers: {
@@ -75,7 +74,7 @@ export function useConfirmImport() {
   return useMutation({
     mutationFn: async (data: ConfirmImportDto): Promise<ImportResultDto> => {
       const response = await axios.post<ImportResultDto>(
-        `${API_URL}/api/v1/import/confirm`,
+        `${API_V1_URL}/import/confirm`,
         data,
         {
           headers: {

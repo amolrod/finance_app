@@ -1,7 +1,9 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/stores/auth-store';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+export const API_BASE_URL = RAW_API_URL.replace(/\/+$/, '').replace(/\/api\/v1$/, '');
+export const API_V1_URL = `${API_BASE_URL}/api/v1`;
 
 class ApiClient {
   private client: AxiosInstance;
@@ -13,7 +15,7 @@ class ApiClient {
 
   constructor() {
     this.client = axios.create({
-      baseURL: `${API_URL}/api/v1`,
+      baseURL: API_V1_URL,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -68,7 +70,7 @@ class ApiClient {
               throw new Error('No refresh token');
             }
 
-            const response = await axios.post(`${API_URL}/api/v1/auth/refresh`, {
+            const response = await axios.post(`${API_V1_URL}/auth/refresh`, {
               refreshToken,
             });
 

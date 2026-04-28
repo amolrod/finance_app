@@ -1,10 +1,9 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { SkipThrottle } from '@nestjs/throttler';
+import { Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ExchangeRatesService, SUPPORTED_CURRENCIES } from './exchange-rates.service';
 
 @Controller('exchange-rates')
-@SkipThrottle()
 export class ExchangeRatesController {
   constructor(private readonly exchangeRatesService: ExchangeRatesService) {}
 
@@ -167,6 +166,8 @@ export class ExchangeRatesController {
   /**
    * Fuerza una actualización de los tipos de cambio
    */
+  @Throttle({ default: { limit: 1, ttl: 60000 } })
+  @UseGuards(JwtAuthGuard)
   @Get('refresh')
   async refresh() {
     await this.exchangeRatesService.refreshAllRates();

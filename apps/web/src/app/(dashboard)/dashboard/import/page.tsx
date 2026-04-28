@@ -602,7 +602,7 @@ export default function ImportPage() {
 
       toast({
         title: 'Importación completada',
-        description: `Se importaron ${result.imported} transacciones`,
+        description: `Se importaron ${totalImported} transacciones`,
       });
       logAuditEvent({
         action: 'Importacion completada',

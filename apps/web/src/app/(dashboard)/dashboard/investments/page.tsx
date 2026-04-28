@@ -65,6 +65,17 @@ const performanceRanges = [
   { value: 'ALL', label: 'Todo' },
 ] as const;
 
+type GoalFormState = {
+  name: string;
+  scope: 'PORTFOLIO' | 'ASSET';
+  assetId: string;
+  targetAmount: string;
+  currency: string;
+  targetDate: string;
+  alertAt80: boolean;
+  alertAt100: boolean;
+};
+
 export default function InvestmentsPage() {
   const [showOperationForm, setShowOperationForm] = useState(false);
   const [editOperationId, setEditOperationId] = useState<string | null>(null);
@@ -73,7 +84,7 @@ export default function InvestmentsPage() {
   const [activeTab, setActiveTab] = useState<'holdings' | 'operations' | 'charts'>('holdings');
   const [selectedAssetType, setSelectedAssetType] = useState<AssetType | null>(null);
   const [goalDialogOpen, setGoalDialogOpen] = useState(false);
-  const [goalForm, setGoalForm] = useState({
+  const [goalForm, setGoalForm] = useState<GoalFormState>({
     name: '',
     scope: 'PORTFOLIO' as const,
     assetId: '',
@@ -135,6 +146,10 @@ export default function InvestmentsPage() {
     (isSingleCurrency ? holdingCurrencies.values().next().value : preferredCurrency) ||
     preferredCurrency ||
     'USD';
+  const formatChartValue = (value: unknown) => {
+    const numericValue = typeof value === 'number' ? value : Number(value);
+    return convertAndFormat(Number.isFinite(numericValue) ? numericValue : 0, baseCurrency);
+  };
 
   const convertBetween = (amount: number, from: string, to: string) => {
     if (from === to) return amount;
@@ -982,7 +997,7 @@ export default function InvestmentsPage() {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Eliminar objetivo</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Esta acción eliminará el objetivo "{goal.name}".
+                              Esta acción eliminará el objetivo &quot;{goal.name}&quot;.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
@@ -1092,7 +1107,7 @@ export default function InvestmentsPage() {
                             ))}
                           </Pie>
                           <Tooltip
-                            formatter={(value: number) => convertAndFormat(value, baseCurrency)}
+                            formatter={(value) => formatChartValue(value)}
                           />
                         </RePieChart>
                       </ResponsiveContainer>
@@ -1111,7 +1126,7 @@ export default function InvestmentsPage() {
                           <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                           <YAxis tickFormatter={(value) => convertAndFormat(value, baseCurrency)} width={80} />
                           <Tooltip
-                            formatter={(value: number) => convertAndFormat(value, baseCurrency)}
+                            formatter={(value) => formatChartValue(value)}
                           />
                           <Legend />
                           <Bar dataKey="invested" name="Invertido" fill="hsl(var(--chart-2))" radius={[6, 6, 0, 0]} />
@@ -1211,7 +1226,7 @@ export default function InvestmentsPage() {
                                 width={80}
                               />
                               <Tooltip
-                                formatter={(value: number) => convertAndFormat(value, baseCurrency)}
+                                formatter={(value) => formatChartValue(value)}
                                 labelFormatter={(label) =>
                                   new Date(label).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
                                 }
@@ -1274,7 +1289,7 @@ export default function InvestmentsPage() {
                             width={80}
                           />
                           <Tooltip
-                            formatter={(value: number) => convertAndFormat(value, baseCurrency)}
+                            formatter={(value) => formatChartValue(value)}
                             labelFormatter={(label) =>
                               new Date(label).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
                             }

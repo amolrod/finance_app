@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api-client';
+import { apiClient, API_V1_URL } from '@/lib/api-client';
 import { useAuthStore } from '@/stores/auth-store';
 import type {
   Transaction,
@@ -166,7 +166,7 @@ export async function exportTransactionsCsv(filters?: TransactionFilters): Promi
   }
 
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/transactions/export?${params}`,
+    `${API_V1_URL}/transactions/export?${params}`,
     {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('auth-storage') ? JSON.parse(localStorage.getItem('auth-storage')!).state.accessToken : ''}`,

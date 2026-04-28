@@ -301,7 +301,7 @@ describe('TransactionsService', () => {
         return callback({
           account: {
             findUnique: jest.fn().mockResolvedValue(mockAccount),
-            update: jest.fn().mockResolvedValue(mockAccount),
+            updateMany: jest.fn().mockResolvedValue({ count: 1 }),
           },
           transaction: {
             update: jest.fn().mockResolvedValue({

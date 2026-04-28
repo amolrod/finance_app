@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Check, ChevronsUpDown } from 'lucide-react';
@@ -164,7 +164,7 @@ export function OperationForm({ open, onClose, editId, assets }: Props) {
   const { data: marketResults = [], isFetching: isSearchingMarket } = useAssetSearch(debouncedSearch);
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as Resolver<FormValues>,
     defaultValues: {
       assetId: '',
       type: 'BUY',

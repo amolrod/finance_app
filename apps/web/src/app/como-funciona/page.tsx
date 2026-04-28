@@ -446,7 +446,7 @@ export default function ComoFuncionaPage() {
   );
 }
 
-export const HeroParallax = ({ products }: { products: Product[] }) => {
+const HeroParallax = ({ products }: { products: Product[] }) => {
   const firstRow = products.slice(0, 5);
   const secondRow = products.slice(5, 10);
   const thirdRow = products.slice(10, 15);
@@ -499,7 +499,7 @@ export const HeroParallax = ({ products }: { products: Product[] }) => {
   );
 };
 
-export const Header = () => {
+const Header = () => {
   return (
     <div className="max-w-7xl relative mx-auto py-20 md:py-40 px-4 w-full left-0 top-0">
       <h1 className="text-2xl md:text-7xl font-bold dark:text-white">
@@ -513,7 +513,7 @@ export const Header = () => {
   );
 };
 
-export const ProductCard = ({ product, translate }: { product: Product; translate: any }) => {
+const ProductCard = ({ product, translate }: { product: Product; translate: any }) => {
   return (
     <motion.div
       style={{

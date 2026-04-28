@@ -6,8 +6,7 @@
   "author": "Finance App Team",
   "license": "MIT",
   "workspaces": [
-    "apps/*",
-    "packages/*"
+    "apps/*"
   ],
   "scripts": {
     "dev": "turbo run dev",
@@ -38,7 +37,7 @@
     "@prisma/client",
     "argon2"
   ],
-  "packageManager": "bun@1.1.0",
+  "packageManager": "bun@1.2.0",
   "dependencies": {
     "@nestjs/schedule": "^6.1.0"
   }

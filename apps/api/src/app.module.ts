@@ -69,12 +69,10 @@ import { SearchModule } from './modules/search/search.module';
     HealthModule,
   ],
   providers: [
-    // ThrottlerGuard DISABLED for development
-    // Uncomment for production:
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: ThrottlerGuard,
-    // },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}

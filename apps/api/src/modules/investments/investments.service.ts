@@ -61,6 +61,30 @@ export class InvestmentsService {
     );
   }
 
+  private async resolveOwnedAccountId(
+    userId: string,
+    accountId: string | null | undefined,
+  ): Promise<string | null | undefined> {
+    if (accountId === undefined) {
+      return undefined;
+    }
+
+    if (!accountId) {
+      return null;
+    }
+
+    const account = await this.prisma.account.findFirst({
+      where: { id: accountId, userId, deletedAt: null },
+      select: { id: true },
+    });
+
+    if (!account) {
+      throw new NotFoundException(`Account with ID ${accountId} not found`);
+    }
+
+    return account.id;
+  }
+
   async create(userId: string, dto: CreateInvestmentOperationDto) {
     // Verify asset exists
     const asset = await this.prisma.asset.findUnique({
@@ -70,6 +94,8 @@ export class InvestmentsService {
     if (!asset) {
       throw new NotFoundException(`Asset with ID ${dto.assetId} not found`);
     }
+
+    const accountId = await this.resolveOwnedAccountId(userId, dto.accountId);
 
     // Calculate total amount
     const quantity = new Decimal(dto.quantity);
@@ -96,7 +122,7 @@ export class InvestmentsService {
         totalAmount: totalAmount.toNumber(),
         fees: dto.fees || 0,
         currency: dto.currency || asset.currency,
-        accountId: dto.accountId || null,
+        accountId: accountId ?? null,
         platform: dto.platform || null,
         occurredAt: new Date(dto.occurredAt),
         notes: dto.notes,
@@ -122,6 +148,23 @@ export class InvestmentsService {
     const missing = assetIds.filter((id) => !assetMap.has(id));
     if (missing.length > 0) {
       throw new NotFoundException(`Assets not found: ${missing.join(', ')}`);
+    }
+
+    const accountIds = Array.from(
+      new Set(operations.map((op) => op.accountId).filter(Boolean) as string[]),
+    );
+    const accounts =
+      accountIds.length > 0
+        ? await this.prisma.account.findMany({
+            where: { id: { in: accountIds }, userId, deletedAt: null },
+            select: { id: true },
+          })
+        : [];
+    const accountSet = new Set(accounts.map((account) => account.id));
+    const missingAccounts = accountIds.filter((id) => !accountSet.has(id));
+
+    if (missingAccounts.length > 0) {
+      throw new NotFoundException(`Accounts not found: ${missingAccounts.join(', ')}`);
     }
 
     const data = operations.map((dto) => {
@@ -243,6 +286,11 @@ export class InvestmentsService {
       }
     }
 
+    const accountId =
+      dto.accountId !== undefined
+        ? await this.resolveOwnedAccountId(userId, dto.accountId)
+        : undefined;
+
     // Recalculate total if quantity or price changed
     const quantity = new Decimal(dto.quantity ?? operation.quantity.toString());
     const pricePerUnit = new Decimal(dto.pricePerUnit ?? operation.pricePerUnit.toString());
@@ -268,7 +316,7 @@ export class InvestmentsService {
         totalAmount: totalAmount.toNumber(),
         fees: dto.fees,
         currency: dto.currency,
-        accountId: dto.accountId !== undefined ? (dto.accountId || null) : undefined,
+        accountId,
         platform: dto.platform !== undefined ? (dto.platform || null) : undefined,
         occurredAt: dto.occurredAt ? new Date(dto.occurredAt) : undefined,
         notes: dto.notes !== undefined ? dto.notes : undefined,
