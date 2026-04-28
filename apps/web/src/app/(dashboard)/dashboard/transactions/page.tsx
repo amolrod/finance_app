@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
-import { useTransactions, useCreateTransaction, useDeleteTransaction, useUpdateTransaction, transactionKeys } from '@/hooks/use-transactions';
+import { useTransactions, useCreateTransaction, useDeleteTransaction, useUpdateTransaction, useTransaction, transactionKeys } from '@/hooks/use-transactions';
 import { useAccounts, accountKeys } from '@/hooks/use-accounts';
 import { budgetKeys } from '@/hooks/use-budgets';
 import { useCategories } from '@/hooks/use-categories';
@@ -90,6 +90,7 @@ const getSeedColor = (seed: string) => {
 
 export default function TransactionsPage() {
   const searchParams = useSearchParams();
+  const focusedTransactionId = searchParams.get('focusId') || '';
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filters, setFilters] = useState<TransactionFilters>({});
   const [page, setPage] = useState(1);
@@ -109,6 +110,7 @@ export default function TransactionsPage() {
   const { preferredCurrency, convertAmount, formatAmount } = useCurrency();
   const queryClient = useQueryClient();
   const limit = 50;
+  const { data: focusedTransaction } = useTransaction(focusedTransactionId);
 
   // Read URL parameters on mount
   useEffect(() => {
@@ -117,6 +119,8 @@ export default function TransactionsPage() {
     const endDate = searchParams.get('endDate');
     const type = searchParams.get('type') as TransactionType | null;
     const accountId = searchParams.get('accountId');
+    const search = searchParams.get('search');
+    const focusId = searchParams.get('focusId');
     
     const urlFilters: string[] = [];
     const newFilters: TransactionFilters = {};
@@ -141,6 +145,13 @@ export default function TransactionsPage() {
       newFilters.accountId = accountId;
       urlFilters.push('cuenta');
     }
+    if (search) {
+      newFilters.search = search;
+      urlFilters.push('búsqueda');
+    }
+    if (focusId) {
+      urlFilters.push('transacción');
+    }
     
     if (urlFilters.length > 0) {
       setFilters(newFilters);
@@ -148,6 +159,22 @@ export default function TransactionsPage() {
       setActiveFiltersFromUrl(urlFilters);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!focusedTransaction) return;
+    const occurredAt = new Date(focusedTransaction.occurredAt);
+    const date = `${occurredAt.getFullYear()}-${String(occurredAt.getMonth() + 1).padStart(2, '0')}-${String(occurredAt.getDate()).padStart(2, '0')}`;
+
+    setFilters((prev) => ({
+      ...prev,
+      startDate: prev.startDate || date,
+      endDate: prev.endDate || date,
+      type: focusedTransaction.type,
+      search: prev.search || focusedTransaction.description || undefined,
+    }));
+    setPage(1);
+    setActiveFiltersFromUrl((prev) => Array.from(new Set([...prev, 'transacción'])));
+  }, [focusedTransaction]);
 
   const clearUrlFilters = () => {
     setFilters({});
@@ -729,6 +756,11 @@ export default function TransactionsPage() {
                     {typeLabels[filters.type]}
                   </span>
                 )}
+                {filters.search && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border/60 bg-secondary/70 text-sm font-medium">
+                    Buscar: {filters.search}
+                  </span>
+                )}
               </div>
               <Button variant="ghost" size="sm" onClick={clearUrlFilters} className="text-muted-foreground hover:text-foreground">
                 <X className="h-4 w-4 mr-1" />
@@ -749,6 +781,7 @@ export default function TransactionsPage() {
                 <Input
                   placeholder="Buscar transacciones..."
                   className="pl-9 bg-secondary/60"
+                  value={filters.search || ''}
                   onChange={(e) => {
                     setFilters({ ...filters, search: e.target.value });
                     setPage(1);
@@ -936,6 +969,7 @@ export default function TransactionsPage() {
                   const isReversed = tx.status === 'REVERSED' || tx.status === 'CANCELLED';
                   const isEditing = editingId === tx.id;
                   const isSelected = selection.selectedIds.has(tx.id);
+                  const isFocused = focusedTransactionId === tx.id;
                   const typeColor = tx.type === 'INCOME'
                     ? COLOR_PALETTE[0]
                     : tx.type === 'EXPENSE'
@@ -955,6 +989,7 @@ export default function TransactionsPage() {
                         isReversed && 'opacity-50',
                         isSelected && 'bg-foreground/[0.03]',
                         isEditing && 'bg-foreground/[0.03]',
+                        isFocused && 'bg-amber-500/10 ring-1 ring-amber-500/30',
                         !isReversed && !isSelected && !isEditing && 'hover:bg-foreground/[0.02]'
                       )}
                     >

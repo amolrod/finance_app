@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useTransactions } from '@/hooks/use-transactions';
 import { useAccounts } from '@/hooks/use-accounts';
@@ -34,6 +35,7 @@ import Link from 'next/link';
 import { COLOR_PALETTE } from '@/lib/color-palettes';
 
 export default function ReportsPage() {
+  const searchParams = useSearchParams();
   const { convertAmount, formatAmount, preferredCurrency } = useCurrency();
   const today = new Date();
   const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -43,6 +45,23 @@ export default function ReportsPage() {
     endDate: today.toISOString().split('T')[0],
     limit: 500,
   });
+  const urlFilterKey = searchParams.toString();
+
+  useEffect(() => {
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+    const type = searchParams.get('type') as TransactionType | null;
+
+    if (!startDate && !endDate && !type) return;
+
+    setFilters((prev) => ({
+      ...prev,
+      ...(startDate ? { startDate } : {}),
+      ...(endDate ? { endDate } : {}),
+      ...(type && ['INCOME', 'EXPENSE', 'TRANSFER'].includes(type) ? { type } : {}),
+      limit: 500,
+    }));
+  }, [searchParams, urlFilterKey]);
 
   const { data: transactions, isLoading } = useTransactions(filters);
   const { data: accounts } = useAccounts();
