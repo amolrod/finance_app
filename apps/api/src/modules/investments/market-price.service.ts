@@ -3,6 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import axios from 'axios';
+import { AssetType } from '@prisma/client';
 
 interface PriceData {
   symbol: string;
@@ -58,6 +59,33 @@ const CRYPTO_ID_MAP: Record<string, string> = {
   'DAI': 'dai',
 };
 
+const CRYPTO_DISPLAY_NAMES: Record<string, string> = {
+  BTC: 'Bitcoin',
+  ETH: 'Ethereum',
+  SOL: 'Solana',
+  ADA: 'Cardano',
+  XRP: 'XRP',
+  DOT: 'Polkadot',
+  DOGE: 'Dogecoin',
+  AVAX: 'Avalanche',
+  MATIC: 'Polygon',
+  LINK: 'Chainlink',
+  UNI: 'Uniswap',
+  ATOM: 'Cosmos',
+  LTC: 'Litecoin',
+  BCH: 'Bitcoin Cash',
+  NEAR: 'NEAR Protocol',
+  APT: 'Aptos',
+  ARB: 'Arbitrum',
+  OP: 'Optimism',
+  FIL: 'Filecoin',
+  AAVE: 'Aave',
+  MKR: 'Maker',
+  USDT: 'Tether',
+  USDC: 'USD Coin',
+  DAI: 'Dai',
+};
+
 @Injectable()
 export class MarketPriceService {
   private readonly logger = new Logger(MarketPriceService.name);
@@ -83,6 +111,41 @@ export class MarketPriceService {
   private roundPrice(price: number, decimals = 6) {
     const factor = 10 ** decimals;
     return Math.round(price * factor) / factor;
+  }
+
+  private async normalizeKnownCryptoAsset(asset: {
+    id: string;
+    symbol: string;
+    type: string;
+    name: string;
+  }) {
+    const symbol = asset.symbol.toUpperCase();
+    if (!CRYPTO_ID_MAP[symbol] || asset.type === AssetType.CRYPTO) {
+      return;
+    }
+
+    const existingCrypto = await this.prisma.asset.findUnique({
+      where: {
+        symbol_type: {
+          symbol,
+          type: AssetType.CRYPTO,
+        },
+      },
+      select: { id: true },
+    });
+
+    if (existingCrypto && existingCrypto.id !== asset.id) {
+      return;
+    }
+
+    await this.prisma.asset.update({
+      where: { id: asset.id },
+      data: {
+        type: AssetType.CRYPTO,
+        name: CRYPTO_DISPLAY_NAMES[symbol] || asset.name.replace(/\s+ETF$/i, ''),
+        currency: 'USD',
+      },
+    });
   }
 
   /**
@@ -214,8 +277,9 @@ export class MarketPriceService {
 
     let priceData: PriceData | null = null;
 
-    // Try crypto API first for CRYPTO type
-    if (type === 'CRYPTO') {
+    // Prefer crypto pricing for known crypto tickers even if the asset was created
+    // with the wrong type from a market search result.
+    if (type === 'CRYPTO' || CRYPTO_ID_MAP[upperSymbol]) {
       priceData = await this.fetchCoinGeckoPrice(upperSymbol);
     }
 
@@ -335,6 +399,9 @@ export class MarketPriceService {
           asset.currency,
         );
         if (priceData) {
+          if (priceData.source === 'coingecko') {
+            await this.normalizeKnownCryptoAsset(asset);
+          }
           await this.savePrice(asset.id, priceData);
           updated++;
           this.logger.debug(`Updated ${asset.symbol}: $${priceData.price} (${priceData.source})`);
@@ -400,6 +467,9 @@ export class MarketPriceService {
         );
         
         if (priceData) {
+          if (priceData.source === 'coingecko') {
+            await this.normalizeKnownCryptoAsset(asset);
+          }
           await this.savePrice(asset.id, priceData);
           results.push({
             assetId: asset.id,
@@ -650,7 +720,7 @@ export class MarketPriceService {
 
     let history: PriceHistoryPoint[] | null = null;
 
-    if (type === 'CRYPTO') {
+    if (type === 'CRYPTO' || CRYPTO_ID_MAP[upperSymbol]) {
       history = await this.fetchCoinGeckoHistory(upperSymbol, coinGeckoDays);
     }
 

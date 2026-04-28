@@ -113,6 +113,13 @@ const DEMO_ACCOUNTS = [
   },
 ];
 
+const toDateParam = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export default function DashboardPage() {
   const { user } = useAuthStore();
   const { preferredCurrency, convertAmount, formatAmount } = useCurrency();
@@ -365,6 +372,12 @@ export default function DashboardPage() {
     const daysElapsed = Math.max(1, Math.ceil((now.getTime() - startOfMonth.getTime()) / 86400000));
     const netSoFar = monthIncome - monthExpense;
     const projectedNet = (netSoFar / daysElapsed) * daysInMonth;
+    const weekReportHref = `/dashboard/reports?startDate=${toDateParam(sevenDaysAgo)}&endDate=${toDateParam(now)}`;
+    const monthReportHref = `/dashboard/reports?startDate=${toDateParam(startOfMonth)}&endDate=${toDateParam(now)}`;
+    const outlierDate = outlier ? toDateParam(new Date(outlier.tx.occurredAt)) : toDateParam(now);
+    const outlierHref = outlier
+      ? `/dashboard/transactions?focusId=${outlier.tx.id}&startDate=${outlierDate}&endDate=${outlierDate}`
+      : `/dashboard/transactions?startDate=${toDateParam(sevenDaysAgo)}&endDate=${toDateParam(now)}&type=EXPENSE`;
 
     const criticalBudget = [...(budgetAlerts || [])]
       .filter((budget) => budget.percentageUsed >= 80)
@@ -413,15 +426,15 @@ export default function DashboardPage() {
           prevWeekExpense > 0
             ? `Gastos ${expenseChange >= 0 ? 'subieron' : 'bajaron'} ${Math.abs(expenseChange).toFixed(1)}% vs semana anterior.`
             : 'Tu semana comienza. Aun no hay comparativa.',
-        href: '/dashboard/reports',
-        action: 'Ver informe',
+        href: weekReportHref,
+        action: 'Ver esta semana',
         severity: expenseChange > 25 ? 'medium' : 'low',
       },
       {
         title: 'Proyeccion del mes',
         description: `Si mantienes el ritmo, cerraras con ${formatAmount(projectedNet)} neto.`,
-        href: '/dashboard/reports',
-        action: 'Analizar mes',
+        href: monthReportHref,
+        action: 'Analizar este mes',
         severity: projectedNet < 0 ? 'high' : 'low',
       },
       {
@@ -430,8 +443,8 @@ export default function DashboardPage() {
           outlier && outlierRatio >= 2
             ? `${outlier.tx.description || 'Movimiento'} fue ${outlierRatio.toFixed(1)}x tu promedio.`
             : 'No se detectan gastos atipicos recientes.',
-        href: '/dashboard/transactions',
-        action: 'Revisar movimientos',
+        href: outlierHref,
+        action: outlier ? 'Abrir transaccion' : 'Revisar movimientos',
         severity: outlierRatio >= 2 ? 'medium' : 'low',
       },
     );
@@ -440,7 +453,7 @@ export default function DashboardPage() {
       insightsList.push({
         title: 'Categorias pendientes',
         description: `${uncategorized.length} movimiento${uncategorized.length > 1 ? 's' : ''} sin clasificar.`,
-        href: '/dashboard/transactions',
+        href: '/dashboard/transactions?type=EXPENSE',
         action: 'Clasificar',
         severity: 'medium',
       });

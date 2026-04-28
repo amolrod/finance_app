@@ -15,6 +15,32 @@ type AssetSearchResult = {
 };
 
 const YAHOO_SEARCH_URL = 'https://query1.finance.yahoo.com/v1/finance/search';
+const KNOWN_CRYPTO_NAMES: Record<string, string> = {
+  BTC: 'Bitcoin',
+  ETH: 'Ethereum',
+  SOL: 'Solana',
+  ADA: 'Cardano',
+  XRP: 'XRP',
+  DOT: 'Polkadot',
+  DOGE: 'Dogecoin',
+  AVAX: 'Avalanche',
+  MATIC: 'Polygon',
+  LINK: 'Chainlink',
+  UNI: 'Uniswap',
+  ATOM: 'Cosmos',
+  LTC: 'Litecoin',
+  BCH: 'Bitcoin Cash',
+  NEAR: 'NEAR Protocol',
+  APT: 'Aptos',
+  ARB: 'Arbitrum',
+  OP: 'Optimism',
+  FIL: 'Filecoin',
+  AAVE: 'Aave',
+  MKR: 'Maker',
+  USDT: 'Tether',
+  USDC: 'USD Coin',
+  DAI: 'Dai',
+};
 const SUPPORTED_QUOTE_TYPES = new Map<string, AssetType>([
   ['EQUITY', AssetType.STOCK],
   ['ETF', AssetType.ETF],
@@ -187,6 +213,20 @@ export class AssetsService {
     const quotes = Array.isArray(response.data?.quotes) ? response.data.quotes : [];
     const results: AssetSearchResult[] = [];
     const seen = new Set<string>();
+    const exactCryptoSymbol = normalizeCryptoSymbol(trimmed);
+
+    if (KNOWN_CRYPTO_NAMES[exactCryptoSymbol]) {
+      const key = `${exactCryptoSymbol}-${AssetType.CRYPTO}`;
+      seen.add(key);
+      results.push({
+        symbol: exactCryptoSymbol,
+        name: KNOWN_CRYPTO_NAMES[exactCryptoSymbol],
+        type: AssetType.CRYPTO,
+        exchange: 'CoinGecko',
+        currency: 'USD',
+        source: 'coingecko',
+      });
+    }
 
     for (const quote of quotes) {
       const quoteType = String(quote?.quoteType || '').toUpperCase();
