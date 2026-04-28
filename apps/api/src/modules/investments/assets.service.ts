@@ -33,7 +33,7 @@ const normalizeCryptoSymbol = (symbol: string) => {
 
 const normalizeCurrency = (currency?: string) => {
   if (!currency) return undefined;
-  if (currency === 'GBp' || currency === 'GBX') return 'GBP';
+  if (currency === 'GBp' || currency.toUpperCase() === 'GBX') return 'GBP';
   return currency.toUpperCase();
 };
 
@@ -61,7 +61,7 @@ export class AssetsService {
         symbol: dto.symbol.toUpperCase(),
         name: dto.name,
         type: dto.type,
-        currency: dto.currency || 'USD',
+        currency: normalizeCurrency(dto.currency) || 'USD',
         exchange: dto.exchange,
       },
     });
@@ -127,7 +127,10 @@ export class AssetsService {
 
     return this.prisma.asset.update({
       where: { id },
-      data: dto,
+      data: {
+        ...dto,
+        currency: dto.currency ? normalizeCurrency(dto.currency) : undefined,
+      },
     });
   }
 

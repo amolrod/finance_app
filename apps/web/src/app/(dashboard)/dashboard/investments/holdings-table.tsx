@@ -1,6 +1,6 @@
 'use client';
 
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { AlertTriangle, Clock, TrendingUp, TrendingDown } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -22,6 +22,13 @@ const assetTypeBadges: Record<AssetType, { label: string; className: string; col
   BOND: { label: 'Bono', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: COLOR_PALETTE[4] },
   MUTUAL_FUND: { label: 'Fondo', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: COLOR_PALETTE[1] },
   OTHER: { label: 'Otro', className: 'border-foreground/10 text-foreground/70 bg-foreground/5', color: COLOR_PALETTE[14] },
+};
+
+const priceSourceLabels: Record<string, string> = {
+  'yahoo-finance': 'Mercado',
+  coingecko: 'Mercado',
+  'cost-basis': 'Coste',
+  'reference-estimate': 'Coste',
 };
 
 interface HoldingsTableProps {
@@ -102,6 +109,14 @@ export function HoldingsTable({ holdings, loading, emptyState }: HoldingsTablePr
               const pnlPercent = holding.unrealizedPnLPercent ? parseFloat(holding.unrealizedPnLPercent) : null;
               const badgeInfo = assetTypeBadges[holding.type as AssetType] || assetTypeBadges.OTHER;
               const symbol = (holding.symbol || holding.name || '?').slice(0, 3).toUpperCase();
+              const priceFetchedAt = holding.priceFetchedAt ? new Date(holding.priceFetchedAt) : null;
+              const priceAgeDays = priceFetchedAt
+                ? Math.floor((Date.now() - priceFetchedAt.getTime()) / 86400000)
+                : null;
+              const isStale = priceAgeDays !== null && priceAgeDays >= 2;
+              const sourceLabel = holding.priceSource
+                ? priceSourceLabels[holding.priceSource] || holding.priceSource
+                : null;
 
               // Skip if no position
               if (quantity <= 0) return null;
@@ -139,9 +154,27 @@ export function HoldingsTable({ holdings, loading, emptyState }: HoldingsTablePr
                     {convertAndFormat(invested, holding.currency)}
                   </TableCell>
                   <TableCell className="text-right font-mono">
-                    {currentPrice !== null 
-                      ? convertAndFormat(currentPrice, holding.currency)
-                      : <span className="text-muted-foreground">-</span>}
+                    {currentPrice !== null ? (
+                      <div className="flex flex-col items-end gap-1">
+                        <span>{convertAndFormat(currentPrice, holding.currency)}</span>
+                        {(holding.priceIsFallback || isStale || sourceLabel) && (
+                          <span className="flex items-center gap-1 text-[11px] font-normal text-muted-foreground">
+                            {holding.priceIsFallback ? (
+                              <AlertTriangle className="h-3 w-3" />
+                            ) : isStale ? (
+                              <Clock className="h-3 w-3" />
+                            ) : null}
+                            {holding.priceIsFallback
+                              ? 'coste'
+                              : isStale
+                              ? `${priceAgeDays}d`
+                              : sourceLabel}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-right font-mono">
                     {currentValue !== null 

@@ -152,8 +152,23 @@ export class InvestmentsController {
   @Post('prices/refresh')
   @ApiOperation({ summary: 'Refresh prices for specified assets' })
   @ApiBody({ schema: { type: 'object', properties: { assetIds: { type: 'array', items: { type: 'string' } } } } })
-  refreshPrices(@Body('assetIds') assetIds: string[]) {
-    return this.marketPriceService.refreshPrices(assetIds);
+  async refreshPrices(
+    @Request() req: AuthenticatedRequest,
+    @Body('assetIds') assetIds: string[],
+  ) {
+    const requestedIds = Array.isArray(assetIds) ? assetIds.filter(Boolean) : [];
+    if (requestedIds.length === 0) {
+      return [];
+    }
+
+    const holdings = await this.investmentsService.getHoldings(req.user.userId);
+    const ownedAssetIds = new Set(holdings.map((holding) => holding.assetId));
+    const refreshableIds = requestedIds.filter((id) => ownedAssetIds.has(id));
+    if (refreshableIds.length === 0) {
+      return [];
+    }
+
+    return this.marketPriceService.refreshPrices(refreshableIds);
   }
 
   @Post('prices/refresh-all')

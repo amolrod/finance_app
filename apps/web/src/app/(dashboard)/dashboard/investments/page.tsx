@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, Plus, DollarSign, PieChart, BarChart3, RefreshCcw, Clock, Briefcase, ChevronRight, Target, Trash2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, TrendingUp, TrendingDown, Plus, DollarSign, PieChart, BarChart3, RefreshCcw, Clock, Briefcase, ChevronRight, Target, Trash2 } from 'lucide-react';
 import { ResponsiveContainer, PieChart as RePieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, AreaChart, Area } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -108,7 +108,7 @@ export default function InvestmentsPage() {
   const deleteGoalMutation = useDeleteInvestmentGoal();
   
   // Auto-refresh precios cada 5 minutos
-  const { data: autoRefreshData, isFetching: isAutoRefreshing } = useAutoRefreshPrices(holdings && holdings.length > 0);
+  const { data: autoRefreshData, isFetching: isAutoRefreshing } = useAutoRefreshPrices(Boolean(holdings?.length));
 
   // Actualizar tiempo de última actualización
   useEffect(() => {
@@ -123,7 +123,7 @@ export default function InvestmentsPage() {
     }
   }, [goalForm.currency, preferredCurrency]);
 
-  const holdingsData = holdings || portfolio?.holdings || [];
+  const holdingsData = useMemo(() => holdings || portfolio?.holdings || [], [holdings, portfolio?.holdings]);
   const filteredHoldings = useMemo(() => {
     if (!selectedAssetType) return holdingsData;
     return holdingsData.filter((holding) => holding.type === selectedAssetType);
@@ -146,12 +146,40 @@ export default function InvestmentsPage() {
     (isSingleCurrency ? holdingCurrencies.values().next().value : preferredCurrency) ||
     preferredCurrency ||
     'USD';
+  const priceQuality = useMemo(() => {
+    const openHoldings = holdingsData.filter((holding) => parseFloat(holding.quantity) > 0);
+    const missing = openHoldings.filter((holding) => !holding.currentPrice);
+    const fallback = openHoldings.filter((holding) => holding.priceIsFallback);
+    const stale = openHoldings.filter((holding) => {
+      if (!holding.priceFetchedAt || holding.priceIsFallback) return false;
+      const fetchedAt = new Date(holding.priceFetchedAt).getTime();
+      if (Number.isNaN(fetchedAt)) return false;
+      return Date.now() - fetchedAt > 48 * 60 * 60 * 1000;
+    });
+    const marketPriced = Math.max(0, openHoldings.length - missing.length - fallback.length);
+    const issueCount = missing.length + fallback.length + stale.length;
+    const lastFetchedAt = openHoldings
+      .map((holding) => holding.priceFetchedAt)
+      .filter((date): date is string => Boolean(date))
+      .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0];
+
+    return {
+      total: openHoldings.length,
+      marketPriced,
+      missingCount: missing.length,
+      fallbackCount: fallback.length,
+      staleCount: stale.length,
+      issueCount,
+      lastFetchedAt,
+      topIssue: missing[0] || fallback[0] || stale[0] || null,
+    };
+  }, [holdingsData]);
   const formatChartValue = (value: unknown) => {
     const numericValue = typeof value === 'number' ? value : Number(value);
     return convertAndFormat(Number.isFinite(numericValue) ? numericValue : 0, baseCurrency);
   };
 
-  const convertBetween = (amount: number, from: string, to: string) => {
+  const convertBetween = useCallback((amount: number, from: string, to: string) => {
     if (from === to) return amount;
     const directKey = `${from}-${to}`;
     if (rates.has(directKey)) {
@@ -169,7 +197,7 @@ export default function InvestmentsPage() {
       }
     }
     return null;
-  };
+  }, [rates]);
 
   const portfolioTotals = useMemo(() => {
     if (!holdingsData.length) {
@@ -327,7 +355,7 @@ export default function InvestmentsPage() {
     return Array.from(dateMap.entries())
       .map(([date, value]) => ({ date, value }))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [priceHistory?.assets, chartOperationsData?.data, baseCurrency, rates]);
+  }, [priceHistory?.assets, chartOperationsData?.data, baseCurrency, convertBetween]);
 
   const performanceSummary = useMemo(() => {
     if (portfolioValueSeries.length === 0) return null;
@@ -488,7 +516,7 @@ export default function InvestmentsPage() {
     }
   };
 
-  const handleDeleteGoal = async (id: string, name: string) => {
+  const handleDeleteGoal = async (id: string) => {
     try {
       await deleteGoalMutation.mutateAsync(id);
       toast({
@@ -698,6 +726,90 @@ export default function InvestmentsPage() {
           </Card>
         </motion.div>
       </div>
+
+      {priceQuality.total > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.22 }}
+        >
+          <Card className="bg-background/80 border-foreground/10 shadow-soft">
+            <CardContent className="p-4">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex items-start gap-3">
+                  <div
+                    className={cn(
+                      'flex h-10 w-10 items-center justify-center rounded-xl border',
+                      priceQuality.issueCount > 0
+                        ? 'border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                        : 'border-success/20 bg-success/10 text-success'
+                    )}
+                  >
+                    {priceQuality.issueCount > 0 ? (
+                      <AlertTriangle className="h-5 w-5" />
+                    ) : (
+                      <CheckCircle2 className="h-5 w-5" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-[14px] font-medium">Calidad de precios</p>
+                    <p className="text-[13px] text-muted-foreground">
+                      {priceQuality.issueCount > 0
+                        ? `${priceQuality.issueCount} posicion${priceQuality.issueCount === 1 ? '' : 'es'} necesitan revision de precio.`
+                        : 'Todas las posiciones abiertas tienen precio de mercado reciente.'}
+                    </p>
+                    {priceQuality.topIssue && (
+                      <p className="mt-1 text-[12px] text-muted-foreground">
+                        Revisa {priceQuality.topIssue.symbol}: puede estar sin cotizacion real o usando coste base.
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:min-w-[520px]">
+                  <div className="rounded-lg border border-foreground/10 px-3 py-2">
+                    <p className="text-[11px] text-muted-foreground">Mercado</p>
+                    <p className="text-lg font-semibold tabular-nums">{priceQuality.marketPriced}</p>
+                  </div>
+                  <div className="rounded-lg border border-foreground/10 px-3 py-2">
+                    <p className="text-[11px] text-muted-foreground">Sin precio</p>
+                    <p className="text-lg font-semibold tabular-nums">{priceQuality.missingCount}</p>
+                  </div>
+                  <div className="rounded-lg border border-foreground/10 px-3 py-2">
+                    <p className="text-[11px] text-muted-foreground">Coste base</p>
+                    <p className="text-lg font-semibold tabular-nums">{priceQuality.fallbackCount}</p>
+                  </div>
+                  <div className="rounded-lg border border-foreground/10 px-3 py-2">
+                    <p className="text-[11px] text-muted-foreground">Obsoletos</p>
+                    <p className="text-lg font-semibold tabular-nums">{priceQuality.staleCount}</p>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRefreshPrices}
+                    disabled={refreshPricesMutation.isPending || isAutoRefreshing}
+                    className="h-9 text-[13px]"
+                  >
+                    <RefreshCcw className={cn("h-4 w-4 mr-1.5", (refreshPricesMutation.isPending || isAutoRefreshing) && "animate-spin")} />
+                    Actualizar precios
+                  </Button>
+                  {priceQuality.lastFetchedAt && (
+                    <span className="text-[11px] text-muted-foreground">
+                      Ultima lectura {new Date(priceQuality.lastFetchedAt).toLocaleString('es-ES', {
+                        day: '2-digit',
+                        month: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Asset Type Distribution - Estilo lista Apple */}
       {Object.keys(byAssetType).length > 0 && (
@@ -1002,7 +1114,7 @@ export default function InvestmentsPage() {
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDeleteGoal(goal.id, goal.name)}>
+                            <AlertDialogAction onClick={() => handleDeleteGoal(goal.id)}>
                               Eliminar
                             </AlertDialogAction>
                           </AlertDialogFooter>

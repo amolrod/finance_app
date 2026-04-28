@@ -543,6 +543,9 @@ export interface HoldingSummary {
   unrealizedPnLPercent: string | null;
   realizedPnL: string;
   currency: string;
+  priceSource: string | null;
+  priceFetchedAt: string | null;
+  priceIsFallback: boolean;
 }
 
 export interface PortfolioSummary {
