@@ -155,7 +155,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 
         {!isLoading && inputValue.length >= 2 && !hasResults && (
           <CommandEmpty>
-            No se encontraron resultados para "{inputValue}"
+            No se encontraron resultados para &quot;{inputValue}&quot;
           </CommandEmpty>
         )}
 

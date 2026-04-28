@@ -15,17 +15,18 @@ export interface RegisterDto {
   lastName?: string;
 }
 
+export interface AuthUser {
+  id: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+}
+
 export interface AuthResponse {
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    currency: string;
-    locale: string;
-    createdAt: string;
-  };
+  user: AuthUser;
   accessToken: string;
   refreshToken: string;
+  expiresIn: string;
 }
 
 export interface RefreshTokenDto {

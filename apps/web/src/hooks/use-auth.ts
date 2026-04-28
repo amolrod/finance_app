@@ -13,11 +13,17 @@ import type {
   ResetPasswordDto,
   VerifyResetTokenResponse,
 } from '@/types/api';
+import type { User } from '@/stores/auth-store';
 
 export const authKeys = {
   all: ['auth'] as const,
   profile: () => [...authKeys.all, 'profile'] as const,
 };
+
+function toStoreUser(user: AuthResponse['user']): User {
+  const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email;
+  return { ...user, name };
+}
 
 // Login mutation
 export function useLogin() {
@@ -28,7 +34,7 @@ export function useLogin() {
       return apiClient.post<AuthResponse>('/auth/login', data);
     },
     onSuccess: (response) => {
-      login(response.user, response.accessToken, response.refreshToken);
+      login(toStoreUser(response.user), response.accessToken, response.refreshToken);
     },
   });
 }
@@ -42,7 +48,7 @@ export function useRegister() {
       return apiClient.post<AuthResponse>('/auth/register', data);
     },
     onSuccess: (response) => {
-      login(response.user, response.accessToken, response.refreshToken);
+      login(toStoreUser(response.user), response.accessToken, response.refreshToken);
     },
   });
 }
@@ -93,7 +99,11 @@ export function useUpdateProfile() {
       queryClient.invalidateQueries({ queryKey: authKeys.profile() });
       // Update the user in auth store
       const name = [response.firstName, response.lastName].filter(Boolean).join(' ') || response.email;
-      updateUser({ name });
+      updateUser({
+        firstName: response.firstName,
+        lastName: response.lastName,
+        name,
+      });
     },
   });
 }

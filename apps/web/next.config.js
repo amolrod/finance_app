@@ -1,16 +1,9 @@
 /** @type {import('next').NextConfig} */
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const apiBaseUrl = rawApiUrl.replace(/\/+$/, '').replace(/\/api\/v1$/, '');
+
 const nextConfig = {
   reactStrictMode: true,
-
-  // Ignorar errores de ESLint en build de producción
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-
-  // Ignorar errores de TypeScript en build (opcional, para deploys rápidos)
-  typescript: {
-    ignoreBuildErrors: true,
-  },
 
   // Turbopack para compilación más rápida en desarrollo
   // Usa: next dev --turbo
@@ -37,7 +30,7 @@ const nextConfig = {
     return [
       {
         source: '/api/v1/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/:path*`,
+        destination: `${apiBaseUrl}/api/v1/:path*`,
       },
     ];
   },

@@ -487,7 +487,7 @@ export default function CategoriesPage() {
                             {ruleTypeLabels[rule.type]}
                           </span>
                           <span>
-                            {matchLabels[rule.match]} "{rule.keyword}"
+                            {matchLabels[rule.match]} &quot;{rule.keyword}&quot;
                           </span>
                           <span className="text-foreground/70">
                             → {category?.name || 'Categoria eliminada'}

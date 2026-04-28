@@ -258,7 +258,7 @@ export default function DashboardPage() {
   const showOnboarding =
     onboardingReady && onboardingDismissed === false && !onboardingComplete;
   const showStatsSkeleton = !demoMode && (summaryLoading || chartLoading);
-  const chartIsLoading = chartLoading && !demoMode && !(chartTransactions?.data?.length || 0);
+  const chartIsLoading = chartLoading && !demoMode && activeTransactions.length === 0;
 
   const onboardingSteps = [
     {

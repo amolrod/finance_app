@@ -2,7 +2,6 @@
 
 import { useCallback, useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
-import Papa from 'papaparse';
 import { useDropzone } from 'react-dropzone';
 import { motion } from 'framer-motion';
 import { Upload, FileSpreadsheet, ArrowLeft, CheckCircle2 } from 'lucide-react';
@@ -87,6 +86,66 @@ const brokerTemplates: Record<string, Record<MappingKey, string[]>> = {
 };
 
 const normalizeHeader = (value: string) => value.trim().toLowerCase();
+
+const parseCsvRow = (line: string, delimiter: string) => {
+  const values: string[] = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let index = 0; index < line.length; index += 1) {
+    const char = line[index];
+    const nextChar = line[index + 1];
+
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        current += '"';
+        index += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === delimiter && !inQuotes) {
+      values.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+
+  values.push(current.trim());
+  return values;
+};
+
+const detectDelimiter = (headerLine: string) => {
+  const delimiters = [',', ';', '\t'];
+  return delimiters.reduce((best, delimiter) => {
+    const bestCount = parseCsvRow(headerLine, best).length;
+    const currentCount = parseCsvRow(headerLine, delimiter).length;
+    return currentCount > bestCount ? delimiter : best;
+  }, ',');
+};
+
+const parseCsvWithHeaders = (text: string) => {
+  const lines = text
+    .replace(/^\uFEFF/, '')
+    .split(/\r?\n/)
+    .filter((line) => line.trim().length > 0);
+
+  if (lines.length === 0) {
+    return { data: [], fields: [], error: 'El archivo está vacío.' };
+  }
+
+  const delimiter = detectDelimiter(lines[0]);
+  const fields = parseCsvRow(lines[0], delimiter).map((field) => field.trim());
+  const data = lines.slice(1).map((line) => {
+    const values = parseCsvRow(line, delimiter);
+    return fields.reduce<Record<string, string>>((row, field, index) => {
+      row[field] = values[index] || '';
+      return row;
+    }, {});
+  });
+
+  return { data, fields, error: null };
+};
 
 const parseNumber = (value: string | number | undefined) => {
   if (value === undefined || value === null) return null;
@@ -186,20 +245,16 @@ export default function InvestmentImportPage() {
     const reader = new FileReader();
     reader.onload = () => {
       const text = reader.result as string;
-      const parsed = Papa.parse<Record<string, string>>(text, {
-        header: true,
-        skipEmptyLines: true,
-        transformHeader: (value) => value.trim(),
-      });
-      if (parsed.errors.length) {
+      const parsed = parseCsvWithHeaders(text);
+      if (parsed.error) {
         toast({
           title: 'Error al leer CSV',
-          description: parsed.errors[0]?.message || 'No se pudo leer el archivo.',
+          description: parsed.error,
           variant: 'destructive',
         });
         return;
       }
-      const parsedHeaders = parsed.meta.fields || [];
+      const parsedHeaders = parsed.fields || [];
       setHeaders(parsedHeaders);
       setRows(parsed.data);
       setStep('mapping');

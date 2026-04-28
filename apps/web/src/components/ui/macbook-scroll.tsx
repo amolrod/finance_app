@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState, type ReactNode } from 'react';
-import { motion, useScroll, useTransform } from 'motion/react';
+import { motion, useScroll, useTransform, type MotionValue } from 'motion/react';
 import { cn } from '@/lib/utils';
 import {
   IconBrightnessDown,
@@ -34,10 +34,10 @@ type MacbookScrollProps = {
 };
 
 type LidProps = {
-  scaleX: ReturnType<typeof useTransform>;
-  scaleY: ReturnType<typeof useTransform>;
-  rotate: ReturnType<typeof useTransform>;
-  translate: ReturnType<typeof useTransform>;
+  scaleX: MotionValue<number>;
+  scaleY: MotionValue<number>;
+  rotate: MotionValue<number>;
+  translate: MotionValue<number>;
   src?: string;
   children?: ReactNode;
 };
