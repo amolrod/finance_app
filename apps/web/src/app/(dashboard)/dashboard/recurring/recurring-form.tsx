@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import {
@@ -41,11 +41,21 @@ import {
 } from '@/hooks/use-recurring-transactions';
 import type { Account, Category, RecurrenceFrequency } from '@/types/api';
 
+const NO_CATEGORY_VALUE = '__none__';
+
+const parseNumberInput = (value: unknown) => {
+  if (typeof value === 'string') {
+    const parsed = Number(value);
+    return Number.isNaN(parsed) ? value : parsed;
+  }
+  return value;
+};
+
 const formSchema = z.object({
   accountId: z.string().min(1, 'Selecciona una cuenta'),
   categoryId: z.string().optional(),
   type: z.enum(['INCOME', 'EXPENSE']),
-  amount: z.number().positive('El monto debe ser mayor a 0'),
+  amount: z.preprocess(parseNumberInput, z.number().positive('El monto debe ser mayor a 0')),
   description: z.string().min(1, 'La descripción es requerida'),
   notes: z.string().optional(),
   frequency: z.enum(['DAILY', 'WEEKLY', 'BIWEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY']),
@@ -54,7 +64,7 @@ const formSchema = z.object({
   startDate: z.string().min(1, 'La fecha de inicio es requerida'),
   endDate: z.string().optional(),
   autoConfirm: z.boolean(),
-  notifyBeforeDays: z.number().min(0).max(30),
+  notifyBeforeDays: z.preprocess(parseNumberInput, z.number().min(0).max(30)),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -93,7 +103,7 @@ export function RecurringTransactionForm({ open, onClose, editId, accounts, cate
   const updateMutation = useUpdateRecurringTransaction();
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as Resolver<FormValues>,
     defaultValues: {
       accountId: '',
       categoryId: '',
@@ -219,7 +229,12 @@ export function RecurringTransactionForm({ open, onClose, editId, accounts, cate
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Cuenta</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select
+                    onValueChange={(value) =>
+                      field.onChange(value === NO_CATEGORY_VALUE ? '' : value)
+                    }
+                    value={field.value || NO_CATEGORY_VALUE}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona una cuenta" />
@@ -251,7 +266,7 @@ export function RecurringTransactionForm({ open, onClose, editId, accounts, cate
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Sin categoría</SelectItem>
+                      <SelectItem value={NO_CATEGORY_VALUE}>Sin categoría</SelectItem>
                       {filteredCategories.map((category, index) => {
                         const accentColor = category.color || COLOR_PALETTE[index % COLOR_PALETTE.length];
                         return (
@@ -288,7 +303,13 @@ export function RecurringTransactionForm({ open, onClose, editId, accounts, cate
                   <FormItem>
                     <FormLabel>Monto</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.01" min="0" {...field} />
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        {...field}
+                        onChange={(event) => field.onChange(event.target.value)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -462,7 +483,13 @@ export function RecurringTransactionForm({ open, onClose, editId, accounts, cate
                   <FormItem>
                     <FormLabel>Notificar antes (días)</FormLabel>
                     <FormControl>
-                      <Input type="number" min="0" max="30" {...field} />
+                      <Input
+                        type="number"
+                        min="0"
+                        max="30"
+                        {...field}
+                        onChange={(event) => field.onChange(event.target.value)}
+                      />
                     </FormControl>
                     <FormDescription>0 = mismo día</FormDescription>
                     <FormMessage />

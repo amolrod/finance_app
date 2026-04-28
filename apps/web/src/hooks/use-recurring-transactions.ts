@@ -78,7 +78,7 @@ export function useUpdateRecurringTransaction() {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateRecurringTransactionDto }) => {
-      return apiClient.patch<RecurringTransaction>(`/recurring-transactions/${id}`, data);
+      return apiClient.put<RecurringTransaction>(`/recurring-transactions/${id}`, data);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: recurringKeys.all });
