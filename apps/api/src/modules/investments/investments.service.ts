@@ -34,6 +34,9 @@ export interface HoldingSummary {
   unrealizedPnLPercent: Decimal | null;
   realizedPnL: Decimal;
   currency: string;
+  priceSource: string | null;
+  priceFetchedAt: Date | null;
+  priceIsFallback: boolean;
 }
 
 export interface PortfolioSummary {
@@ -469,6 +472,9 @@ export class InvestmentsService {
             unrealizedPnLPercent: new Decimal(0),
             realizedPnL,
             currency: data.asset.currency,
+            priceSource: null,
+            priceFetchedAt: null,
+            priceIsFallback: false,
           });
         }
         continue;
@@ -484,6 +490,7 @@ export class InvestmentsService {
       const isPence = priceCurrencyRaw === 'GBp' || priceCurrencyRaw === 'GBX';
       const priceCurrency = isPence ? 'GBP' : priceCurrencyRaw;
       const normalizedPrice = isPence && latestPrice ? latestPrice.div(100) : latestPrice;
+      const priceSource = latestPriceRecord?.source || null;
       let effectivePrice: Decimal | null = normalizedPrice;
 
       let currentValue: Decimal | null = null;
@@ -523,6 +530,9 @@ export class InvestmentsService {
         unrealizedPnLPercent,
         realizedPnL,
         currency: assetCurrency,
+        priceSource,
+        priceFetchedAt: latestPriceRecord?.fetchedAt ?? null,
+        priceIsFallback: priceSource === 'cost-basis' || priceSource === 'reference-estimate',
       });
     }
 

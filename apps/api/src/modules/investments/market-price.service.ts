@@ -71,6 +71,20 @@ export class MarketPriceService {
     private readonly configService: ConfigService,
   ) {}
 
+  private normalizePrice(price: number, currency?: string) {
+    const rawCurrency = currency || 'USD';
+    const isPence = rawCurrency === 'GBp' || rawCurrency.toUpperCase() === 'GBX';
+    return {
+      price: isPence ? price * 0.01 : price,
+      currency: isPence ? 'GBP' : rawCurrency.toUpperCase(),
+    };
+  }
+
+  private roundPrice(price: number, decimals = 6) {
+    const factor = 10 ** decimals;
+    return Math.round(price * factor) / factor;
+  }
+
   /**
    * Obtener precio de Yahoo Finance (acciones, ETFs)
    */
@@ -95,34 +109,31 @@ export class MarketPriceService {
       const meta = result.meta;
       const quote = result.indicators?.quote?.[0];
       
-      const rawCurrency = meta.currency || 'USD';
-      const isPence = rawCurrency === 'GBp' || rawCurrency === 'GBX';
-      const currency = isPence ? 'GBP' : rawCurrency;
-      const scale = isPence ? 0.01 : 1;
-
       const rawCurrent = meta.regularMarketPrice || meta.previousClose;
       if (rawCurrent === undefined || rawCurrent === null) {
         this.logger.warn(`Yahoo Finance: Missing price for ${symbol}`);
         return null;
       }
 
-      const currentPrice = rawCurrent * scale;
-      const previousClose = (meta.previousClose || rawCurrent) * scale;
+      const normalizedCurrent = this.normalizePrice(rawCurrent, meta.currency);
+      const normalizedPrevious = this.normalizePrice(meta.previousClose || rawCurrent, meta.currency);
+      const currentPrice = normalizedCurrent.price;
+      const previousClose = normalizedPrevious.price;
       const change = currentPrice - previousClose;
       const changePercent = previousClose > 0 ? (change / previousClose) * 100 : 0;
 
       return {
         symbol: symbol.toUpperCase(),
-        price: Math.round(currentPrice * 100) / 100,
-        currency,
+        price: this.roundPrice(currentPrice),
+        currency: normalizedCurrent.currency,
         source: 'yahoo-finance',
-        change24h: Math.round(change * 100) / 100,
+        change24h: this.roundPrice(change),
         changePercent24h: Math.round(changePercent * 100) / 100,
         high24h: quote?.high?.[0]
-          ? Math.round(quote.high[0] * scale * 100) / 100
+          ? this.roundPrice(this.normalizePrice(quote.high[0], meta.currency).price)
           : undefined,
         low24h: quote?.low?.[0]
-          ? Math.round(quote.low[0] * scale * 100) / 100
+          ? this.roundPrice(this.normalizePrice(quote.low[0], meta.currency).price)
           : undefined,
         volume24h: quote?.volume?.[0],
         marketCap: meta.marketCap,
@@ -219,19 +230,15 @@ export class MarketPriceService {
       priceData = await this.fetchYahooFinancePrice(upperSymbol);
     }
 
-    // Fallback: use reference price with simulated variation
+    // Fallback: use cost basis only, without random variation.
     if (!priceData && referencePrice && referencePrice > 0) {
       this.logger.debug(`Using reference price for ${upperSymbol}`);
-      const rawCurrency = referenceCurrency || 'USD';
-      const isPence = rawCurrency === 'GBp' || rawCurrency === 'GBX';
-      const currency = isPence ? 'GBP' : rawCurrency;
-      const scale = isPence ? 0.01 : 1;
-      const variation = 1 + (Math.random() - 0.5) * 0.02; // ±1%
+      const normalizedReference = this.normalizePrice(referencePrice, referenceCurrency);
       priceData = {
         symbol: upperSymbol,
-        price: Math.round(referencePrice * scale * variation * 100) / 100,
-        currency,
-        source: 'reference-estimate',
+        price: this.roundPrice(normalizedReference.price),
+        currency: normalizedReference.currency,
+        source: 'cost-basis',
       };
     }
 
@@ -247,11 +254,12 @@ export class MarketPriceService {
    * Save price to database
    */
   async savePrice(assetId: string, priceData: PriceData) {
+    const normalized = this.normalizePrice(priceData.price, priceData.currency);
     return this.prisma.marketPrice.create({
       data: {
         assetId,
-        price: priceData.price,
-        currency: priceData.currency,
+        price: this.roundPrice(normalized.price),
+        currency: normalized.currency,
         source: priceData.source,
         fetchedAt: new Date(),
       },
@@ -567,19 +575,18 @@ export class MarketPriceService {
       const timestamps: number[] = result.timestamp || [];
       const closes: number[] = result.indicators?.quote?.[0]?.close || [];
 
-      const rawCurrency = meta.currency || 'USD';
-      const isPence = rawCurrency === 'GBp' || rawCurrency === 'GBX';
-      const currency = isPence ? 'GBP' : rawCurrency;
-      const scale = isPence ? 0.01 : 1;
-
       const points: PriceHistoryPoint[] = [];
 
       timestamps.forEach((timestamp, index) => {
         const close = closes[index];
         if (close === null || close === undefined) return;
         const date = new Date(timestamp * 1000).toISOString().split('T')[0];
-        const price = Math.round(close * scale * 10000) / 10000;
-        points.push({ date, price, currency });
+        const normalized = this.normalizePrice(close, meta.currency);
+        points.push({
+          date,
+          price: this.roundPrice(normalized.price),
+          currency: normalized.currency,
+        });
       });
 
       return points;

@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Sparkline } from '@/components/ui/sparkline';
 import { StatsSkeleton } from '@/components/ui/empty-state';
-import { formatCurrency, formatDate, cn } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
 import { Wallet, TrendingUp, TrendingDown, AlertTriangle, ArrowUpRight, ArrowDownRight, Receipt, PiggyBank, ChevronRight, CheckCircle2, Circle, Lightbulb, Sparkles, ArrowRight } from 'lucide-react';
 import Decimal from 'decimal.js';
 import Link from 'next/link';
@@ -163,7 +163,6 @@ export default function DashboardPage() {
     return chartTransactions?.data || [];
   }, [demoMode, chartTransactions?.data]);
 
-  const displayBalance = summary?.totalBalanceConverted || summary?.totalBalance || '0';
   const displayCurrency = summary?.targetCurrency || summary?.byCurrency?.[0]?.currency || preferredCurrency;
   const demoBalance = useMemo(() => {
     return activeTransactions.reduce((total, tx) => {
@@ -177,7 +176,10 @@ export default function DashboardPage() {
 
   const displayBalanceValue =
     summary?.totalBalanceConverted || summary?.totalBalance || (demoMode ? demoBalance.toFixed(2) : '0');
-  const displayAccounts = demoMode && !(accounts?.length || 0) ? DEMO_ACCOUNTS : accounts || [];
+  const displayAccounts = useMemo(
+    () => (demoMode && !(accounts?.length || 0) ? DEMO_ACCOUNTS : accounts || []),
+    [accounts, demoMode],
+  );
   const displayAccountCount =
     summary?.accountCount ?? displayAccounts.length;
   const recentItems = useMemo(() => {
@@ -305,7 +307,6 @@ export default function DashboardPage() {
   }, [onboardingComplete, onboardingDataReady, onboardingDismissed]);
 
   const insights = useMemo(() => {
-    if (!activeTransactions.length) return [];
     const now = new Date();
     const sevenDaysAgo = new Date(now);
     sevenDaysAgo.setDate(now.getDate() - 6);
@@ -365,17 +366,63 @@ export default function DashboardPage() {
     const netSoFar = monthIncome - monthExpense;
     const projectedNet = (netSoFar / daysElapsed) * daysInMonth;
 
-    const insightsList = [
+    const criticalBudget = [...(budgetAlerts || [])]
+      .filter((budget) => budget.percentageUsed >= 80)
+      .sort((a, b) => b.percentageUsed - a.percentageUsed)[0];
+    const lowBalanceAccount = displayAccounts
+      .map((account) => {
+        const balance = parseFloat(account.currentBalance);
+        const converted = convertAmount(balance, account.currency) ?? balance;
+        return { account, balance: converted };
+      })
+      .sort((a, b) => a.balance - b.balance)[0];
+
+    const insightsList: Array<{
+      title: string;
+      description: string;
+      href: string;
+      action: string;
+      severity: 'high' | 'medium' | 'low';
+    }> = [];
+
+    if (criticalBudget) {
+      insightsList.push({
+        title: `${criticalBudget.categoryName} al ${criticalBudget.percentageUsed.toFixed(0)}%`,
+        description: `Has usado ${formatAmount(parseFloat(criticalBudget.spentAmount))} de ${formatAmount(parseFloat(criticalBudget.limitAmount))}.`,
+        href: '/dashboard/budgets',
+        action: 'Ajustar presupuesto',
+        severity: criticalBudget.percentageUsed >= 100 ? 'high' : 'medium',
+      });
+    }
+
+    if (!activeTransactions.length) {
+      insightsList.push({
+        title: 'Panel listo para datos',
+        description: 'Importa movimientos para activar graficos, tendencias y alertas.',
+        href: '/dashboard/import',
+        action: 'Importar movimientos',
+        severity: 'low',
+      });
+      return insightsList;
+    }
+
+    insightsList.push(
       {
         title: 'Semana actual',
         description:
           prevWeekExpense > 0
             ? `Gastos ${expenseChange >= 0 ? 'subieron' : 'bajaron'} ${Math.abs(expenseChange).toFixed(1)}% vs semana anterior.`
             : 'Tu semana comienza. Aun no hay comparativa.',
+        href: '/dashboard/reports',
+        action: 'Ver informe',
+        severity: expenseChange > 25 ? 'medium' : 'low',
       },
       {
         title: 'Proyeccion del mes',
         description: `Si mantienes el ritmo, cerraras con ${formatAmount(projectedNet)} neto.`,
+        href: '/dashboard/reports',
+        action: 'Analizar mes',
+        severity: projectedNet < 0 ? 'high' : 'low',
       },
       {
         title: 'Gasto atipico',
@@ -383,18 +430,34 @@ export default function DashboardPage() {
           outlier && outlierRatio >= 2
             ? `${outlier.tx.description || 'Movimiento'} fue ${outlierRatio.toFixed(1)}x tu promedio.`
             : 'No se detectan gastos atipicos recientes.',
+        href: '/dashboard/transactions',
+        action: 'Revisar movimientos',
+        severity: outlierRatio >= 2 ? 'medium' : 'low',
       },
-    ];
+    );
 
     if (uncategorized.length) {
       insightsList.push({
         title: 'Categorias pendientes',
         description: `${uncategorized.length} movimiento${uncategorized.length > 1 ? 's' : ''} sin clasificar.`,
+        href: '/dashboard/transactions',
+        action: 'Clasificar',
+        severity: 'medium',
+      });
+    }
+
+    if (lowBalanceAccount && lowBalanceAccount.balance < 0) {
+      insightsList.unshift({
+        title: `${lowBalanceAccount.account.name} en negativo`,
+        description: `Saldo actual ${formatAmount(lowBalanceAccount.balance)} en moneda preferida.`,
+        href: '/dashboard/accounts',
+        action: 'Ver cuenta',
+        severity: 'high',
       });
     }
 
     return insightsList;
-  }, [activeTransactions, convertAmount, formatAmount]);
+  }, [activeTransactions, budgetAlerts, convertAmount, displayAccounts, formatAmount]);
 
   return (
     <div className="space-y-8">
@@ -647,6 +710,57 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {insights.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, type: 'spring', stiffness: 300, damping: 30 }}
+        >
+          <Card className="border-foreground/10 bg-background/80 shadow-soft">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base font-medium">Prioridades de hoy</CardTitle>
+                  <p className="text-[13px] text-muted-foreground">
+                    Las señales que más pueden cambiar tu mes.
+                  </p>
+                </div>
+                <Link href="/dashboard/reports" className="hidden text-[13px] text-muted-foreground hover:text-foreground transition-colors sm:inline-flex items-center gap-0.5">
+                  Ver informes <ChevronRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-3 md:grid-cols-3">
+                {insights.slice(0, 3).map((item) => (
+                  <Link
+                    key={item.title}
+                    href={item.href}
+                    className={cn(
+                      'group rounded-xl border px-4 py-3 transition-colors',
+                      item.severity === 'high'
+                        ? 'border-destructive/20 bg-destructive/5 hover:bg-destructive/10'
+                        : item.severity === 'medium'
+                        ? 'border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10'
+                        : 'border-foreground/10 bg-foreground/[0.03] hover:bg-secondary/50'
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-[13px] font-semibold text-foreground/90">{item.title}</p>
+                        <p className="mt-1 line-clamp-2 text-[12px] text-muted-foreground">{item.description}</p>
+                      </div>
+                      <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                    </div>
+                    <p className="mt-3 text-[12px] font-medium text-foreground/70">{item.action}</p>
+                  </Link>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
       {/* Charts */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="grid gap-6 lg:grid-cols-2">
         <InteractiveMonthlyChart transactions={activeTransactions} isLoading={chartIsLoading} />
@@ -767,7 +881,7 @@ export default function DashboardPage() {
           <Card className="h-full border-foreground/10 bg-background/80 shadow-soft">
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base font-medium">Insights</CardTitle>
+                <CardTitle className="text-base font-medium">Siguientes acciones</CardTitle>
                 <Link href="/dashboard/reports" className="text-[13px] text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-0.5">
                   Ver detalle <ChevronRight className="h-3.5 w-3.5" />
                 </Link>
@@ -784,10 +898,14 @@ export default function DashboardPage() {
               ) : (
                 <div className="space-y-4">
                   {insights.slice(0, 4).map((item) => (
-                    <div key={item.title} className="rounded-xl border border-foreground/10 bg-foreground/5 px-3 py-2.5">
-                      <p className="text-[12px] font-semibold text-foreground/80">{item.title}</p>
+                    <Link key={item.title} href={item.href} className="block rounded-xl border border-foreground/10 bg-foreground/5 px-3 py-2.5 transition-colors hover:bg-secondary/50">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-[12px] font-semibold text-foreground/80">{item.title}</p>
+                        <ChevronRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      </div>
                       <p className="text-[12px] text-muted-foreground mt-1">{item.description}</p>
-                    </div>
+                      <p className="mt-2 text-[12px] font-medium text-foreground/70">{item.action}</p>
+                    </Link>
                   ))}
                 </div>
               )}

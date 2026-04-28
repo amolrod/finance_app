@@ -22,6 +22,20 @@ interface OperationsResponse {
   totalPages: number;
 }
 
+interface RefreshPricesResponse {
+  message: string;
+  results: Array<{
+    assetId: string;
+    symbol: string;
+    success: boolean;
+    price?: number;
+    source?: string;
+    change24h?: number;
+    changePercent24h?: number;
+    error?: string;
+  }>;
+}
+
 interface OperationFilters {
   assetId?: string;
   type?: OperationType;
@@ -231,10 +245,11 @@ export function useRefreshPrices() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => apiClient.post<{ message: string; results: unknown[] }>('/investments/prices/refresh-all', {}),
+    mutationFn: () => apiClient.post<RefreshPricesResponse>('/investments/prices/refresh-all', {}),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: investmentKeys.holdings() });
       queryClient.invalidateQueries({ queryKey: investmentKeys.portfolio() });
+      queryClient.invalidateQueries({ queryKey: [...investmentKeys.all, 'price-history'] });
     },
   });
 }
@@ -247,10 +262,11 @@ export function useAutoRefreshPrices(enabled: boolean = true) {
   return useQuery({
     queryKey: [...investmentKeys.all, 'auto-refresh'],
     queryFn: async () => {
-      const result = await apiClient.post<{ message: string; results: unknown[] }>('/investments/prices/refresh-all', {});
+      const result = await apiClient.post<RefreshPricesResponse>('/investments/prices/refresh-all', {});
       // Invalidate holdings and portfolio to reflect new prices
       queryClient.invalidateQueries({ queryKey: investmentKeys.holdings() });
       queryClient.invalidateQueries({ queryKey: investmentKeys.portfolio() });
+      queryClient.invalidateQueries({ queryKey: [...investmentKeys.all, 'price-history'] });
       return { ...result, lastUpdated: new Date().toISOString() };
     },
     enabled: enabled && isAuthenticated,
