@@ -1,4 +1,4 @@
-# 🚀 Guía de Despliegue: Vercel + Neon
+# 🚀 Guía Despliegue: Vercel + Neon
 
 Esta guía te llevará paso a paso para desplegar la aplicación de finanzas personales usando **Vercel** (hosting) y **Neon** (PostgreSQL serverless).
 
